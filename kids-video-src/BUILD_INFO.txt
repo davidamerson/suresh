@@ -1,0 +1,4 @@
+Source archive SHA-256: b83d124348c4334f850255bfd7c45b75fffe0aedcfe659952f3ce7538a0349e0
+Expected base64 length: 51208 bytes
+Build variants: daughterDebug, sonDebug
+Target: Android phones/tablets and Google TV / Xiaomi TV Box S (3rd Gen)
