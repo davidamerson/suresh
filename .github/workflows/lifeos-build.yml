@@ -1,0 +1,54 @@
+name: Build Suresh Life OS APK
+
+on:
+  push:
+    branches: [ lifeos-build ]
+    paths:
+      - 'lifeosapp/**'
+      - '.github/workflows/lifeos-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build debug APK
+        working-directory: lifeosapp
+        run: gradle --no-daemon assembleDebug
+
+      - name: Prepare and verify APK
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp lifeosapp/app/build/outputs/apk/debug/app-debug.apk dist/Suresh-Life-OS-v1.1.apk
+          sha256sum dist/Suresh-Life-OS-v1.1.apk | tee dist/SHA256SUMS.txt
+          AAPT=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -1)
+          {
+            echo "=== APK BADGING ==="
+            "$AAPT" dump badging dist/Suresh-Life-OS-v1.1.apk
+            echo
+            echo "=== APK SIGNATURE ==="
+            "$APKSIGNER" verify --verbose --print-certs dist/Suresh-Life-OS-v1.1.apk
+          } > dist/BUILD-INFO.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Suresh-Life-OS-v1.1
+          path: dist/
+          if-no-files-found: error
