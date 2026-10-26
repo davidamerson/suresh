@@ -27,32 +27,28 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Build debug APK
+      - name: Build release APK
         working-directory: lifeosapp
-        run: gradle --no-daemon assembleDebug
+        run: gradle --no-daemon assembleRelease
 
-      - name: Prepare and verify APK
+      - name: Prepare unsigned release APK and signer
         shell: bash
         run: |
           mkdir -p dist tools
-          cp lifeosapp/app/build/outputs/apk/debug/app-debug.apk dist/Suresh-Life-OS-v1.4.apk
-          sha256sum dist/Suresh-Life-OS-v1.4.apk | tee dist/SHA256SUMS.txt
+          cp lifeosapp/app/build/outputs/apk/release/app-release-unsigned.apk dist/Suresh-Life-OS-v1.4-unsigned.apk
+          sha256sum dist/Suresh-Life-OS-v1.4-unsigned.apk | tee dist/SHA256SUMS.txt
           AAPT=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -1)
-          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -1)
           APKSIGNER_JAR=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner.jar 2>/dev/null | sort -V | tail -1)
           cp "$APKSIGNER_JAR" tools/apksigner.jar
           {
             echo "=== APK BADGING ==="
-            "$AAPT" dump badging dist/Suresh-Life-OS-v1.4.apk
-            echo
-            echo "=== APK SIGNATURE ==="
-            "$APKSIGNER" verify --verbose --print-certs dist/Suresh-Life-OS-v1.4.apk
+            "$AAPT" dump badging dist/Suresh-Life-OS-v1.4-unsigned.apk
           } > dist/BUILD-INFO.txt
 
-      - name: Upload APK artifact
+      - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Suresh-Life-OS-v1.4-with-signer
+          name: Suresh-Life-OS-v1.4-release-unsigned
           path: |
             dist/
             tools/apksigner.jar
