@@ -7,6 +7,7 @@ on:
       - '.github/workflows/lifeos-cloud-build.yml'
   workflow_dispatch:
 
+# v1.5 final source refresh
 jobs:
   build:
     runs-on: ubuntu-latest
