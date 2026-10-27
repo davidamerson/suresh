@@ -1,0 +1,8 @@
+package com.suresh.lifeos;
+import android.content.*;import android.graphics.*;import android.view.*;import android.util.*;
+public class ProgressRingView extends View{
+ private Paint bg=new Paint(1),fg=new Paint(1),txt=new Paint(1),sub=new Paint(1);private int progress=0;private String center="0%",label="ON TRACK";private int accent=Color.rgb(72,213,151);
+ public ProgressRingView(Context c){super(c);init();}public ProgressRingView(Context c,AttributeSet a){super(c,a);init();}void init(){bg.setStyle(Paint.Style.STROKE);bg.setStrokeWidth(22);bg.setColor(Color.rgb(36,50,70));bg.setStrokeCap(Paint.Cap.ROUND);fg.setStyle(Paint.Style.STROKE);fg.setStrokeWidth(22);fg.setStrokeCap(Paint.Cap.ROUND);txt.setTextAlign(Paint.Align.CENTER);txt.setTypeface(Typeface.DEFAULT_BOLD);txt.setColor(Color.WHITE);sub.setTextAlign(Paint.Align.CENTER);sub.setColor(Color.rgb(160,177,198));}
+ public void setProgressData(int p,String l){progress=Math.max(0,Math.min(100,p));center=progress+"%";label=l==null?"":l;accent=progress>=80?Color.rgb(72,213,151):progress>=55?Color.rgb(255,184,77):Color.rgb(255,102,123);invalidate();}
+ protected void onMeasure(int w,int h){int s=Math.min(MeasureSpec.getSize(w),dp(220));setMeasuredDimension(s,s);}protected void onDraw(Canvas c){super.onDraw(c);float pad=28;RectF r=new RectF(pad,pad,getWidth()-pad,getHeight()-pad);c.drawArc(r,-90,360,false,bg);fg.setColor(accent);c.drawArc(r,-90,360*progress/100f,false,fg);txt.setTextSize(sp(38));c.drawText(center,getWidth()/2f,getHeight()/2f+5,txt);sub.setTextSize(sp(13));c.drawText(label,getWidth()/2f,getHeight()/2f+36,sub);}int dp(int v){return (int)(v*getResources().getDisplayMetrics().density+.5f);}float sp(int v){return v*getResources().getDisplayMetrics().scaledDensity;}
+}
