@@ -35,20 +35,20 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist tools
-          cp lifeosapp/app/build/outputs/apk/release/app-release-unsigned.apk dist/Suresh-Life-OS-v1.4-unsigned.apk
-          sha256sum dist/Suresh-Life-OS-v1.4-unsigned.apk | tee dist/SHA256SUMS.txt
+          cp lifeosapp/app/build/outputs/apk/release/app-release-unsigned.apk dist/Suresh-Life-OS-v1.5-unsigned.apk
+          sha256sum dist/Suresh-Life-OS-v1.5-unsigned.apk | tee dist/SHA256SUMS.txt
           AAPT=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -1)
           APKSIGNER_JAR=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner.jar 2>/dev/null | sort -V | tail -1)
           cp "$APKSIGNER_JAR" tools/apksigner.jar
           {
             echo "=== APK BADGING ==="
-            "$AAPT" dump badging dist/Suresh-Life-OS-v1.4-unsigned.apk
+            "$AAPT" dump badging dist/Suresh-Life-OS-v1.5-unsigned.apk
           } > dist/BUILD-INFO.txt
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Suresh-Life-OS-v1.4-release-unsigned
+          name: Suresh-Life-OS-v1.5-release-unsigned
           path: |
             dist/
             tools/apksigner.jar
