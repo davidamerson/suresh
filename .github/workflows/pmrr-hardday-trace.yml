@@ -1,0 +1,41 @@
+name: PMRR Hard Day Trace
+
+on:
+  push:
+    branches: [pmrr-2025-blind]
+    paths:
+      - 'pmrr_remote/pmrr_trace.cpp'
+      - '.github/workflows/pmrr-hardday-trace.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: g++ -O3 -std=c++20 pmrr_remote/pmrr_trace.cpp -o pmrr_remote/pmrr_trace
+      - name: Download January and August 2025
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 5 'https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/2025/01/Exness_XAUUSD_Raw_Spread_2025_01.zip' -o /tmp/jan.zip
+          curl -L --fail --retry 5 'https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/2025/08/Exness_XAUUSD_Raw_Spread_2025_08.zip' -o /tmp/aug.zip
+      - name: Trace BASE and best adaptive candidate
+        run: |
+          mkdir -p out
+          unzip -p /tmp/jan.zip | ./pmrr_remote/pmrr_trace 20250114 6 2 5 6 99 6 > out/jan14_base.csv
+          unzip -p /tmp/jan.zip | ./pmrr_remote/pmrr_trace 20250114 6 2 6 4 7 16 > out/jan14_best.csv
+          unzip -p /tmp/aug.zip | ./pmrr_remote/pmrr_trace 20250815 6 2 5 6 99 6 > out/aug15_base.csv
+          unzip -p /tmp/aug.zip | ./pmrr_remote/pmrr_trace 20250815 6 2 6 4 7 16 > out/aug15_best.csv
+          echo '--- JAN14 BASE ---'; cat out/jan14_base.csv
+          echo '--- JAN14 BEST ---'; cat out/jan14_best.csv
+          echo '--- AUG15 BASE ---'; cat out/aug15_base.csv
+          echo '--- AUG15 BEST ---'; cat out/aug15_best.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PMRR-hardday-traces
+          path: out/
+          retention-days: 7
