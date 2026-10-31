@@ -1,0 +1,67 @@
+name: PH1 Age Depth Time Escape Search
+on:
+  push:
+    branches: [ph1-age-depth-time]
+    paths:
+      - 'ph1_mathgrid/age_depth_time_escape.cpp'
+      - '.github/workflows/ph1-age-depth-time.yml'
+permissions:
+  contents: read
+jobs:
+  replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and selftest
+        run: |
+          g++ -O3 -std=c++20 ph1_mathgrid/age_depth_time_escape.cpp -o /tmp/adt
+          /tmp/adt --selftest | tee selftest.csv
+          python3 - <<'PY'
+          import csv
+          r=list(csv.DictReader(open('selftest.csv')))
+          assert [round(float(x['net']),2) for x in r]==[0.93,1.72,1.72,1.51,1.51]
+          print('SELFTEST_PASS')
+          PY
+          mkdir -p data out
+      - name: Download raw months
+        shell: bash
+        run: |
+          set -euo pipefail
+          Y='${{ matrix.year }}'
+          if [ "$Y" = 2025 ]; then MONTHS='01 02 03 04 05 06 07 08 09 10 11 12'; else MONTHS='01 02 03 04 05 06 07 08 09 10'; fi
+          for M in $MONTHS; do
+            URL="https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/${Y}/${M}/Exness_XAUUSD_Raw_Spread_${Y}_${M}.zip"
+            curl -L --fail --retry 5 --retry-delay 2 "$URL" -o "data/$M.zip"
+          done
+          echo "$MONTHS" > data/months.txt
+      - name: Replay configs
+        shell: bash
+        run: |
+          set -euo pipefail
+          (for M in $(cat data/months.txt); do unzip -p "data/$M.zip"; done) | /tmp/adt > "out/daily_${{ matrix.year }}.csv"
+      - name: Summarize
+        shell: bash
+        run: |
+          python3 - <<'PY' | tee "out/summary_${{ matrix.year }}.txt"
+          import csv,json,collections
+          y='${{ matrix.year }}';rows=list(csv.DictReader(open(f'out/daily_{y}.csv')));by=collections.defaultdict(list)
+          for r in rows:
+            for k in ['pnl','min_equity','max_margin','balance']:r[k]=float(r[k])
+            for k in ['target','margin_fail','account_fail','baskets','wins','friday','orders','max_open','escapes']:r[k]=int(r[k])
+            by[r['config']].append(r)
+          out=[]
+          for n,rs in by.items():
+            active=[r for r in rs if r['baskets'] or r['orders'] or abs(r['pnl'])>1e-12]; neg=[r for r in rs if r['pnl']<0]; fail=next((r for r in rs if r['account_fail'] or r['margin_fail']),None)
+            out.append({'config':n,'year':int(y),'traded_days':len(active),'target_days':sum(r['target'] for r in rs),'target_rate':round(100*sum(r['target'] for r in rs)/len(active),3) if active else 0,'negative_days':len(neg),'total_pnl':round(sum(r['pnl'] for r in rs),3),'end_balance':rs[-1]['balance'],'min_equity':min(r['min_equity'] for r in rs),'max_open':max(r['max_open'] for r in rs),'max_margin':max(r['max_margin'] for r in rs),'escapes':sum(r['escapes'] for r in rs),'account_fail':any(r['account_fail'] for r in rs),'margin_fail':any(r['margin_fail'] for r in rs),'failure_date':fail['date'] if fail else None,'worst_day':min(({'date':int(r['date']),'pnl':r['pnl']} for r in rs),key=lambda z:z['pnl']),'loss_days':[{'date':int(r['date']),'pnl':r['pnl']} for r in neg],'non_target_days':[{'date':int(r['date']),'pnl':r['pnl']} for r in active if not r['target']]})
+          out.sort(key=lambda x:(x['account_fail'] or x['margin_fail'],x['negative_days'],-x['target_days'],-x['total_pnl']))
+          print(json.dumps(out,indent=2));json.dump(out,open(f'out/summary_{y}.json','w'),indent=2)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PH1-AgeDepthTime-${{ matrix.year }}
+          path: out/
+          retention-days: 7
