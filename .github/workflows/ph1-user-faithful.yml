@@ -1,0 +1,77 @@
+name: PH1 User Faithful Replay
+on:
+  push:
+    branches: [ph1-user-faithful]
+  workflow_dispatch:
+
+jobs:
+  replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and selftest
+        run: |
+          g++ -O3 -std=c++20 ph1_mathgrid/ph1_faithful.cpp -o ph1_mathgrid/ph1_faithful
+          mkdir -p out data
+          ./ph1_mathgrid/ph1_faithful --selftest | tee out/selftest.csv
+          python3 - <<'PY'
+          import csv
+          r=list(csv.DictReader(open('out/selftest.csv')))
+          assert [round(float(x['net']),2) for x in r]==[0.93,1.72,1.72,1.51,1.51]
+          print('SELFTEST_PASS')
+          PY
+      - name: Download year
+        shell: bash
+        run: |
+          set -euo pipefail
+          Y='${{ matrix.year }}'
+          if [ "$Y" = '2025' ]; then MONTHS='01 02 03 04 05 06 07 08 09 10 11 12'; else MONTHS='01 02 03 04 05 06 07 08 09 10'; fi
+          for M in $MONTHS; do
+            URL="https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/${Y}/${M}/Exness_XAUUSD_Raw_Spread_${Y}_${M}.zip"
+            curl -L --fail --retry 5 --retry-delay 2 "$URL" -o "data/${M}.zip"
+          done
+          echo "$MONTHS" > data/months.txt
+      - name: Continuous replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          (for M in $(cat data/months.txt); do unzip -p "data/${M}.zip"; done) | ./ph1_mathgrid/ph1_faithful > "out/faithful_${{ matrix.year }}_daily.csv"
+      - name: Summary
+        run: |
+          python3 - <<'PY'
+          import csv,json,os
+          y='${{ matrix.year }}'
+          p=f'out/faithful_{y}_daily.csv'
+          rows=[]
+          with open(p,newline='') as f:
+            for r in csv.DictReader(f):
+              for k in ['realized_pnl','min_equity','max_margin_1_2000','balance_end']: r[k]=float(r[k])
+              for k in ['target_hit','margin_fail','account_fail','baskets','cycle_wins','friday_closes','total_orders','max_open']: r[k]=int(r[k])
+              rows.append(r)
+          traded=[r for r in rows if r['baskets'] or r['total_orders'] or abs(r['realized_pnl'])>1e-12]
+          loss=[r for r in rows if r['realized_pnl']<0]
+          out={
+            'year':int(y),'rows':len(rows),'traded_days':len(traded),'target_hit_days':sum(r['target_hit'] for r in rows),
+            'target_rate_traded_pct':round(100*sum(r['target_hit'] for r in rows)/len(traded),3) if traded else 0,
+            'positive_realized_days':sum(r['realized_pnl']>0 for r in rows),'negative_realized_days':len(loss),
+            'total_realized_pnl':round(sum(r['realized_pnl'] for r in rows),6),'end_balance':rows[-1]['balance_end'] if rows else 1000,
+            'min_equity':min((r['min_equity'] for r in rows),default=1000),'max_open':max((r['max_open'] for r in rows),default=0),
+            'max_margin_1_2000':max((r['max_margin_1_2000'] for r in rows),default=0),'max_orders_day':max((r['total_orders'] for r in rows),default=0),
+            'margin_fail':any(r['margin_fail'] for r in rows),'account_fail':any(r['account_fail'] for r in rows),
+            'failure_date':next((r['date'] for r in rows if r['margin_fail'] or r['account_fail']),None),
+            'worst_realized_day':min(({'date':r['date'],'pnl':r['realized_pnl'],'min_equity':r['min_equity'],'max_open':r['max_open']} for r in rows),key=lambda x:x['pnl'],default=None),
+            'loss_days':[{'date':r['date'],'pnl':r['realized_pnl'],'min_equity':r['min_equity'],'max_open':r['max_open']} for r in loss]
+          }
+          print('SUMMARY '+json.dumps(out,sort_keys=True))
+          json.dump(out,open(f'out/faithful_{y}_summary.json','w'),indent=2,sort_keys=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PH1-User-Faithful-${{ matrix.year }}
+          path: out/
+          retention-days: 7
