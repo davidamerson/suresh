@@ -1,0 +1,61 @@
+name: PMRR-D 2025 Blind Backtest
+
+on:
+  push:
+    branches: [pmrr-2025-blind]
+    paths:
+      - 'pmrr_remote/**'
+      - '.github/workflows/pmrr-2025-blind.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build streaming engine
+        run: |
+          g++ -O3 -std=c++20 pmrr_remote/pmrr_backtest.cpp -o pmrr_remote/pmrr_backtest
+          mkdir -p results/calibration results/2025 results/final
+
+      - name: Calibration on October 2026
+        run: |
+          set -euo pipefail
+          URL='https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/2026/10/Exness_XAUUSD_Raw_Spread_2026_10.zip'
+          echo "Downloading calibration: $URL"
+          curl -L --fail --retry 5 --retry-delay 2 "$URL" -o /tmp/cal.zip
+          unzip -t /tmp/cal.zip
+          unzip -p /tmp/cal.zip | ./pmrr_remote/pmrr_backtest > results/calibration/2026_10.csv
+          python3 pmrr_remote/summarize.py --calibrate results/calibration/2026_10.csv
+
+      - name: Run untouched 2025 blind year
+        run: |
+          set -euo pipefail
+          for M in 01 02 03 04 05 06 07 08 09 10 11 12; do
+            URL="https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/2025/${M}/Exness_XAUUSD_Raw_Spread_2025_${M}.zip"
+            echo "=== 2025-${M} ==="
+            curl -L --fail --retry 5 --retry-delay 2 "$URL" -o "/tmp/xau_${M}.zip"
+            unzip -t "/tmp/xau_${M}.zip"
+            unzip -p "/tmp/xau_${M}.zip" | ./pmrr_remote/pmrr_backtest > "results/2025/2025_${M}.csv"
+            rm -f "/tmp/xau_${M}.zip"
+            tail -n +2 "results/2025/2025_${M}.csv" | awk -F, '{n++; if($3>0)p++; if($2==1)t++; sum+=$3; if(n==1||$3<w)w=$3; if(n==1||$5<dd)dd=$5; if($4>r)r=$4} END {printf("month rows=%d positive=%d targets=%d pnl=%.6f worst_close=%.6f worst_intraday=%.6f max_rev=%d\n",n,p,t,sum,w,dd,r)}'
+          done
+
+      - name: Aggregate blind result
+        run: |
+          python3 pmrr_remote/summarize.py --pattern 'results/2025/*.csv' --outdir results/final
+          echo '--- FINAL SUMMARY JSON ---'
+          cat results/final/PMRR_D_2025_summary.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PMRR-D-2025-blind-results
+          path: results/
+          retention-days: 7
