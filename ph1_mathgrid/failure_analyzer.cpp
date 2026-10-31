@@ -56,7 +56,7 @@ void emitClose(Sim&s,double bid,double ask,int date,int sec,const string&reason)
     double dur=(abstime(date,sec)-b.startAbs)/3600.0;
     epout<<b.id<<","<<b.startDate<<","<<b.startSec<<","<<date<<","<<sec<<","<<b.startSide<<","<<fixed<<setprecision(6)<<b.startRange<<","<<b.startBoundary<<","<<b.zero<<","<<q<<","<<reason<<","<<dur<<","<<b.maxOrders<<","<<b.maxPos<<","<<(-b.minNeg)<<","<<b.maxTwoDepth<<","<<b.maxSpan<<","<<b.switches<<","<<b.worst<<"\n";
     for(const auto &x:b.states){
-        stout<<b.id<<","<<x.eventIndex<<","<<x.date<<","<<x.sec<<","<<x.nextSide<<","<<x.wouldSwitch<<","<<x.orders<<","<<x.posDepth<<","<<x.negDepth<<","<<x.twoDepth<<","<<x.span<<","<<x.switches<<","<<x.current_liq<<","<<x.worst_liq<<","<<x.elapsedHours<<","<<x.startRange<<","<<x.dailyRealized<<","<<q<<","<<reason<<"\n";
+        stout<<b.id<<","<<x.eventIndex<<","<<x.date<<","<<x.sec<<","<<x.nextSide<<","<<x.wouldSwitch<<","<<x.orders<<","<<x.posDepth<<","<<x.negDepth<<","<<x.twoDepth<<","<<x.span<<","<<x.switches<<","<<x.liq<<","<<x.worst<<","<<x.elapsedHours<<","<<x.startRange<<","<<x.dailyRealized<<","<<q<<","<<reason<<"\n";
     }
     s.dailyRealized+=q;
     b=Basket(); setRangeLatest(s,true);
@@ -73,11 +73,11 @@ void startBasket(Sim&s,int side,double bid,double ask,int date,int sec){
 void recordPreAdd(Sim&s,int side,double bid,double ask,int date,int sec){
     auto &b=s.b;State x;x.date=date;x.sec=sec;x.eventIndex=(int)b.states.size()+1;x.nextSide=side;x.wouldSwitch=(b.lastLevelSide!=0&&b.lastLevelSide!=side);
     x.orders=b.size();x.posDepth=b.maxPos;x.negDepth=-b.minNeg;x.twoDepth=min(x.posDepth,x.negDepth);x.span=x.posDepth+x.negDepth;x.switches=b.switches;
-    x.current_liq=liq(b,bid,ask);x.worst_liq=min(b.worst,x.current_liq);x.elapsedHours=(abstime(date,sec)-b.startAbs)/3600.0;x.startRange=b.startRange;x.dailyRealized=s.dailyRealized;
+    x.liq=liq(b,bid,ask);x.worst=min(b.worst,x.liq);x.elapsedHours=(abstime(date,sec)-b.startAbs)/3600.0;x.startRange=b.startRange;x.dailyRealized=s.dailyRealized;
     b.states.push_back(x);
 }
 void addOrder(Sim&s,int side,double bid,double ask){
-    auto &b=s.b;double fill=side==1?ask:bid;if(side==1){b.buys++;b.buySum+=fill;}else{b.sells++;b.sellSum+=fill;}
+    auto &b=s.b;double fill=side==1?ask:bid;if(side==1){b.buys++;b.buySum+=fill;}else{s.b.sells++;b.sellSum+=fill;}
     if(b.lastLevelSide!=0&&b.lastLevelSide!=side)b.switches++;b.lastLevelSide=side;updateWorst(b,bid,ask);
 }
 
