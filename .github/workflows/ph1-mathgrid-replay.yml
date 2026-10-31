@@ -1,0 +1,84 @@
+name: PH1 MathGrid 2025-2026 Replay
+on:
+  push:
+    branches: [ph1-mathgrid-10-mainrun]
+  workflow_dispatch:
+
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build engine
+        run: |
+          g++ -O3 -std=c++20 ph1_mathgrid/ph1_mathgrid.cpp -o ph1_mathgrid/ph1_mathgrid
+          mkdir -p results merged
+      - name: Scenario 1-5 unit tests
+        run: |
+          ./ph1_mathgrid/ph1_mathgrid --selftest | tee merged/scenario_selftest.csv
+          python3 - <<'PY'
+          import csv
+          rows=list(csv.DictReader(open('merged/scenario_selftest.csv')))
+          exp=[0.93,1.72,1.72,1.51,1.51]
+          got=[round(float(r['net']),2) for r in rows]
+          assert got==exp,(got,exp)
+          print('SCENARIO_UNIT_TEST_PASS',got)
+          PY
+      - name: Replay 2025 full year and 2026 Jan-Oct
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_month () {
+            Y="$1"; M="$2"
+            URL="https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/${Y}/${M}/Exness_XAUUSD_Raw_Spread_${Y}_${M}.zip"
+            echo "DOWNLOAD ${Y}-${M}"
+            curl -L --fail --retry 5 --retry-delay 2 "$URL" -o "/tmp/x_${Y}_${M}.zip"
+            unzip -p "/tmp/x_${Y}_${M}.zip" | ./ph1_mathgrid/ph1_mathgrid chartzero > "results/chartzero_${Y}_${M}.csv"
+            unzip -p "/tmp/x_${Y}_${M}.zip" | ./ph1_mathgrid/ph1_mathgrid fillzero > "results/fillzero_${Y}_${M}.csv"
+            rm -f "/tmp/x_${Y}_${M}.zip"
+          }
+          for M in 01 02 03 04 05 06 07 08 09 10 11 12; do run_month 2025 "$M"; done
+          for M in 01 02 03 04 05 06 07 08 09 10; do run_month 2026 "$M"; done
+      - name: Summaries
+        run: |
+          for MODE in chartzero fillzero; do
+            for Y in 2025 2026; do
+              python3 ph1_mathgrid/summarize.py "$MODE" "$Y" | tee "merged/${MODE}_${Y}_summary.txt"
+            done
+          done
+          python3 - <<'PY'
+          import csv,glob,json,os
+          def load(pats):
+            a=[]
+            for pat in pats:
+              for p in sorted(glob.glob(pat)):
+                with open(p,newline='') as f:
+                  for r in csv.DictReader(f):
+                    for k in ['day_pnl','worst_day_delta','max_margin_1_2000']: r[k]=float(r[k])
+                    for k in ['target_hit','emergency','baskets','cycle_wins','forced_closes','total_orders','max_open']: r[k]=int(r[k])
+                    a.append(r)
+            return a
+          def summarize(mode):
+            rows=load([f'results/{mode}_2025_*.csv',f'results/{mode}_2026_*.csv'])
+            bal=1000.;minbal=bal;mine=bal
+            for r in rows:
+              mine=min(mine,bal+r['worst_day_delta']);bal+=r['day_pnl'];minbal=min(minbal,bal)
+            traded=[r for r in rows if r['baskets']>0 or abs(r['day_pnl'])>1e-12]
+            out={'mode':mode,'days':len(rows),'traded_days':len(traded),'target_hits':sum(r['target_hit'] for r in rows),'positive_days':sum(r['day_pnl']>0 for r in rows),'negative_days':sum(r['day_pnl']<0 for r in rows),'total_pnl':round(sum(r['day_pnl'] for r in rows),6),'end_balance':round(bal,6),'min_closed_balance':round(minbal,6),'min_intraday_equity':round(mine,6),'emergency_days':sum(r['emergency'] for r in rows),'max_open':max(r['max_open'] for r in rows),'max_orders_day':max(r['total_orders'] for r in rows),'max_baskets_day':max(r['baskets'] for r in rows),'max_margin_1_2000':round(max(r['max_margin_1_2000'] for r in rows),6),'worst_day':min(({'date':r['date'],'pnl':r['day_pnl'],'emergency':r['emergency'],'max_open':r['max_open'],'baskets':r['baskets'],'worst_delta':r['worst_day_delta']} for r in rows),key=lambda x:x['pnl'])}
+            return out
+          final=[summarize('chartzero'),summarize('fillzero')]
+          print('COMBINED_SUMMARY '+json.dumps(final,sort_keys=True))
+          with open('merged/combined_summary.json','w') as f: json.dump(final,f,indent=2,sort_keys=True)
+          PY
+      - name: Show summary files
+        run: |
+          cat merged/*_summary.txt
+          cat merged/combined_summary.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PH1-MathGrid-2025-2026-results
+          path: |
+            merged/
+            results/
+          retention-days: 7
