@@ -1,1 +1,89 @@
-# placeholder
+name: PH1 Geometry Guard Search
+on:
+  push:
+    branches: [ph1-guard-search]
+    paths:
+      - 'ph1_mathgrid/guard_search.cpp'
+      - '.github/workflows/ph1-guard-search.yml'
+permissions:
+  contents: read
+jobs:
+  replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and selftest
+        run: |
+          g++ -O3 -std=c++20 ph1_mathgrid/guard_search.cpp -o ph1_mathgrid/guard_search
+          ./ph1_mathgrid/guard_search --selftest | tee selftest.csv
+          python3 - <<'PY'
+          import csv
+          r=list(csv.DictReader(open('selftest.csv')))
+          assert [round(float(x['net']),2) for x in r]==[0.93,1.72,1.72,1.51,1.51]
+          print('SELFTEST_PASS')
+          PY
+          mkdir -p data out
+      - name: Download Exness raw months
+        shell: bash
+        run: |
+          set -euo pipefail
+          Y='${{ matrix.year }}'
+          if [ "$Y" = 2025 ]; then MONTHS='01 02 03 04 05 06 07 08 09 10 11 12'; else MONTHS='01 02 03 04 05 06 07 08 09 10'; fi
+          for M in $MONTHS; do
+            URL="https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/${Y}/${M}/Exness_XAUUSD_Raw_Spread_${Y}_${M}.zip"
+            curl -L --fail --retry 5 --retry-delay 2 "$URL" -o "data/$M.zip"
+          done
+          echo "$MONTHS" > data/months.txt
+      - name: Replay all guard configs
+        shell: bash
+        run: |
+          set -euo pipefail
+          (for M in $(cat data/months.txt); do unzip -p "data/$M.zip"; done) | ./ph1_mathgrid/guard_search > "out/daily_${{ matrix.year }}.csv"
+      - name: Summarize configs
+        shell: bash
+        run: |
+          python3 - <<'PY' | tee "out/summary_${{ matrix.year }}.txt"
+          import csv,json,collections
+          y='${{ matrix.year }}'
+          rows=list(csv.DictReader(open(f'out/daily_{y}.csv')))
+          by=collections.defaultdict(list)
+          for r in rows:
+            for k in ['realized_pnl','guard_realized','min_equity','max_margin_1_2000','balance_end']:
+              r[k]=float(r[k])
+            for k in ['target_hit','margin_fail','account_fail','baskets','cycle_wins','friday_closes','total_orders','max_open','guard_triggers']:
+              r[k]=int(r[k])
+            by[r['config']].append(r)
+          out=[]
+          for name,rs in by.items():
+            active=[r for r in rs if r['baskets'] or r['total_orders'] or abs(r['realized_pnl'])>1e-12]
+            fail=next((r for r in rs if r['account_fail'] or r['margin_fail']),None)
+            neg=[r for r in rs if r['realized_pnl']<0]
+            s={
+              'config':name,'year':int(y),'rows':len(rs),'traded_days':len(active),
+              'target_days':sum(r['target_hit'] for r in rs),
+              'target_rate_traded_pct':round(100*sum(r['target_hit'] for r in rs)/len(active),3) if active else 0,
+              'negative_days':len(neg),'total_pnl':round(sum(r['realized_pnl'] for r in rs),3),
+              'end_balance':rs[-1]['balance_end'] if rs else 1000,
+              'min_equity':min((r['min_equity'] for r in rs),default=1000),
+              'max_open':max((r['max_open'] for r in rs),default=0),
+              'max_margin':max((r['max_margin_1_2000'] for r in rs),default=0),
+              'guard_triggers':sum(r['guard_triggers'] for r in rs),
+              'guard_realized':round(sum(r['guard_realized'] for r in rs),3),
+              'account_fail':any(r['account_fail'] for r in rs),'margin_fail':any(r['margin_fail'] for r in rs),
+              'failure_date':fail['date'] if fail else None,
+              'worst_day':min(({'date':r['date'],'pnl':r['realized_pnl']} for r in rs),key=lambda z:z['pnl'],default=None),
+            }
+            out.append(s)
+          out.sort(key=lambda s:(s['account_fail'] or s['margin_fail'],s['negative_days'],-s['target_days'],-s['total_pnl']))
+          print(json.dumps(out,indent=2))
+          json.dump(out,open(f'out/summary_{y}.json','w'),indent=2)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PH1-Guard-Search-${{ matrix.year }}
+          path: out/
+          retention-days: 7
