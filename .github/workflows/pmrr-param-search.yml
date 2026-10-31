@@ -1,0 +1,39 @@
+name: PMRR-D Adaptive Parameter Search
+
+on:
+  push:
+    branches: [pmrr-2025-blind]
+    paths:
+      - 'pmrr_remote/pmrr_param_search.cpp'
+      - '.github/workflows/pmrr-param-search.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: g++ -O3 -std=c++20 pmrr_remote/pmrr_param_search.cpp -o pmrr_remote/pmrr_param_search
+      - name: Download failure-month data
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pmrrmonths out
+          for M in 01 05 06 08 09 10 12; do
+            URL="https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/2025/${M}/Exness_XAUUSD_Raw_Spread_2025_${M}.zip"
+            curl -L --fail --retry 5 "$URL" -o "/tmp/pmrrmonths/${M}.zip"
+          done
+      - name: Search 448 adaptive spacing candidates on eight failure days
+        run: |
+          set -euo pipefail
+          (for M in 01 05 06 08 09 10 12; do unzip -p "/tmp/pmrrmonths/${M}.zip"; done) | ./pmrr_remote/pmrr_param_search > out/search.csv
+          echo '--- TOP 80 ---'
+          cat out/search.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PMRR-D-adaptive-parameter-search
+          path: out/search.csv
+          retention-days: 7
