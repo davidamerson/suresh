@@ -1,0 +1,73 @@
+name: PH1 Guard Search V2
+on:
+  push:
+    branches: [ph1-guard-search-v2]
+jobs:
+  year:
+    strategy:
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          g++ -O3 -std=c++20 ph1_mathgrid/guard.cpp -o ph1_mathgrid/guard
+          mkdir -p data out
+      - name: Download year
+        shell: bash
+        run: |
+          set -euo pipefail
+          Y='${{ matrix.year }}'
+          if [ "$Y" = 2025 ]; then MONTHS='01 02 03 04 05 06 07 08 09 10 11 12'; else MONTHS='01 02 03 04 05 06 07 08 09 10'; fi
+          for M in $MONTHS; do
+            URL="https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/${Y}/${M}/Exness_XAUUSD_Raw_Spread_${Y}_${M}.zip"
+            curl -L --fail --retry 5 --retry-delay 2 "$URL" -o "data/${M}.zip"
+          done
+          echo "$MONTHS" > data/months.txt
+      - name: Test configs
+        shell: bash
+        run: |
+          set -euo pipefail
+          Y='${{ matrix.year }}'
+          # name K W noFriday
+          while read NAME K W NF; do
+            echo "RUN $NAME K=$K W=$W NF=$NF"
+            (for M in $(cat data/months.txt); do unzip -p "data/${M}.zip"; done) | ./ph1_mathgrid/guard "$K" "$W" "$NF" > "out/${NAME}_${Y}.csv"
+          done <<'EOF'
+          base 0 1 0
+          nf_only 0 1 1
+          k10_w3 10 3 1
+          k10_w5 10 5 1
+          k8_w3 8 3 1
+          k8_w5 8 5 1
+          k7_w3 7 3 1
+          k7_w5 7 5 1
+          k6_w3 6 3 1
+          k6_w5 6 5 1
+          EOF
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import csv,glob,json,os
+          Y='${{ matrix.year }}'
+          out=[]
+          for p in sorted(glob.glob(f'out/*_{Y}.csv')):
+            rows=[]
+            with open(p,newline='') as f:
+              for r in csv.DictReader(f):
+                for k in ['realized_pnl','min_equity','max_margin_1_2000','balance_end']: r[k]=float(r[k])
+                for k in ['target_hit','margin_fail','account_fail','baskets','total_orders','max_open']: r[k]=int(r[k])
+                rows.append(r)
+            traded=[r for r in rows if r['baskets'] or r['total_orders'] or abs(r['realized_pnl'])>1e-12]
+            o={'name':os.path.basename(p).replace(f'_{Y}.csv',''),'year':int(Y),'rows':len(rows),'traded_days':len(traded),'target_days':sum(r['target_hit'] for r in rows),'positive_days':sum(r['realized_pnl']>0 for r in rows),'negative_days':sum(r['realized_pnl']<0 for r in rows),'total_pnl':round(sum(r['realized_pnl'] for r in rows),3),'end_balance':rows[-1]['balance_end'] if rows else 1000,'min_equity':min([r['min_equity'] for r in rows],default=1000),'max_open':max([r['max_open'] for r in rows],default=0),'max_margin':max([r['max_margin_1_2000'] for r in rows],default=0),'fail':any(r['margin_fail'] or r['account_fail'] for r in rows),'failure_date':next((r['date'] for r in rows if r['margin_fail'] or r['account_fail']),None)}
+            out.append(o)
+          out.sort(key=lambda x:(x['fail'],-x['total_pnl'],x['negative_days']))
+          print(json.dumps(out,indent=2))
+          with open(f'out/summary_{Y}.json','w') as f: json.dump(out,f,indent=2)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PH1-Guard-Search-${{ matrix.year }}
+          path: out/
+          retention-days: 7
