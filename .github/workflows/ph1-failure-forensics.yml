@@ -11,6 +11,7 @@ jobs:
         run: |
           g++ -O3 -std=c++20 ph1_mathgrid/forensics.cpp -o ph1_mathgrid/forensics
           mkdir -p data out
+          python3 -m pip install -q pandas
       - name: Download and replay 2025-2026
         shell: bash
         run: |
@@ -38,7 +39,6 @@ jobs:
           print(a.groupby('severe')[cols].mean().to_string())
           print('\nGROUP MEDIANS')
           print(a.groupby('severe')[cols].median().to_string())
-          # simple threshold scan for warning features: recall severe vs false-positive rate
           feats=['max_balanced','max_span','side_flips','orders','duration_h','h1_range','max_spread']
           rows=[]
           for f in feats:
@@ -54,7 +54,6 @@ jobs:
           rows=sorted(rows,key=lambda x:(x[3],-x[2]))[:30]
           print('\nBEST HIGH-RECALL SINGLE THRESHOLDS')
           for r in rows: print(r)
-          # top severe baskets and profitable baskets with high balanced depth
           print('\nSEVERE BASKETS')
           print(a[a.severe].sort_values('close_pnl')[['start_date','first_side','h1_range','orders','max_balanced','max_span','side_flips','duration_h','min_liq','max_spread','close_pnl','reason']].to_string(index=False))
           print('\nDEEPEST DRAWDOWN BASKETS')
