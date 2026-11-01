@@ -1,0 +1,68 @@
+name: PH1 Failure Forensics
+on:
+  push:
+    branches: [ph1-failure-forensics]
+jobs:
+  analyze:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          g++ -O3 -std=c++20 ph1_mathgrid/forensics.cpp -o ph1_mathgrid/forensics
+          mkdir -p data out
+      - name: Download and replay 2025-2026
+        shell: bash
+        run: |
+          set -euo pipefail
+          for Y in 2025 2026; do
+            if [ "$Y" = 2025 ]; then MONTHS='01 02 03 04 05 06 07 08 09 10 11 12'; else MONTHS='01 02 03 04 05 06 07 08 09 10'; fi
+            rm -f data/*.zip
+            for M in $MONTHS; do
+              URL="https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/${Y}/${M}/Exness_XAUUSD_Raw_Spread_${Y}_${M}.zip"
+              curl -L --fail --retry 5 --retry-delay 2 "$URL" -o "data/${M}.zip"
+            done
+            (for M in $MONTHS; do unzip -p "data/${M}.zip"; done) | ./ph1_mathgrid/forensics > "out/baskets_${Y}.csv"
+          done
+      - name: Analyze signatures
+        run: |
+          python3 - <<'PY'
+          import pandas as pd, json
+          a=pd.concat([pd.read_csv('out/baskets_2025.csv'),pd.read_csv('out/baskets_2026.csv')],ignore_index=True)
+          a['loss']=a.close_pnl<0
+          a['severe']=a.close_pnl<=-50
+          a['deepdd']=a.min_liq<=-100
+          print('BASKETS',len(a),'LOSSES',int(a.loss.sum()),'SEVERE',int(a.severe.sum()),'DEEPDD',int(a.deepdd.sum()))
+          cols=['h1_range','orders','max_open','max_balanced','max_span','side_flips','duration_h','min_liq','max_spread','close_pnl']
+          print('\nGROUP MEANS')
+          print(a.groupby('severe')[cols].mean().to_string())
+          print('\nGROUP MEDIANS')
+          print(a.groupby('severe')[cols].median().to_string())
+          # simple threshold scan for warning features: recall severe vs false-positive rate
+          feats=['max_balanced','max_span','side_flips','orders','duration_h','h1_range','max_spread']
+          rows=[]
+          for f in feats:
+            vals=sorted(set(a[f].dropna()))
+            if len(vals)>80:
+              import numpy as np
+              vals=list(np.unique(np.quantile(a[f],[i/40 for i in range(41)])))
+            for th in vals:
+              pred=a[f]>=th
+              tp=int((pred&a.severe).sum()); fn=int((~pred&a.severe).sum()); fp=int((pred&~a.severe).sum()); tn=int((~pred&~a.severe).sum())
+              rec=tp/max(1,tp+fn); fpr=fp/max(1,fp+tn)
+              if rec>=0.80: rows.append((f,th,rec,fpr,tp,fp))
+          rows=sorted(rows,key=lambda x:(x[3],-x[2]))[:30]
+          print('\nBEST HIGH-RECALL SINGLE THRESHOLDS')
+          for r in rows: print(r)
+          # top severe baskets and profitable baskets with high balanced depth
+          print('\nSEVERE BASKETS')
+          print(a[a.severe].sort_values('close_pnl')[['start_date','first_side','h1_range','orders','max_balanced','max_span','side_flips','duration_h','min_liq','max_spread','close_pnl','reason']].to_string(index=False))
+          print('\nDEEPEST DRAWDOWN BASKETS')
+          print(a.nsmallest(25,'min_liq')[['start_date','close_pnl','reason','orders','max_balanced','max_span','side_flips','duration_h','min_liq','h1_range','max_spread']].to_string(index=False))
+          a.to_csv('out/all_baskets.csv',index=False)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PH1-Failure-Forensics
+          path: out/
+          retention-days: 7
