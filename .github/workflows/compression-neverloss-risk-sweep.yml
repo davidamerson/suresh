@@ -1,10 +1,10 @@
-name: Fresh XAUUSD Scalper Compute Harness
+name: Fresh XAUUSD Day Trading Research
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/compression-neverloss-risk-sweep.yml'
-
+      - 'ph1_backtest/fresh_xau_daytrader_research.py'
 permissions:
   contents: read
 jobs:
@@ -17,18 +17,15 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
-      - name: Verify fresh research code
+      - name: Verify fresh day-trading code
+        run: python -m py_compile ph1_backtest/fresh_xau_daytrader_research.py
+      - name: Run 2024 development and 2025-2026 untouched validation
         run: |
-          python -m py_compile ph1_backtest/fresh_xau_scalper_research.py
-          python -m py_compile ph1_backtest/fresh_xau_scalper_fast_runner.py
-      - name: Run fresh development and out-of-sample backtest
-        run: |
-          mkdir -p fresh_scalper_fast_results
-          cd ph1_backtest
-          python fresh_xau_scalper_fast_runner.py --outdir ../fresh_scalper_fast_results | tee ../fresh_scalper_fast_results/run.log
+          mkdir -p fresh_daytrade_results
+          python ph1_backtest/fresh_xau_daytrader_research.py --outdir fresh_daytrade_results | tee fresh_daytrade_results/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: fresh-xau-scalper-fast-results
-          path: fresh_scalper_fast_results/
+          name: fresh-xau-daytrader-results
+          path: fresh_daytrade_results/
           retention-days: 30
