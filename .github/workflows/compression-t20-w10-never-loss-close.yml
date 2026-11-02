@@ -1,4 +1,4 @@
-name: Compression NeverLoss Risk Control Sweep
+name: Compression Equity Guard Micro Sweep
 on:
   push:
     branches: [ph1-actions-backtest]
@@ -21,19 +21,19 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
-      - name: Build risk-control sweep
+      - name: Build equity-guard sweep
         run: |
-          python ph1_backtest/build_compression_risk_sweep.py
-          python -m py_compile /tmp/risk.py
+          python ph1_backtest/build_equity_guard_sweep.py
+          python -m py_compile /tmp/eqguard.py
           echo '--- rule verification ---'
-          grep -n 'TARGET\|WITHDRAW\|def allow_add\|def gap_for_config\|False and prev_dow' /tmp/risk.py | head -40
+          grep -n 'TARGET\|WITHDRAW\|def allow_add\|False and prev_dow' /tmp/eqguard.py | head -40
       - name: Run raw-tick sweep
         run: |
-          mkdir -p risk_${{ matrix.year }}
-          python /tmp/risk.py --year ${{ matrix.year }} --outdir risk_${{ matrix.year }} | tee risk_${{ matrix.year }}/run.log
+          mkdir -p eqguard_${{ matrix.year }}
+          python /tmp/eqguard.py --year ${{ matrix.year }} --outdir eqguard_${{ matrix.year }} | tee eqguard_${{ matrix.year }}/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: compression-neverloss-risk-${{ matrix.year }}
-          path: risk_${{ matrix.year }}/
+          name: compression-equity-guard-${{ matrix.year }}
+          path: eqguard_${{ matrix.year }}/
           retention-days: 30
