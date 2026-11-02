@@ -1,34 +1,29 @@
-name: Fresh XAUUSD POC-Inspired Day Trader
+name: External OOS XAUUSD Trade-Log Replay
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/compression-neverloss-risk-sweep.yml'
-      - 'ph1_backtest/fresh_xau_poc_daytrader.py'
+      - 'ph1_backtest/external_oos_daily20_replay.py'
 permissions:
   contents: read
 jobs:
-  backtest:
+  replay:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
-      - name: Verify code
+      - run: pip install 'pandas==2.2.3' 'requests==2.32.5'
+      - run: python -m py_compile ph1_backtest/external_oos_daily20_replay.py
+      - name: Replay published OOS R-multiples with $1000 / +20 / withdraw10 rules
         run: |
-          python -m py_compile ph1_backtest/fresh_xau_daytrader_research.py
-          python -m py_compile ph1_backtest/fresh_xau_poc_daytrader.py
-      - name: Run POC-inspired 2024 development and 2025-2026 validation
-        run: |
-          mkdir -p poc_results
-          cd ph1_backtest
-          python fresh_xau_poc_daytrader.py --outdir ../poc_results | tee ../poc_results/run.log
+          mkdir -p external_replay
+          python ph1_backtest/external_oos_daily20_replay.py --outdir external_replay | tee external_replay/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: fresh-xau-poc-daytrader-results
-          path: poc_results/
+          name: external-oos-daily20-replay
+          path: external_replay/
           retention-days: 30
