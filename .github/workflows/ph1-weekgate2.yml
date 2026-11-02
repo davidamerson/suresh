@@ -1,0 +1,56 @@
+name: PH1 Strict Week Gate Sweep
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/ph1_weekgate2_sweep.py'
+      - '.github/workflows/ph1-weekgate2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  sweep:
+    name: StrictWeekGate ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Inject extended late-week gates
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('ph1_backtest/ph1_remote_backtest.py')
+          s=p.read_text()
+          old="""                elif fm == 3 and (dow == 4 or (dow == 3 and hod >= 12)):\n                    allow = 0\n"""
+          new="""                elif fm == 3 and (dow == 4 or (dow == 3 and hod >= 12)):\n                    allow = 0\n                elif fm == 4 and dow >= 3:\n                    allow = 0\n                elif fm == 5 and (dow >= 3 or (dow == 2 and hod >= 18)):\n                    allow = 0\n                elif fm == 6 and (dow >= 3 or (dow == 2 and hod >= 12)):\n                    allow = 0\n                elif fm == 7 and dow >= 2:\n                    allow = 0\n"""
+          if old not in s:
+              raise SystemExit('Gate injection anchor not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: Run strict gate sweep
+        run: |
+          mkdir -p strictgate_${{ matrix.year }}
+          python ph1_backtest/ph1_weekgate2_sweep.py --year ${{ matrix.year }} --outdir strictgate_${{ matrix.year }} | tee strictgate_${{ matrix.year }}/run.log
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph1-strictgate-${{ matrix.year }}
+          path: strictgate_${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
