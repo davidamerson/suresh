@@ -1,10 +1,10 @@
-name: Fresh XAUUSD VWAP EMA15 Day Trader
+name: Fresh XAUUSD POC-Inspired Day Trader
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/compression-neverloss-risk-sweep.yml'
-      - 'ph1_backtest/fresh_xau_daytrader_vwap15.py'
+      - 'ph1_backtest/fresh_xau_poc_daytrader.py'
 permissions:
   contents: read
 jobs:
@@ -20,15 +20,15 @@ jobs:
       - name: Verify code
         run: |
           python -m py_compile ph1_backtest/fresh_xau_daytrader_research.py
-          python -m py_compile ph1_backtest/fresh_xau_daytrader_vwap15.py
-      - name: Run 2024 development and 2025-2026 validation
+          python -m py_compile ph1_backtest/fresh_xau_poc_daytrader.py
+      - name: Run POC-inspired 2024 development and 2025-2026 validation
         run: |
-          mkdir -p vwap15_results
+          mkdir -p poc_results
           cd ph1_backtest
-          python fresh_xau_daytrader_vwap15.py --outdir ../vwap15_results | tee ../vwap15_results/run.log
+          python fresh_xau_poc_daytrader.py --outdir ../poc_results | tee ../poc_results/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: fresh-xau-vwap15-results
-          path: vwap15_results/
+          name: fresh-xau-poc-daytrader-results
+          path: poc_results/
           retention-days: 30
