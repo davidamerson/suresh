@@ -1,0 +1,44 @@
+name: PH1 Basket Forensics
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/ph1_forensics.py'
+      - '.github/workflows/ph1-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  forensic:
+    name: Forensics ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Run forensic basket logger
+        run: |
+          mkdir -p forensic_${{ matrix.year }}
+          python ph1_backtest/ph1_forensics.py --year ${{ matrix.year }} --outdir forensic_${{ matrix.year }} | tee forensic_${{ matrix.year }}/run.log
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph1-forensics-${{ matrix.year }}
+          path: forensic_${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
