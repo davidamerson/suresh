@@ -1,0 +1,35 @@
+name: Staged Target-Aware XAUUSD Day Trader
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - '.github/workflows/targetaware-fast-daytrader.yml'
+      - 'ph1_backtest/fresh_xau_targetaware_fast.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
+      - run: |
+          python -m py_compile ph1_backtest/fresh_xau_daytrader_research.py
+          python -m py_compile ph1_backtest/fresh_xau_daytrader_vwap15.py
+          python -m py_compile ph1_backtest/fresh_xau_targetaware_daytrader.py
+          python -m py_compile ph1_backtest/fresh_xau_targetaware_fast.py
+      - run: |
+          mkdir -p targetaware_fast_results
+          cd ph1_backtest
+          python fresh_xau_targetaware_fast.py --outdir ../targetaware_fast_results | tee ../targetaware_fast_results/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: targetaware-fast-results
+          path: targetaware_fast_results/
+          retention-days: 30
