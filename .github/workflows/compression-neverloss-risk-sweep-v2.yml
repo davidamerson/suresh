@@ -1,0 +1,34 @@
+name: Compression NeverLoss Risk Sweep V2
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/compression-neverloss-risk-sweep-v2.yml'
+
+jobs:
+  sweep:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Build risk sweep script
+        run: |
+          python ph1_backtest/build_compression_risk_sweep.py
+          python -m py_compile /tmp/risk.py
+          grep -n 'TARGET\|WITHDRAW\|def allow_add\|def gap_for_config\|False and prev_dow' /tmp/risk.py | head -30
+      - name: Run raw tick sweep
+        run: |
+          mkdir -p risk_${{ matrix.year }}
+          python /tmp/risk.py --year ${{ matrix.year }} --outdir risk_${{ matrix.year }} | tee risk_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compression-neverloss-risk-v2-${{ matrix.year }}
+          path: risk_${{ matrix.year }}/
+          retention-days: 30
