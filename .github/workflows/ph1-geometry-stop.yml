@@ -1,0 +1,62 @@
+name: PH1 Geometry Stop Sweep
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/ph1_geometry_stop_sweep.py'
+      - '.github/workflows/ph1-geometry-stop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  sweep:
+    name: GeometryStop ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Inject geometry circuit breaker
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('ph1_backtest/ph1_remote_backtest.py')
+          s=p.read_text()
+          # Add no-new-Thu/Fri gate used by THUF configs.
+          old_gate="""                elif fm == 3 and (dow == 4 or (dow == 3 and hod >= 12)):\n                    allow = 0\n"""
+          new_gate="""                elif fm == 3 and (dow == 4 or (dow == 3 and hod >= 12)):\n                    allow = 0\n                elif fm == 4 and dow >= 3:\n                    allow = 0\n"""
+          if old_gate not in s: raise SystemExit('gate anchor missing')
+          s=s.replace(old_gate,new_gate,1)
+
+          old="""                        baldepth = max_pos_lvl[c]\n                        if -min_neg_lvl[c] < baldepth: baldepth = -min_neg_lvl[c]\n                        if danger_mode[c] != 0 and danger_depth[c] > 0 and baldepth >= danger_depth[c]:\n"""
+          new="""                        baldepth = max_pos_lvl[c]\n                        if -min_neg_lvl[c] < baldepth: baldepth = -min_neg_lvl[c]\n                        if danger_mode[c] == 3 and danger_depth[c] > 0 and baldepth >= danger_depth[c]:\n                            liq_g = buy_n[c] * bid - buy_sum[c] + sell_sum[c] - sell_n[c] * ask - open_n[c] * COMMISSION\n                            balance[c] += liq_g\n                            day_realized[c] += liq_g\n                            open_n[c] = 0; buy_n[c] = 0; sell_n[c] = 0; buy_sum[c] = 0.0; sell_sum[c] = 0.0\n                            danger_on[c] = 0; pos_conf[c] = 0; neg_conf[c] = 0; armed[c] = 0\n                            stopped_today[c] = 1\n                            break\n                        if danger_mode[c] != 0 and danger_depth[c] > 0 and baldepth >= danger_depth[c]:\n"""
+          count=s.count(old)
+          if count != 2: raise SystemExit(f'geometry anchor count={count}, expected 2')
+          p.write_text(s.replace(old,new))
+          PY
+      - name: Run geometry sweep
+        run: |
+          mkdir -p geom_${{ matrix.year }}
+          python ph1_backtest/ph1_geometry_stop_sweep.py --year ${{ matrix.year }} --outdir geom_${{ matrix.year }} | tee geom_${{ matrix.year }}/run.log
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph1-geometry-stop-${{ matrix.year }}
+          path: geom_${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
