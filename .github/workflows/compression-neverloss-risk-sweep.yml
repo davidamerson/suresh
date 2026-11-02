@@ -1,11 +1,10 @@
-name: Fresh XAUUSD Day Trading Research
+name: Fresh XAUUSD VWAP EMA15 Day Trader
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/compression-neverloss-risk-sweep.yml'
-      - 'ph1_backtest/fresh_xau_daytrader_research.py'
-      - 'ph1_backtest/fresh_xau_daytrader_fast.py'
+      - 'ph1_backtest/fresh_xau_daytrader_vwap15.py'
 permissions:
   contents: read
 jobs:
@@ -18,18 +17,18 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
-      - name: Verify fresh day-trading code
+      - name: Verify code
         run: |
           python -m py_compile ph1_backtest/fresh_xau_daytrader_research.py
-          python -m py_compile ph1_backtest/fresh_xau_daytrader_fast.py
-      - name: Run staged 2024 development and 2025-2026 untouched validation
+          python -m py_compile ph1_backtest/fresh_xau_daytrader_vwap15.py
+      - name: Run 2024 development and 2025-2026 validation
         run: |
-          mkdir -p fresh_daytrade_results
+          mkdir -p vwap15_results
           cd ph1_backtest
-          python fresh_xau_daytrader_fast.py --outdir ../fresh_daytrade_results | tee ../fresh_daytrade_results/run.log
+          python fresh_xau_daytrader_vwap15.py --outdir ../vwap15_results | tee ../vwap15_results/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: fresh-xau-daytrader-results
-          path: fresh_daytrade_results/
+          name: fresh-xau-vwap15-results
+          path: vwap15_results/
           retention-days: 30
