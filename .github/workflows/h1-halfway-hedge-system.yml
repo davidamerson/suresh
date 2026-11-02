@@ -1,0 +1,203 @@
+name: H1 Original Spacing + Halfway Hedge Test
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - '.github/workflows/h1-halfway-hedge-system.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Build exact halfway-hedge variant
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('ph1_backtest/h1_hedge_group_system.py')
+          src = p.read_text()
+          start_marker = "            else:\n                # Process each absolute adverse level relative to the FIRST main fill.\n"
+          end_marker = "\n        # Rearm only after price comes back inside H1 reference range."
+          start = src.index(start_marker)
+          end = src.index(end_marker, start)
+          block = '''            else:
+                # ORIGINAL main spacing: 0,100,200,300... pips from first main fill.
+                # NEW hedge spacing: halfway points 50,150,250... pips.
+                # Hedge size equals the current main order size for that interval:
+                # .01 at 50 -> close at 100; .02 at 150 -> close at 200; etc.
+                for _ in range(64):
+                    if direction[0] == 0 or failed[0] != 0:
+                        break
+
+                    cur_depth = depth[0]
+                    next_main_depth = cur_depth + 1
+                    main_adverse = cur_depth * PRICE_100PIPS
+                    hedge_adverse = (cur_depth - 0.5) * PRICE_100PIPS
+                    main_trigger = first_fill[0] - main_adverse if direction[0] > 0 else first_fill[0] + main_adverse
+                    hedge_trigger = first_fill[0] - hedge_adverse if direction[0] > 0 else first_fill[0] + hedge_adverse
+                    main_crossed = (direction[0] > 0 and bid <= main_trigger) or (direction[0] < 0 and ask >= main_trigger)
+                    hedge_crossed = (direction[0] > 0 and bid <= hedge_trigger) or (direction[0] < 0 and ask >= hedge_trigger)
+
+                    # First reach the halfway point: open the opposite hedge only.
+                    if hedge_units[0] <= 0.0:
+                        if not hedge_crossed:
+                            break
+                        new_hedge = main_units_for_depth(cur_depth)
+                        mliq_before = calc_main_liq(direction[0], main_units[0], main_entry_sum[0], bid, ask)
+                        equity_before = balance[0] + mliq_before
+                        current_margin = main_units[0] * mid / LEVERAGE
+                        req_margin = new_hedge * mid / LEVERAGE
+                        free_margin = equity_before - current_margin
+                        if free_margin < req_margin:
+                            failed[0] = 1
+                            failure_day[0] = day
+                            failure_reason[0] = 2
+                            failure_equity[0] = equity_before
+                            push_event(ev_seq, ev_ts, ev_code, ev_price, ev_depth, ev_main_units, ev_hedge_units,
+                                       ev_group_realized, ev_balance, ev_equity,
+                                       t, 7, mid, depth[0], main_units[0], hedge_units[0], group_realized[0], balance[0], equity_before)
+                            break
+
+                        hedge_fill = bid if direction[0] > 0 else ask
+                        hedge_units[0] = new_hedge
+                        hedge_entry_sum[0] = new_hedge * hedge_fill
+                        hedges_opened[0] += 1
+                        if hedge_units[0] > max_hedge_units[0]:
+                            max_hedge_units[0] = hedge_units[0]
+                        gross = main_units[0] + hedge_units[0]
+                        if gross > max_gross_units[0]:
+                            max_gross_units[0] = gross
+                        hliq_open = calc_hedge_liq(direction[0], hedge_units[0], hedge_entry_sum[0], bid, ask)
+                        eq_open = balance[0] + mliq_before + hliq_open
+                        push_event(ev_seq, ev_ts, ev_code, ev_price, ev_depth, ev_main_units, ev_hedge_units,
+                                   ev_group_realized, ev_balance, ev_equity,
+                                   t, 3, hedge_fill, depth[0], main_units[0], hedge_units[0], group_realized[0], balance[0], eq_open)
+                        if eq_open < min_equity[0]:
+                            min_equity[0] = eq_open
+                        group_open = group_realized[0] + mliq_before + hliq_open
+                        if group_open < worst_group_float[0]:
+                            worst_group_float[0] = group_open
+                        if eq_open <= 0.0:
+                            failed[0] = 1
+                            failure_day[0] = day
+                            failure_reason[0] = 1
+                            failure_equity[0] = eq_open
+                            break
+                        # Same tick may already have crossed the next main level.
+                        continue
+
+                    # Hedge is open. It stays open until the next 100-pip main level.
+                    if not main_crossed:
+                        break
+
+                    hedge_pnl = calc_hedge_liq(direction[0], hedge_units[0], hedge_entry_sum[0], bid, ask)
+                    balance[0] += hedge_pnl
+                    group_realized[0] += hedge_pnl
+                    total_hedge_realized[0] += hedge_pnl
+                    hedges_closed[0] += 1
+                    push_event(ev_seq, ev_ts, ev_code, ev_price, ev_depth, ev_main_units, ev_hedge_units,
+                               ev_group_realized, ev_balance, ev_equity,
+                               t, 4, mid, depth[0], main_units[0], hedge_units[0], group_realized[0], balance[0], balance[0] + calc_main_liq(direction[0], main_units[0], main_entry_sum[0], bid, ask))
+                    hedge_units[0] = 0.0
+                    hedge_entry_sum[0] = 0.0
+
+                    # The realized halfway hedge is part of the same group's cumulative P/L.
+                    mliq_now = calc_main_liq(direction[0], main_units[0], main_entry_sum[0], bid, ask)
+                    current_group_now = group_realized[0] + mliq_now
+                    if current_group_now >= GROUP_TARGET:
+                        balance[0] += mliq_now
+                        total_group_profit[0] += current_group_now
+                        groups_closed[0] += 1
+                        push_event(ev_seq, ev_ts, ev_code, ev_price, ev_depth, ev_main_units, ev_hedge_units,
+                                   ev_group_realized, ev_balance, ev_equity,
+                                   t, 5, mid, depth[0], main_units[0], 0.0, group_realized[0], balance[0], balance[0])
+                        direction[0] = 0
+                        depth[0] = 0
+                        first_fill[0] = 0.0
+                        main_units[0] = 0.0
+                        main_entry_sum[0] = 0.0
+                        group_realized[0] = 0.0
+                        armed[0] = 0
+                        break
+
+                    # At 100,200,300... adverse pips, add the next doubled MAIN order.
+                    new_main = main_units_for_depth(next_main_depth)
+                    equity_before = balance[0] + mliq_now
+                    current_margin = main_units[0] * mid / LEVERAGE
+                    req_margin = new_main * mid / LEVERAGE
+                    free_margin = equity_before - current_margin
+                    if free_margin < req_margin:
+                        failed[0] = 1
+                        failure_day[0] = day
+                        failure_reason[0] = 2
+                        failure_equity[0] = equity_before
+                        push_event(ev_seq, ev_ts, ev_code, ev_price, ev_depth, ev_main_units, ev_hedge_units,
+                                   ev_group_realized, ev_balance, ev_equity,
+                                   t, 7, mid, depth[0], main_units[0], 0.0, group_realized[0], balance[0], equity_before)
+                        break
+
+                    main_fill = ask if direction[0] > 0 else bid
+                    main_units[0] += new_main
+                    main_entry_sum[0] += new_main * main_fill
+                    depth[0] = next_main_depth
+                    if depth[0] > max_depth[0]:
+                        max_depth[0] = depth[0]
+                    if main_units[0] > max_main_units[0]:
+                        max_main_units[0] = main_units[0]
+                    if main_units[0] > max_gross_units[0]:
+                        max_gross_units[0] = main_units[0]
+                    push_event(ev_seq, ev_ts, ev_code, ev_price, ev_depth, ev_main_units, ev_hedge_units,
+                               ev_group_realized, ev_balance, ev_equity,
+                               t, 2, main_fill, depth[0], main_units[0], 0.0, group_realized[0], balance[0], equity_before)
+
+                    mliq2 = calc_main_liq(direction[0], main_units[0], main_entry_sum[0], bid, ask)
+                    eq2 = balance[0] + mliq2
+                    group2 = group_realized[0] + mliq2
+                    if eq2 < min_equity[0]:
+                        min_equity[0] = eq2
+                    if group2 < worst_group_float[0]:
+                        worst_group_float[0] = group2
+                    if eq2 <= 0.0:
+                        failed[0] = 1
+                        failure_day[0] = day
+                        failure_reason[0] = 1
+                        failure_equity[0] = eq2
+                        push_event(ev_seq, ev_ts, ev_code, ev_price, ev_depth, ev_main_units, ev_hedge_units,
+                                   ev_group_realized, ev_balance, ev_equity,
+                                   t, 6, mid, depth[0], main_units[0], 0.0, group_realized[0], balance[0], eq2)
+                        break
+                    # Loop again in case one raw tick jumped through more than one level.
+
+                if failed[0] != 0:
+                    break
+'''
+          src = src[:start] + block + src[end:]
+          src = src.replace("'system': 'H1_DOUBLING_WITH_ALTERNATE_HEDGE_GROUP'", "'system': 'H1_ORIGINAL100_WITH_HALFWAY_HEDGE_GROUP'")
+          src = src.replace("'rule_main_levels_pips': '0,50,100,200,300,400,...'", "'rule_main_levels_pips': '0,100,200,300,400,500,...'")
+          src = src.replace("'rule_hedges': 'open SELL/BUY opposite at main depths 2,4,6... with 0.01,0.02,0.04...; close at next odd main depth'", "'rule_hedges': 'halfway hedges at 50,150,250,350... pips with 0.01,0.02,0.04,0.08...; close at next main level 100,200,300,400...' ")
+          out = Path('ph1_backtest/h1_halfway_hedge_system.py')
+          out.write_text(src)
+          PY
+          python -m py_compile ph1_backtest/h1_halfway_hedge_system.py
+          grep -n 'ORIGINAL main spacing\|halfway point\|rule_main_levels_pips\|rule_hedges' ph1_backtest/h1_halfway_hedge_system.py
+      - name: Run raw-tick replay
+        run: |
+          mkdir -p halfway_${{ matrix.year }}
+          python ph1_backtest/h1_halfway_hedge_system.py --year ${{ matrix.year }} --outdir halfway_${{ matrix.year }} | tee halfway_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h1-halfway-hedge-${{ matrix.year }}
+          path: halfway_${{ matrix.year }}/
+          retention-days: 30
