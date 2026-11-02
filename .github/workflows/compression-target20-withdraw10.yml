@@ -1,0 +1,41 @@
+name: Compression Target20 Withdraw10
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - '.github/workflows/compression-target20-withdraw10.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    strategy:
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Prepare target20/withdraw10 variant
+        run: |
+          cp ph1_backtest/entry10_adaptive_sweep.py /tmp/t20.py
+          sed -i 's/TARGET = 10.0/TARGET = 20.0\nWITHDRAW = 10.0/' /tmp/t20.py
+          sed -i 's/balance\[cidx\] -= TARGET/balance[cidx] -= WITHDRAW/g' /tmp/t20.py
+          sed -i 's/withdrawn\[cidx\] += TARGET/withdrawn[cidx] += WITHDRAW/g' /tmp/t20.py
+          sed -i 's/hit net +\$10 -> close all -> withdraw exactly \$10/hit net +\$20 -> close all -> withdraw exactly \$10, retain remaining profit in account/' /tmp/t20.py
+          python -m py_compile /tmp/t20.py
+          grep -n 'TARGET\|WITHDRAW' /tmp/t20.py | head -20
+      - name: Run replay
+        run: |
+          mkdir -p t20_${{ matrix.year }}
+          python /tmp/t20.py --year ${{ matrix.year }} --outdir t20_${{ matrix.year }} | tee t20_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compression-target20-withdraw10-${{ matrix.year }}
+          path: t20_${{ matrix.year }}/
+          retention-days: 30
