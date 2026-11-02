@@ -1,0 +1,80 @@
+name: PH1 Calendar Reproduction Audit
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/ph1_calendar_audit.py'
+      - '.github/workflows/ph1-calendar-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  audit:
+    name: Calendar ${{ matrix.year }} ${{ matrix.mode }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+        mode: [current, no_sunday_entries, sunday_merge, skip_sunday]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Apply calendar mode and exact 2026 cutoff
+        env:
+          MODE: ${{ matrix.mode }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          p=Path('ph1_backtest/ph1_remote_backtest.py')
+          s=p.read_text()
+          mode=os.environ['MODE']
+          # Match the user's original 2026 archive period: through Oct 29, not the now-expanded public Oct 30 archive.
+          old="""                        t = pd.to_datetime(df['Timestamp'], utc=True, errors='coerce')\n                        good = t.notna() & df['Bid'].notna() & df['Ask'].notna()\n"""
+          new="""                        t = pd.to_datetime(df['Timestamp'], utc=True, errors='coerce')\n                        good = t.notna() & df['Bid'].notna() & df['Ask'].notna()\n                        if year == 2026 and month == 10:\n                            good = good & (t <= pd.Timestamp('2026-10-29 23:59:59.999999999', tz='UTC'))\n"""
+          if old not in s: raise SystemExit('cutoff anchor missing')
+          s=s.replace(old,new,1)
+
+          if mode == 'no_sunday_entries':
+              old2="""                allow = 1\n                fm = friday_mode[c]\n"""
+              new2="""                allow = 1\n                if dow >= 5:\n                    allow = 0\n                fm = friday_mode[c]\n"""
+              if old2 not in s: raise SystemExit('entry anchor missing')
+              s=s.replace(old2,new2,1)
+          elif mode == 'sunday_merge':
+              old2="""        day = t // 86400000000000\n        hour = t // 3600000000000\n        dow = (day + 3) % 7  # Monday=0, 1970-01-01 was Thursday\n        hod = (t // 3600000000000) % 24\n"""
+              new2="""        raw_day = t // 86400000000000\n        raw_dow = (raw_day + 3) % 7\n        day = raw_day + 1 if raw_dow == 6 else raw_day\n        hour = t // 3600000000000\n        dow = (day + 3) % 7  # Sunday evening belongs to Monday trading day\n        hod = (t // 3600000000000) % 24\n"""
+              if old2 not in s: raise SystemExit('calendar anchor missing')
+              s=s.replace(old2,new2,1)
+          elif mode == 'skip_sunday':
+              old2="""        day = t // 86400000000000\n        hour = t // 3600000000000\n        dow = (day + 3) % 7  # Monday=0, 1970-01-01 was Thursday\n        hod = (t // 3600000000000) % 24\n"""
+              new2="""        day = t // 86400000000000\n        dow = (day + 3) % 7\n        if dow == 6:\n            continue\n        hour = t // 3600000000000\n        hod = (t // 3600000000000) % 24\n"""
+              if old2 not in s: raise SystemExit('calendar anchor missing')
+              s=s.replace(old2,new2,1)
+          elif mode != 'current':
+              raise SystemExit('unknown MODE')
+          p.write_text(s)
+          PY
+      - name: Run calendar audit
+        run: |
+          mkdir -p calendar_${{ matrix.year }}_${{ matrix.mode }}
+          python ph1_backtest/ph1_calendar_audit.py --year ${{ matrix.year }} --outdir calendar_${{ matrix.year }}_${{ matrix.mode }} | tee calendar_${{ matrix.year }}_${{ matrix.mode }}/run.log
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph1-calendar-${{ matrix.year }}-${{ matrix.mode }}
+          path: calendar_${{ matrix.year }}_${{ matrix.mode }}/
+          if-no-files-found: warn
+          retention-days: 30
