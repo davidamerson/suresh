@@ -4,6 +4,7 @@ import ph1_remote_backtest as b
 
 # Reuse the exact same engine; only entry-week gating/configurations change.
 # friday_mode: 0=current; 1=no new Friday; 2=no new Fri + Thu>=18 UTC; 3=no new Fri + Thu>=12 UTC.
+# Sweep v1: isolate late-week basket carry risk before changing any other PH1 rule.
 b.CONFIGS = [
     ("BASE_W10",               0, 0, 0, 0, 1, 1),
     ("BASE_FRI",               1, 0, 0, 0, 1, 1),
