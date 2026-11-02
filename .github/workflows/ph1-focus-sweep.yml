@@ -1,0 +1,59 @@
+name: PH1 Focus Sweep
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/ph1_focus_sweep.py'
+      - '.github/workflows/ph1-focus-sweep.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  sweep:
+    name: Focus ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Apply authoritative session convention and exact 2026 cutoff
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('ph1_backtest/ph1_remote_backtest.py')
+          s=p.read_text()
+          old_entry="""                allow = 1\n                fm = friday_mode[c]\n"""
+          new_entry="""                allow = 1\n                if dow >= 5:\n                    allow = 0\n                fm = friday_mode[c]\n"""
+          if old_entry not in s: raise SystemExit('entry anchor missing')
+          s=s.replace(old_entry,new_entry,1)
+          old_cut="""                        t = pd.to_datetime(df['Timestamp'], utc=True, errors='coerce')\n                        good = t.notna() & df['Bid'].notna() & df['Ask'].notna()\n"""
+          new_cut="""                        t = pd.to_datetime(df['Timestamp'], utc=True, errors='coerce')\n                        good = t.notna() & df['Bid'].notna() & df['Ask'].notna()\n                        if year == 2026 and month == 10:\n                            good = good & (t <= pd.Timestamp('2026-10-29 23:59:59.999999999', tz='UTC'))\n"""
+          if old_cut not in s: raise SystemExit('cutoff anchor missing')
+          p.write_text(s.replace(old_cut,new_cut,1))
+          PY
+      - name: Run focused sweep
+        run: |
+          mkdir -p focus_${{ matrix.year }}
+          python ph1_backtest/ph1_focus_sweep.py --year ${{ matrix.year }} --outdir focus_${{ matrix.year }} | tee focus_${{ matrix.year }}/run.log
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph1-focus-${{ matrix.year }}
+          path: focus_${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
