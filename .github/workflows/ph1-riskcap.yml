@@ -1,0 +1,59 @@
+name: PH1 Basket Risk Cap Sweep
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/ph1_riskcap_sweep.py'
+      - '.github/workflows/ph1-riskcap.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  sweep:
+    name: RiskCap ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Inject week gates and basket circuit breaker
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('ph1_backtest/ph1_remote_backtest.py')
+          s=p.read_text()
+          old_gate="""                elif fm == 3 and (dow == 4 or (dow == 3 and hod >= 12)):\n                    allow = 0\n"""
+          new_gate="""                elif fm == 3 and (dow == 4 or (dow == 3 and hod >= 12)):\n                    allow = 0\n                elif fm == 4 and dow >= 3:\n                    allow = 0\n                elif fm == 7 and dow >= 2:\n                    allow = 0\n"""
+          if old_gate not in s: raise SystemExit('gate anchor missing')
+          s=s.replace(old_gate,new_gate,1)
+          old_cap="""                liq = buy_n[c] * bid - buy_sum[c] + sell_sum[c] - sell_n[c] * ask - open_n[c] * COMMISSION\n                # Daily target, tick by tick.\n"""
+          new_cap="""                liq = buy_n[c] * bid - buy_sum[c] + sell_sum[c] - sell_n[c] * ask - open_n[c] * COMMISSION\n                # Experimental hard basket circuit breaker. For danger_mode=0 configs,\n                # convex_kind>=10 carries the USD liquidation-loss cap. Close, stop the day, never martingale.\n                cap = convex_kind[c]\n                if danger_mode[c] == 0 and cap >= 10 and liq <= -float(cap):\n                    eqstop = balance[c] + liq\n                    if eqstop < min_equity[c]: min_equity[c] = eqstop\n                    balance[c] += liq\n                    day_realized[c] += liq\n                    open_n[c] = 0; buy_n[c] = 0; sell_n[c] = 0; buy_sum[c] = 0.0; sell_sum[c] = 0.0\n                    danger_on[c] = 0; pos_conf[c] = 0; neg_conf[c] = 0; armed[c] = 0\n                    stopped_today[c] = 1\n                    continue\n                # Daily target, tick by tick.\n"""
+          if old_cap not in s: raise SystemExit('cap anchor missing')
+          p.write_text(s.replace(old_cap,new_cap,1))
+          PY
+      - name: Run risk-cap sweep
+        run: |
+          mkdir -p riskcap_${{ matrix.year }}
+          python ph1_backtest/ph1_riskcap_sweep.py --year ${{ matrix.year }} --outdir riskcap_${{ matrix.year }} | tee riskcap_${{ matrix.year }}/run.log
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph1-riskcap-${{ matrix.year }}
+          path: riskcap_${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
