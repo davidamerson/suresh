@@ -8,6 +8,8 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+env:
+  PYTHONPATH: .
 jobs:
   forensic:
     runs-on: ubuntu-latest
@@ -19,7 +21,9 @@ jobs:
           python-version: '3.11'
       - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
       - run: python -m py_compile forensics/compression_2026_forensic.py
-      - run: python forensics/compression_2026_forensic.py | tee compression_forensic/run.log
+      - run: |
+          mkdir -p compression_forensic
+          python forensics/compression_2026_forensic.py | tee compression_forensic/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
