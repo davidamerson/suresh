@@ -33,16 +33,20 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install backtest dependencies
+      - name: Install pinned backtest dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy pandas numba requests
+          pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
 
       - name: Show runner resources
         run: |
           df -h
           free -h
           python --version
+          python - <<'PY'
+          import numpy,pandas,numba,requests
+          print('numpy',numpy.__version__,'pandas',pandas.__version__,'numba',numba.__version__,'requests',requests.__version__)
+          PY
 
       - name: Run raw tick backtest
         run: |
