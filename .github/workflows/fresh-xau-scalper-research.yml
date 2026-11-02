@@ -4,6 +4,7 @@ on:
     branches: [ph1-actions-backtest]
     paths:
       - 'ph1_backtest/fresh_xau_scalper_research.py'
+      - 'ph1_backtest/fresh_xau_scalper_fast_runner.py'
       - '.github/workflows/fresh-xau-scalper-research.yml'
   workflow_dispatch:
 permissions:
@@ -19,11 +20,14 @@ jobs:
           python-version: '3.11'
       - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
       - name: Verify code
-        run: python -m py_compile ph1_backtest/fresh_xau_scalper_research.py
+        run: |
+          python -m py_compile ph1_backtest/fresh_xau_scalper_research.py
+          python -m py_compile ph1_backtest/fresh_xau_scalper_fast_runner.py
       - name: Run development and out-of-sample backtest
         run: |
           mkdir -p fresh_scalper_results
-          python ph1_backtest/fresh_xau_scalper_research.py --outdir fresh_scalper_results | tee fresh_scalper_results/run.log
+          cd ph1_backtest
+          python fresh_xau_scalper_fast_runner.py --outdir ../fresh_scalper_results | tee ../fresh_scalper_results/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
