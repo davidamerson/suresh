@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/compression-neverloss-risk-sweep.yml'
       - 'ph1_backtest/fresh_xau_daytrader_research.py'
+      - 'ph1_backtest/fresh_xau_daytrader_fast.py'
 permissions:
   contents: read
 jobs:
@@ -18,11 +19,14 @@ jobs:
           python-version: '3.11'
       - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
       - name: Verify fresh day-trading code
-        run: python -m py_compile ph1_backtest/fresh_xau_daytrader_research.py
-      - name: Run 2024 development and 2025-2026 untouched validation
+        run: |
+          python -m py_compile ph1_backtest/fresh_xau_daytrader_research.py
+          python -m py_compile ph1_backtest/fresh_xau_daytrader_fast.py
+      - name: Run staged 2024 development and 2025-2026 untouched validation
         run: |
           mkdir -p fresh_daytrade_results
-          python ph1_backtest/fresh_xau_daytrader_research.py --outdir fresh_daytrade_results | tee fresh_daytrade_results/run.log
+          cd ph1_backtest
+          python fresh_xau_daytrader_fast.py --outdir ../fresh_daytrade_results | tee ../fresh_daytrade_results/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
