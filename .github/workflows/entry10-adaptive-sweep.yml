@@ -1,0 +1,46 @@
+name: Entry10 Adaptive Sweep
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/entry10_adaptive_sweep.py'
+      - '.github/workflows/entry10-adaptive-sweep.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  sweep:
+    name: Entry10 ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Syntax check
+        run: python -m py_compile ph1_backtest/entry10_adaptive_sweep.py
+      - name: Run ten non-H1 entry methods
+        run: |
+          mkdir -p entry10_${{ matrix.year }}
+          python ph1_backtest/entry10_adaptive_sweep.py --year ${{ matrix.year }} --outdir entry10_${{ matrix.year }} | tee entry10_${{ matrix.year }}/run.log
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: entry10-adaptive-${{ matrix.year }}
+          path: entry10_${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
