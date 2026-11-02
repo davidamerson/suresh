@@ -1,0 +1,38 @@
+name: H1 Hedge Group System Test
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/h1_hedge_group_system.py'
+      - '.github/workflows/h1-hedge-group-system.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Verify exact rules
+        run: |
+          python -m py_compile ph1_backtest/h1_hedge_group_system.py
+          grep -n 'PRICE_50PIPS\|PRICE_100PIPS\|GROUP_TARGET\|hedge_units_for_even_depth\|adverse_level_for_depth' ph1_backtest/h1_hedge_group_system.py | head -40
+      - name: Run raw-tick replay
+        run: |
+          mkdir -p hedge_${{ matrix.year }}
+          python ph1_backtest/h1_hedge_group_system.py --year ${{ matrix.year }} --outdir hedge_${{ matrix.year }} | tee hedge_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h1-hedge-group-${{ matrix.year }}
+          path: hedge_${{ matrix.year }}/
+          retention-days: 30
