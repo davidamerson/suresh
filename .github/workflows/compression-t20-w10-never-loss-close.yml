@@ -1,4 +1,4 @@
-name: Compression Equity Guard Micro Sweep
+name: H1 Breakout Compression EQ65 Test
 on:
   push:
     branches: [ph1-actions-backtest]
@@ -21,19 +21,19 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
-      - name: Build equity-guard sweep
+      - name: Build exact H1 Compression test
         run: |
-          python ph1_backtest/build_equity_guard_sweep.py
-          python -m py_compile /tmp/eqguard.py
+          python ph1_backtest/build_h1_compression_guard.py
+          python -m py_compile /tmp/h1_compression.py
           echo '--- rule verification ---'
-          grep -n 'TARGET\|WITHDRAW\|def allow_add\|False and prev_dow' /tmp/eqguard.py | head -40
-      - name: Run raw-tick sweep
+          grep -n 'TARGET\|WITHDRAW\|H1_COMPRESSION\|compression_gap\|allow_compression_add\|False and prev_dow\|dow >= 4' /tmp/h1_compression.py | head -60
+      - name: Run raw-tick replay
         run: |
-          mkdir -p eqguard_${{ matrix.year }}
-          python /tmp/eqguard.py --year ${{ matrix.year }} --outdir eqguard_${{ matrix.year }} | tee eqguard_${{ matrix.year }}/run.log
+          mkdir -p h1comp_${{ matrix.year }}
+          python /tmp/h1_compression.py --year ${{ matrix.year }} --outdir h1comp_${{ matrix.year }} | tee h1comp_${{ matrix.year }}/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: compression-equity-guard-${{ matrix.year }}
-          path: eqguard_${{ matrix.year }}/
+          name: h1-compression-eq65-${{ matrix.year }}
+          path: h1comp_${{ matrix.year }}/
           retention-days: 30
