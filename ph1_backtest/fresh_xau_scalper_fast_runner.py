@@ -1,3 +1,4 @@
+# Optimized execution wrapper for the fresh XAUUSD research backtest.
 import math
 import numpy as np
 import pandas as pd
