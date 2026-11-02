@@ -1,4 +1,4 @@
-name: Compression T20 W10 Never-Loss-Close
+name: Compression NeverLoss Risk Control Sweep
 on:
   push:
     branches: [ph1-actions-backtest]
@@ -10,6 +10,7 @@ permissions:
 jobs:
   run:
     strategy:
+      fail-fast: false
       matrix:
         year: [2025, 2026]
     runs-on: ubuntu-latest
@@ -20,31 +21,19 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
-      - name: Prepare exact never-loss-close variant
+      - name: Build risk-control sweep
         run: |
-          cp ph1_backtest/entry10_adaptive_sweep.py /tmp/neverloss.py
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('/tmp/neverloss.py')
-          s = p.read_text()
-          s = s.replace('TARGET = 10.0', 'TARGET = 20.0\nWITHDRAW = 10.0')
-          s = s.replace('balance[cidx] -= TARGET', 'balance[cidx] -= WITHDRAW')
-          s = s.replace('withdrawn[cidx] += TARGET', 'withdrawn[cidx] += WITHDRAW')
-          # Preserve every other strategy rule, but NEVER realize a losing basket on Friday/year-end.
-          s = s.replace('if prev_dow == 4:', 'if False and prev_dow == 4:')
-          s = s.replace('if (last_day + 3) % 7 == 4:', 'if False and (last_day + 3) % 7 == 4:')
-          p.write_text(s)
-          PY
-          python -m py_compile /tmp/neverloss.py
+          python ph1_backtest/build_compression_risk_sweep.py
+          python -m py_compile /tmp/risk.py
           echo '--- rule verification ---'
-          grep -n 'TARGET\|WITHDRAW\|False and prev_dow\|False and (last_day' /tmp/neverloss.py
-      - name: Run raw-tick replay
+          grep -n 'TARGET\|WITHDRAW\|def allow_add\|def gap_for_config\|False and prev_dow' /tmp/risk.py | head -40
+      - name: Run raw-tick sweep
         run: |
-          mkdir -p neverloss_${{ matrix.year }}
-          python /tmp/neverloss.py --year ${{ matrix.year }} --outdir neverloss_${{ matrix.year }} | tee neverloss_${{ matrix.year }}/run.log
+          mkdir -p risk_${{ matrix.year }}
+          python /tmp/risk.py --year ${{ matrix.year }} --outdir risk_${{ matrix.year }} | tee risk_${{ matrix.year }}/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: compression-t20-w10-neverloss-${{ matrix.year }}
-          path: neverloss_${{ matrix.year }}/
+          name: compression-neverloss-risk-${{ matrix.year }}
+          path: risk_${{ matrix.year }}/
           retention-days: 30
