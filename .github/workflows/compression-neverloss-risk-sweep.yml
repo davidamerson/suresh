@@ -1,29 +1,36 @@
-name: External OOS XAUUSD Trade-Log Replay
+name: Fast POC-Inspired XAUUSD Day Trader
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/compression-neverloss-risk-sweep.yml'
-      - 'ph1_backtest/external_oos_daily20_replay.py'
+      - 'ph1_backtest/fresh_xau_poc_fast_runner.py'
 permissions:
   contents: read
 jobs:
-  replay:
+  backtest:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install 'pandas==2.2.3' 'requests==2.32.5'
-      - run: python -m py_compile ph1_backtest/external_oos_daily20_replay.py
-      - name: Replay published OOS R-multiples with $1000 / +20 / withdraw10 rules
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
+      - name: Verify code
         run: |
-          mkdir -p external_replay
-          python ph1_backtest/external_oos_daily20_replay.py --outdir external_replay | tee external_replay/run.log
+          python -m py_compile ph1_backtest/fresh_xau_daytrader_research.py
+          python -m py_compile ph1_backtest/fresh_xau_daytrader_fast.py
+          python -m py_compile ph1_backtest/fresh_xau_poc_daytrader.py
+          python -m py_compile ph1_backtest/fresh_xau_poc_fast_runner.py
+      - name: Run optimized POC candidate
+        run: |
+          mkdir -p poc_fast_results
+          cd ph1_backtest
+          python fresh_xau_poc_fast_runner.py --outdir ../poc_fast_results | tee ../poc_fast_results/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: external-oos-daily20-replay
-          path: external_replay/
+          name: fresh-xau-poc-fast-results
+          path: poc_fast_results/
           retention-days: 30
