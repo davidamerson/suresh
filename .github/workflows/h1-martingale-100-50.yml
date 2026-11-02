@@ -1,0 +1,38 @@
+name: H1 Martingale 100-50 Test
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/h1_martingale_100_50.py'
+      - '.github/workflows/h1-martingale-100-50.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Verify rules
+        run: |
+          python -m py_compile ph1_backtest/h1_martingale_100_50.py
+          grep -n 'ADVERSE_DISTANCE\|BASKET_TARGET\|2.0 \*\* depth\|START_BALANCE' ph1_backtest/h1_martingale_100_50.py | head -30
+      - name: Run raw-tick replay
+        run: |
+          mkdir -p mart_${{ matrix.year }}
+          python ph1_backtest/h1_martingale_100_50.py --year ${{ matrix.year }} --outdir mart_${{ matrix.year }} | tee mart_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h1-martingale-100-50-${{ matrix.year }}
+          path: mart_${{ matrix.year }}/
+          retention-days: 30
