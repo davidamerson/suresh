@@ -1,0 +1,38 @@
+name: H1 Lot Distance A-E Sweep
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/h1_lot_distance_sweep.py'
+      - '.github/workflows/h1-lot-distance-sweep.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Verify A-E rules
+        run: |
+          python -m py_compile ph1_backtest/h1_lot_distance_sweep.py
+          grep -n 'NAMES\|lot_units_for\|adverse_distance_for\|BASKET_TARGET\|FIXED_ADVERSE' ph1_backtest/h1_lot_distance_sweep.py | head -50
+      - name: Run raw-tick A-E sweep
+        run: |
+          mkdir -p sweep_${{ matrix.year }}
+          python ph1_backtest/h1_lot_distance_sweep.py --year ${{ matrix.year }} --outdir sweep_${{ matrix.year }} | tee sweep_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h1-lot-distance-sweep-${{ matrix.year }}
+          path: sweep_${{ matrix.year }}/
+          retention-days: 30
