@@ -1,0 +1,27 @@
+name: Inspect Entry10 Artifact
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - '.github/workflows/inspect-entry10-artifact.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download prior artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -L --fail -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/davidamerson/suresh/actions/artifacts/13126147084/zip -o a.zip
+          unzip -q a.zip -d out
+          echo '--- FILES ---'
+          find out -maxdepth 2 -type f -print
+          echo '--- NEGATIVE DAYS ---'
+          cat out/entry10_adaptive_negative_days_2026.csv
+          echo '--- SUMMARY ---'
+          cat out/entry10_adaptive_summary_2026.csv
