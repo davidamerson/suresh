@@ -1,0 +1,60 @@
+name: PH1 Remote Backtest
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/**'
+      - '.github/workflows/ph1-remote-backtest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  backtest:
+    name: PH1 ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install backtest dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas numba requests
+
+      - name: Show runner resources
+        run: |
+          df -h
+          free -h
+          python --version
+
+      - name: Run raw tick backtest
+        run: |
+          mkdir -p results_${{ matrix.year }}
+          python ph1_backtest/ph1_remote_backtest.py --year ${{ matrix.year }} --outdir results_${{ matrix.year }} | tee results_${{ matrix.year }}/run.log
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph1-${{ matrix.year }}-results
+          path: results_${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
