@@ -1,0 +1,32 @@
+name: Session Zone Recovery Raw-Tick Validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/session_zone_recovery_rawtick_validate.py'
+      - '.github/workflows/session-zone-recovery-rawtick.yml'
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5' 'numba==0.61.2'
+      - run: python -m py_compile ph1_backtest/session_zone_recovery_rawtick_validate.py
+      - name: Run raw-tick validation
+        run: |
+          mkdir -p zrrt_${{ matrix.year }}
+          python ph1_backtest/session_zone_recovery_rawtick_validate.py --year ${{ matrix.year }} --outdir zrrt_${{ matrix.year }} | tee zrrt_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: session-zone-recovery-rawtick-${{ matrix.year }}
+          path: zrrt_${{ matrix.year }}/
+          retention-days: 30
