@@ -1,0 +1,33 @@
+name: Four Session $5 Extended Small-Cap Recovery Sweep
+
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/session_open_recovery_extended.py'
+      - '.github/workflows/session-open-recovery-extended.yml'
+  workflow_dispatch:
+
+jobs:
+  backtest:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
+      - run: python -m py_compile ph1_backtest/session_open_independent_groups.py ph1_backtest/session_open_recovery_sweep.py ph1_backtest/session_open_recovery_extended.py
+      - name: Run extended recovery sweep
+        run: |
+          mkdir -p extended_${{ matrix.year }}
+          python ph1_backtest/session_open_recovery_extended.py --year ${{ matrix.year }} --outdir extended_${{ matrix.year }} | tee extended_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: session-recovery-extended-${{ matrix.year }}
+          path: extended_${{ matrix.year }}/
+          retention-days: 30
