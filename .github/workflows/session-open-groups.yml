@@ -1,0 +1,33 @@
+name: Four Session Opening Groups Backtest
+on:
+  push:
+    paths:
+      - 'ph1_backtest/session_open_independent_groups.py'
+      - '.github/workflows/session-open-groups.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backtest:
+    strategy:
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
+      - run: python -m py_compile ph1_backtest/session_open_independent_groups.py
+      - name: Run backtest
+        run: |
+          mkdir -p session_results_${{ matrix.year }}
+          python ph1_backtest/session_open_independent_groups.py --year ${{ matrix.year }} --outdir session_results_${{ matrix.year }} | tee session_results_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: session-open-groups-${{ matrix.year }}
+          path: session_results_${{ matrix.year }}/
+          retention-days: 30
