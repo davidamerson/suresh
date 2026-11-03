@@ -1,0 +1,32 @@
+name: Tail Risk Group Stop v2
+on:
+  workflow_dispatch:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/session_tailrisk_groupstop_v2.py'
+      - '.github/workflows/session-tailrisk-groupstop-v2.yml'
+
+jobs:
+  backtest:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
+      - run: python -m py_compile ph1_backtest/session_open_independent_groups.py ph1_backtest/session_tailrisk_groupstop_v2.py
+      - name: Run corrected tail-risk sweep
+        run: |
+          mkdir -p tailrisk_v2_${{ matrix.year }}
+          python ph1_backtest/session_tailrisk_groupstop_v2.py --year ${{ matrix.year }} --outdir tailrisk_v2_${{ matrix.year }} | tee tailrisk_v2_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: session-tailrisk-groupstop-v2-${{ matrix.year }}
+          path: tailrisk_v2_${{ matrix.year }}/
+          retention-days: 30
