@@ -1,0 +1,32 @@
+name: CONS2 Tail Guard Sweep
+on:
+  workflow_dispatch:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - 'ph1_backtest/session_cons2_tailguard_sweep.py'
+      - '.github/workflows/session-cons2-tailguard-sweep.yml'
+
+jobs:
+  backtest:
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'requests==2.32.5'
+      - run: python -m py_compile ph1_backtest/session_open_independent_groups.py ph1_backtest/session_cons2_tailguard_sweep.py
+      - name: Run focused CONS2 tail guard sweep
+        run: |
+          mkdir -p cons2tg_${{ matrix.year }}
+          python ph1_backtest/session_cons2_tailguard_sweep.py --year ${{ matrix.year }} --outdir cons2tg_${{ matrix.year }} | tee cons2tg_${{ matrix.year }}/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: session-cons2-tailguard-${{ matrix.year }}
+          path: cons2tg_${{ matrix.year }}/
+          retention-days: 30
