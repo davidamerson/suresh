@@ -1,0 +1,40 @@
+name: XAUUSD 2025 2026 Tick Revision Microstructure Aggregation
+on:
+  push:
+    branches: [xau-firstpassage-100-before25]
+    paths:
+      - "research/aggregate_tick_revision_microstructure.py"
+      - ".github/workflows/xau-tick-microstructure.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  aggregate:
+    name: Quote Microstructure ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Pinned Python packages
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5"
+      - name: Verify source syntax
+        run: python -m py_compile research/aggregate_tick_revision_microstructure.py
+      - name: Read and aggregate all original Exness raw ticks
+        run: |
+          set -o pipefail
+          mkdir -p microstructure/${{ matrix.year }}
+          python -u research/aggregate_tick_revision_microstructure.py --year ${{ matrix.year }} --out microstructure/${{ matrix.year }} 2>&1 | tee microstructure/${{ matrix.year }}/execution.log
+      - name: Upload per-minute tick revisions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: XAUUSD-tick-revisions-${{ matrix.year }}
+          path: microstructure/${{ matrix.year }}/
+          retention-days: 30
