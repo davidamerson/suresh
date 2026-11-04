@@ -1,0 +1,40 @@
+name: Four Session Signal Quality Exploratory Study
+on:
+  push:
+    branches: [four-session-risk-research]
+    paths:
+      - "ph1_backtest/four_session_signal_explore.py"
+      - ".github/workflows/four-session-signal-explore.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    name: Signal Filters ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install reproducible research dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Verify source
+        run: python -m py_compile ph1_backtest/four_session_signal_explore.py
+      - name: Replay full Exness raw ticks with 19 predeclared candidate filters
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.year }}
+          python -u ph1_backtest/four_session_signal_explore.py --year ${{ matrix.year }} --out results/${{ matrix.year }} 2>&1 | tee results/${{ matrix.year }}/run.log
+      - name: Upload grouped performance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: four-session-signal-explore-${{ matrix.year }}
+          path: results/${{ matrix.year }}/
+          retention-days: 30
