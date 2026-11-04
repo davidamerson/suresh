@@ -1,0 +1,40 @@
+name: XAUUSD Raw Tick 2020 2024 Five-Year Episode Feature Dataset
+on:
+  push:
+    branches: [xau-2020-2024-episode-validation]
+    paths:
+      - "research/aggregate_2020_2024_rawticks.py"
+      - ".github/workflows/xau-2020-24-episode-features.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  aggregate:
+    name: Gold Exness Raw Ticks ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2020, 2021, 2022, 2023, 2024]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned scientific python
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5"
+      - name: Source syntax test
+        run: python -m py_compile research/aggregate_2020_2024_rawticks.py
+      - name: Download 12 original monthly archives and aggregate every tick
+        run: |
+          set -o pipefail
+          mkdir -p data/${{ matrix.year }}
+          python -u research/aggregate_2020_2024_rawticks.py --year ${{ matrix.year }} --out data/${{ matrix.year }} 2>&1 | tee data/${{ matrix.year }}/execution.log
+      - name: Upload complete M1 quotes microstructure and SHA256 source log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-2020-24-quote-features-${{ matrix.year }}
+          path: data/${{ matrix.year }}/
+          retention-days: 30
