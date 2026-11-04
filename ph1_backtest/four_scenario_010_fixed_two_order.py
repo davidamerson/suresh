@@ -151,6 +151,10 @@ def add_second(v,g,side,bid,ask,slippage,cash,gf,gi,active,active_count,
         statsi[v,7]=t
         statsf[v,10]=newequity
         statsf[v,11]=next_margin
+        statsf[v,12]=equity
+        statsf[v,13]=margin
+        statsf[v,14]=bid
+        statsf[v,15]=ask
         return 0
     if side==1:
         gi[v,g,0]+=OZ
@@ -244,6 +248,8 @@ def consume(ts,bids,asks,event_start,event_end,event_sid,
                 statsi[v,6]=3
                 statsi[v,7]=t
                 statsf[v,10]=eq;statsf[v,11]=margin
+                statsf[v,12]=eq;statsf[v,13]=margin
+                statsf[v,14]=bid;statsf[v,15]=ask
                 continue
             # First close existing groups if they reached one of four exact endpoints.
             k=0
@@ -296,13 +302,18 @@ def consume(ts,bids,asks,event_start,event_end,event_sid,
                 if side==0:continue
                 seen[v,sid]=serial[sid]
                 if statsi[v,0]>=MAX_GROUPS:
-                    statsi[v,6]=4;statsi[v,7]=t;break
+                    statsi[v,6]=4;statsi[v,7]=t
+                    statsf[v,12]=eq;statsf[v,13]=margin
+                    statsf[v,14]=bid;statsf[v,15]=ask
+                    break
                 eq,margin,buyunits,sellunits=mark(v,bid,ask,cash,withdrawn,active,active_count,gf,gi,slip)
                 newnet=buyunits-sellunits+side*OZ
                 nextmargin=abs(newnet)*bid/LEVERAGE
                 neweq=eq-OZ*(ask-bid+slip)-COMMISSION
                 if neweq-nextmargin<-1e-8:
                     statsi[v,6]=1;statsi[v,7]=t;statsf[v,10]=neweq;statsf[v,11]=nextmargin
+                    statsf[v,12]=eq;statsf[v,13]=margin
+                    statsf[v,14]=bid;statsf[v,15]=ask
                     break
                 g=statsi[v,0]
                 statsi[v,0]+=1;statsi[v,1]+=1
@@ -340,6 +351,8 @@ def consume(ts,bids,asks,event_start,event_end,event_sid,
             if numorders>statsi[v,14]:statsi[v,14]=numorders
             if eq<=0:
                 statsi[v,6]=3;statsi[v,7]=t;statsf[v,10]=eq;statsf[v,11]=margin
+                statsf[v,12]=eq;statsf[v,13]=margin
+                statsf[v,14]=bid;statsf[v,15]=ask
         glob_f[2]=bid;glob_f[3]=ask
         glob_i[5]=t
 
@@ -401,7 +414,7 @@ def run(year,output):
     active=np.zeros((C,G),np.int64);active_n=np.zeros(C,np.int64)
     gf=np.zeros((C,G,6),np.float64);gi=np.zeros((C,G,7),np.int64)
     statsi=np.zeros((C,18),np.int64)
-    statsf=np.zeros((C,12),np.float64);statsf[:,0]=START_BAL;statsf[:,4]=START_BAL;statsf[:,2]=START_BAL
+    statsf=np.zeros((C,20),np.float64);statsf[:,0]=START_BAL;statsf[:,4]=START_BAL;statsf[:,2]=START_BAL
     ev_i=np.zeros((C,MAX_EVENTS,6),np.int64);ev_f=np.zeros((C,MAX_EVENTS,5),np.float64)
     daily_pnl=np.zeros((C,375),np.float64)
     glob_i=np.zeros(6,np.int64);glob_i[1]=-1;glob_i[3]=-1
@@ -467,6 +480,13 @@ def run(year,output):
                 worst_open_group_pnl=round(float(sf[4]),4)))
         failure=int(statsi[v,6])
         tim=str(pd.Timestamp(int(statsi[v,7]),unit='ns',tz='UTC')) if failure else ''
+        # A failed strategy is TERMINATED at the first unfillable order. Never carry
+        # a stranded position into future months and present phantom mark-to-market gains.
+        if failure:
+            eq=statsf[v,12]
+            margin=statsf[v,13]
+        min_eq=min(float(statsf[v,0]),float(eq))
+        dd=max(float(statsf[v,3]),float(statsf[v,2]-eq-withdrawn[v]))
         outrows.append(dict(year=year,period_end='2025-12-31' if year==2025 else '2026-10-29',
             config=name,slippage_side=float(CONFIGS[v,0]),withdraw_fraction=float(CONFIGS[v,1]),
             friday_flat=bool(CONFIGS[v,2]),rows_processed=total,
@@ -480,8 +500,8 @@ def run(year,output):
             closed_group_pnl=round(sum(float(ev_f[v,i,0]) for i in range(int(statsi[v,2]))),4),
             cash_balance=round(float(cash[v]),4),cash_withdrawn=round(float(withdrawn[v]),4),
             marked_equity=round(float(eq),4),economic_total_pnl=round(float(eq+withdrawn[v]-START_BAL),4),
-            minimum_equity=round(float(statsf[v,0]),4),maximum_margin=round(float(statsf[v,1]),4),
-            minimum_free_margin=round(float(statsf[v,4]),4),max_drawdown_total_wealth=round(float(statsf[v,3]),4),
+            minimum_equity=round(min_eq,4),maximum_margin=round(float(statsf[v,1]),4),
+            minimum_free_margin=round(float(statsf[v,4]),4),max_drawdown_total_wealth=round(dd,4),
             max_concurrent_groups=int(statsi[v,16]),quote_ticks_with_overlap=int(statsi[v,13]),
             max_simultaneous_orders=int(statsi[v,14]),
             average_closed_duration_minutes=round(statsf[v,7]/max(1,statsi[v,2])/60,3),
@@ -489,6 +509,10 @@ def run(year,output):
             worst_closed_group_pnl=round(statsf[v,9],4),
             margin_block_code=failure,failure_time=tim,
             failure_projected_equity=round(statsf[v,10],4),failure_projected_margin=round(statsf[v,11],4),
+            termination_actual_equity=round(float(statsf[v,12]),4) if failure else None,
+            termination_actual_margin=round(float(statsf[v,13]),4) if failure else None,
+            result_asof_utc=(tim if failure else ('2025-12-31' if year==2025 else '2026-10-29')),
+            termination_reason={0:'period_completed',1:'first_order_margin_unavailable',2:'second_order_margin_unavailable',3:'equity_stopout',4:'group_capacity'}.get(failure,'unknown'),
             days_with_partial_withdraw=int(statsi[v,15]),
             days_positive=int(np.sum(daily_pnl[v]>1e-8)),days_negative=int(np.sum(daily_pnl[v]<-1e-8))))
     df=pd.DataFrame(outrows)
