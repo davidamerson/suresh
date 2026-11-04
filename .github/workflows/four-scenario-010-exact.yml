@@ -1,0 +1,43 @@
+name: XAUUSD Exact 4 Scenarios 0.10 Lot Full Real-Tick Audit
+on:
+  push:
+    branches: [four-scenario-fixed01test]
+    paths:
+      - "ph1_backtest/four_scenario_010_fixed_two_order.py"
+      - ".github/workflows/four-scenario-010-exact.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: Exact scenarios ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned research dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Compile source
+        run: python -m py_compile ph1_backtest/four_scenario_010_fixed_two_order.py
+      - name: Check all eight diagram scenarios on synthetic exact price paths
+        run: python -u ph1_backtest/four_scenario_010_fixed_two_order.py --selftest
+      - name: Historical Exness Bid Ask full-tick replay (12 months 2025 / Jan-Oct29 2026)
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.year }}
+          python -u ph1_backtest/four_scenario_010_fixed_two_order.py --year ${{ matrix.year }} --out results/${{ matrix.year }} 2>&1 | tee results/${{ matrix.year }}/execution.log
+      - name: Upload summary scenario counts and all individual group executions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-four-scenario-${{ matrix.year }}
+          path: results/${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
