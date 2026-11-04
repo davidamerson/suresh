@@ -1,0 +1,40 @@
+name: XAUUSD First Passage All Ticks to M1 Quote Research 2025 2026
+on:
+  push:
+    branches: [xau-firstpassage-100-before25]
+    paths:
+      - "research/aggregate_raw_ticks_to_minute_quotes.py"
+      - ".github/workflows/xau-firstpassage-minute-quotes.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preprocess:
+    name: XAUUSD Full Raw Data ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install frozen data science dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5"
+      - name: Verify engine
+        run: python -m py_compile research/aggregate_raw_ticks_to_minute_quotes.py
+      - name: Download original monthly Exness Bid Ask archives and build precise minute quotes
+        run: |
+          set -o pipefail
+          mkdir -p research_results/${{ matrix.year }}
+          python -u research/aggregate_raw_ticks_to_minute_quotes.py --year ${{ matrix.year }} --out research_results/${{ matrix.year }} 2>&1 | tee research_results/${{ matrix.year }}/execution.log
+      - name: Publish quote archive and source provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xau-bidask-m1-quotes-${{ matrix.year }}
+          path: research_results/${{ matrix.year }}/
+          retention-days: 30
