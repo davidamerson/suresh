@@ -1,0 +1,40 @@
+name: XAUUSD 4 Sessions Net50 Reversal Audit
+on:
+  push:
+    branches: [ph1-actions-backtest]
+    paths:
+      - "ph1_backtest/four_session_net50_reversal.py"
+      - ".github/workflows/four-session-net50-audit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backtest:
+    name: RealTick ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install frozen calculation dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5"
+      - name: Validate engine syntax
+        run: python -m py_compile ph1_backtest/four_session_net50_reversal.py
+      - name: Replay historical raw Exness quotes
+        run: |
+          mkdir -p results/${{ matrix.year }}
+          python -u ph1_backtest/four_session_net50_reversal.py --year ${{ matrix.year }} --out results/${{ matrix.year }} 2>&1 | tee results/${{ matrix.year }}/run.log
+      - name: Upload full audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xau-four-session-net50-${{ matrix.year }}
+          path: results/${{ matrix.year }}/
+          if-no-files-found: warn
+          retention-days: 30
