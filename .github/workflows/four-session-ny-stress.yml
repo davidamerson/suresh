@@ -1,0 +1,41 @@
+name: NY Only XAUUSD Portfolio Cost and Margin Stress
+on:
+  push:
+    branches: [four-session-risk-research]
+    paths:
+      - "ph1_backtest/four_session_ny_focus_stress.py"
+      - ".github/workflows/four-session-ny-stress.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    name: NY ${{ matrix.year }} slip ${{ matrix.slippage }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2025, 2026]
+        slippage: ["0.00", "0.05", "0.10"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install frozen dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Validate source
+        run: python -m py_compile ph1_backtest/four_session_ny_focus_stress.py
+      - name: Replay full historical direct Exness raw ticks
+        run: |
+          set -o pipefail
+          mkdir -p reports/${{ matrix.year }}_${{ matrix.slippage }}
+          python -u ph1_backtest/four_session_ny_focus_stress.py --year ${{ matrix.year }} --slippage ${{ matrix.slippage }} --out reports/${{ matrix.year }}_${{ matrix.slippage }} 2>&1 | tee reports/${{ matrix.year }}_${{ matrix.slippage }}/run.log
+      - name: Publish result artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NY-results-${{ matrix.year }}-slip-${{ matrix.slippage }}
+          path: reports/${{ matrix.year }}_${{ matrix.slippage }}/
+          retention-days: 30
