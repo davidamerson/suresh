@@ -331,7 +331,7 @@ def consume(ts,bids,asks,event_start,event_end,event_sid,
             dd=statsf[v,2]-wealth
             if dd>statsf[v,3]:statsf[v,3]=dd
             if eq-margin<statsf[v,4]:statsf[v,4]=eq-margin
-            if active_count[v]>statsi[v,12]:statsi[v,12]=active_count[v]
+            if active_count[v]>statsi[v,16]:statsi[v,16]=active_count[v]
             if active_count[v]>1:statsi[v,13]+=1
             numorders=0
             for j in range(active_count[v]):
@@ -366,7 +366,7 @@ def check_scenarios():
             cn=np.array([[0.,0.,0.]],np.float64)
             cash=np.full(C,1000.,np.float64);withd=np.zeros(C);daily=np.zeros(C)
             active=np.zeros((C,G),np.int64);active_n=np.zeros(C,np.int64)
-            gf=np.zeros((C,G,6),np.float64);gi=np.zeros((C,G,7),np.float64)
+            gf=np.zeros((C,G,6),np.float64);gi=np.zeros((C,G,7),np.int64)
             si=np.zeros((C,18),np.int64);sf=np.zeros((C,12),np.float64);sf[:,0]=1000;sf[:,4]=1000;sf[:,2]=1000
             ei=np.zeros((C,G,6),np.int64);ef=np.zeros((C,G,5),np.float64)
             dp=np.zeros((C,375),np.float64)
@@ -399,7 +399,7 @@ def run(year,output):
     C=len(CONF_NAMES);G=MAX_GROUPS
     cash=np.full(C,START_BAL,np.float64);withdrawn=np.zeros(C);daily=np.zeros(C)
     active=np.zeros((C,G),np.int64);active_n=np.zeros(C,np.int64)
-    gf=np.zeros((C,G,6),np.float64);gi=np.zeros((C,G,7),np.float64)
+    gf=np.zeros((C,G,6),np.float64);gi=np.zeros((C,G,7),np.int64)
     statsi=np.zeros((C,18),np.int64)
     statsf=np.zeros((C,12),np.float64);statsf[:,0]=START_BAL;statsf[:,4]=START_BAL;statsf[:,2]=START_BAL
     ev_i=np.zeros((C,MAX_EVENTS,6),np.int64);ev_f=np.zeros((C,MAX_EVENTS,5),np.float64)
@@ -475,14 +475,14 @@ def run(year,output):
             win_groups=int(statsi[v,3]),loss_groups=int(statsi[v,4]),
             scenario1=int(statsi[v,8]),scenario2=int(statsi[v,9]),
             scenario3=int(statsi[v,10]),scenario4=int(statsi[v,11]),
-            scenario5_friday_forced=int(statsi[v,12]) if False else int(statsi[v,12-0]) if False else int(statsi[v,12]) if False else int(statsi[v,12]),
+            scenario5_friday_forced=int(statsi[v,12]),
             open_groups_at_end=int(active_n[v]),win_rate_pct=round(100*statsi[v,3]/max(1,statsi[v,2]),4),
             closed_group_pnl=round(sum(float(ev_f[v,i,0]) for i in range(int(statsi[v,2]))),4),
             cash_balance=round(float(cash[v]),4),cash_withdrawn=round(float(withdrawn[v]),4),
             marked_equity=round(float(eq),4),economic_total_pnl=round(float(eq+withdrawn[v]-START_BAL),4),
             minimum_equity=round(float(statsf[v,0]),4),maximum_margin=round(float(statsf[v,1]),4),
             minimum_free_margin=round(float(statsf[v,4]),4),max_drawdown_total_wealth=round(float(statsf[v,3]),4),
-            max_concurrent_groups=int(statsi[v,12]),quote_ticks_with_overlap=int(statsi[v,13]),
+            max_concurrent_groups=int(statsi[v,16]),quote_ticks_with_overlap=int(statsi[v,13]),
             max_simultaneous_orders=int(statsi[v,14]),
             average_closed_duration_minutes=round(statsf[v,7]/max(1,statsi[v,2])/60,3),
             longest_closed_duration_minutes=round(statsf[v,8]/60,3),
