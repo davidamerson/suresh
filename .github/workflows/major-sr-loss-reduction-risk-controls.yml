@@ -1,0 +1,40 @@
+name: Major SR causal loss reduction 10 controls 2020-2026 tick replay
+on:
+  push:
+    branches: [major-sr-loss-reduction-risk-controls-20261105]
+    paths:
+      - "ph1_backtest/major_sr_loss_reduction_risk_variants_2020_2026.py"
+      - ".github/workflows/major-sr-loss-reduction-risk-controls.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: Continuous USD1000 XAUUSD TP90 loss-control 10 models
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install exact dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Check locked SR signal, TP9 and predefined risk controls
+        run: |
+          python -m py_compile ph1_backtest/major_sr_loss_reduction_risk_variants_2020_2026.py
+          python -u ph1_backtest/major_sr_loss_reduction_risk_variants_2020_2026.py --selftest
+      - name: Replay full raw Exness 2020-2026 quote stream with stop control decisions
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/continuous_2020_2026
+          python -u ph1_backtest/major_sr_loss_reduction_risk_variants_2020_2026.py --out results/continuous_2020_2026 2>&1 | tee results/continuous_2020_2026/execution.log
+      - name: Save audit csv, portfolio equity, trade ledger and source SHA256
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MajorSR-TP90-LossReduction-10Variant-2020-2026
+          path: results/continuous_2020_2026/
+          retention-days: 30
+          if-no-files-found: warn
