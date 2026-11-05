@@ -9,6 +9,9 @@ urls=[
  base+"Exness_XAUUSD_Raw_Spread_2026_11.zip",
  "https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/2026/10/Exness_XAUUSD_Raw_Spread_2026_10.zip",
  "https://ticks.ex2archive.com/ticks/XAUUSD_Raw_Spread/2026/",
+ base+"05/",
+ base+"04/",
+ base+"03/",
 ]
 sess=requests.Session()
 print("PROBE_UTC_TIME",datetime.now(timezone.utc).isoformat(),flush=True)
