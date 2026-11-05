@@ -359,9 +359,6 @@ def engine(ts,bids,asks,starts,ends,sids,CFG,cash,withdrawn,daily,
         before_holiday=(day-base_day>=0 and day-base_day<len(preholiday_thursday) and preholiday_thursday[day-base_day]!=0)
         if global_i[5]!=day:global_i[5]=day
         for c in range(N):
-                dedup_counts[c,0]=0;dedup_counts[c,1]=0
-                dedup_utc_day[c]=day
-        for c in range(N):
             if stats_i[c,10]!=0:continue
             lev=CFG[c,4]
             if int(CFG[c,12])==0:
