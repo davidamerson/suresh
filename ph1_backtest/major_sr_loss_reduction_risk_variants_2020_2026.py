@@ -630,7 +630,36 @@ def run(out):
             for label,url in paths:
                 print('DOWNLOAD',year,mm,label,url,flush=True)
                 zip_path=out/(str(year)+'_'+mm+'_'+label+'.zip')
-                bytes_,sha=download(url,zip_path)
+                # November 05 DAILY archive is updated in-place by provider.
+                # Verify ZIP central directory AND CRC before advancing one
+                # causal tick. Retry transient invalid/corrupt source; never
+                # pretend HTML error response is quote data.
+                source_valid=False
+                import time
+                for attempt in range(4 if (year==2026 and label=='nov_05_daily') else 1):
+                    try:
+                        bytes_,sha=download(url,zip_path)
+                        if not zipfile.is_zipfile(zip_path):
+                            raise zipfile.BadZipFile('not a ZIP archive')
+                        if year==2026 and label=='nov_05_daily':
+                            with zipfile.ZipFile(zip_path) as verify_zip:
+                                bad_member=verify_zip.testzip()
+                                if bad_member is not None:
+                                    raise zipfile.BadZipFile('CRC failure '+str(bad_member))
+                        source_valid=True
+                        break
+                    except Exception as e:
+                        print('SOURCE_DOWNLOAD_RETRY',label,attempt+1,str(e),flush=True)
+                        zip_path.unlink(missing_ok=True)
+                        if not (year==2026 and label=='nov_05_daily'):
+                            raise
+                        if attempt<3:
+                            time.sleep(5*(attempt+1))
+                if not source_valid:
+                    if year==2026 and label=='nov_05_daily':
+                        print('SOURCE_UNAVAILABLE',url,'2026-11-05 omitted; results valid through latest completed Nov monthly quote. No fabricated ticks.',flush=True)
+                        continue
+                    raise RuntimeError('required archive invalid: '+url)
                 count=0;first_ns=0;last_ns=0
                 with zipfile.ZipFile(zip_path) as z:
                     for name in z.namelist():
