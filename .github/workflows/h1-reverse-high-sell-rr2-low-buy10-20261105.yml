@@ -1,0 +1,43 @@
+name: XAUUSD H1 reverse SELL TP10-100 SL5-50 fixed BUY10 seven-year replay
+on:
+  push:
+    branches: [h1-reverse-sell-rr2-10to100-buy10-20261105]
+    paths:
+      - "ph1_backtest/h1_reverse_high_sell_rr2_low_buy_fixed10_2020_2026.py"
+      - ".github/workflows/h1-reverse-high-sell-rr2-low-buy10-20261105.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: XAUUSD asymmetric sell 2-to-1 RR ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2020,2021,2022,2023,2024,2025,2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Syntax and asymmetric BUY SELL payout selftest
+        run: |
+          python -m py_compile ph1_backtest/h1_reverse_high_sell_rr2_low_buy_fixed10_2020_2026.py
+          python -u ph1_backtest/h1_reverse_high_sell_rr2_low_buy_fixed10_2020_2026.py --selftest
+      - name: Replay Exness Raw Spread Bid Ask monthly tick archives
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.year }}
+          python -u ph1_backtest/h1_reverse_high_sell_rr2_low_buy_fixed10_2020_2026.py --year ${{ matrix.year }} --out results/${{ matrix.year }} 2>&1 | tee results/${{ matrix.year }}/execution.log
+      - name: Upload per-variant and per-side trade results with provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: H1-High-SellRR2-Buy10-${{ matrix.year }}
+          path: results/${{ matrix.year }}/
+          retention-days: 30
+          if-no-files-found: warn
