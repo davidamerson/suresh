@@ -598,6 +598,13 @@ def run(year,out):
     side_df.to_csv(out/'by_side_summary.csv',index=False)
     print('SIDE_TABLE\\n'+side_df.to_string(index=False),flush=True)
     pd.DataFrame(trades).to_csv(out/'individual_trades.csv',index=False)
+    # Audit exact entry/exit for baseline model and confirm no old warmup trades.
+    for key in ('MAJOR_SR_MOM_EQ_TP90_SL90_BASE','MAJOR_SR_MOM_RR2_TP100_SL50_BASE'):
+        selected=[t for t in trades if t['variant']==key]
+        if len(selected)>20:raise RuntimeError('Unexpected trade volume in new holdout')
+        if any(pd.Timestamp(t['entered_utc']).value<TRADE_START_NS for t in selected):
+            raise RuntimeError('Found test trade prior to Oct30 cutoff')
+        print('NEWDATA_TRADE_LEDGER',key,json.dumps(selected,sort_keys=True),flush=True)
     pd.DataFrame(sessions).to_csv(out/'sessions.csv',index=False)
     pd.DataFrame(rows).to_csv(out/'summary.csv',index=False)
     pd.DataFrame({'UTC_Date':pd.date_range(f'{year}-01-01',periods=375,freq='D'),
