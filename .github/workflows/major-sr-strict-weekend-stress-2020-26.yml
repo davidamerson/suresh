@@ -1,0 +1,40 @@
+name: Major SR continuous no-weekend conservative 2020-26 replay
+on:
+  push:
+    branches: [major-sr-continuous-1000-dedup-friday-swap-hmr-20261105]
+    paths:
+      - "ph1_backtest/major_sr_continuous_strict_weekend_sensitivity.py"
+      - ".github/workflows/major-sr-strict-weekend-stress-2020-26.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: 2020-26 one USD1000 account forced weekend-safe
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned pandas numba runtime
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Syntax test and conservative weekend safety selftests
+        run: |
+          python -m py_compile ph1_backtest/major_sr_continuous_strict_weekend_sensitivity.py
+          python -u ph1_backtest/major_sr_continuous_strict_weekend_sensitivity.py --selftest
+      - name: Run all seven years continuously with conservative broker close safety
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/continuous_2020_2026
+          python -u ph1_backtest/major_sr_continuous_strict_weekend_sensitivity.py --out results/continuous_2020_2026 2>&1 | tee results/continuous_2020_2026/execution.log
+      - name: Upload full holdings ledger and SHA256 provenances
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MajorSR-Continuous-Strict-Weekend-2020-2026
+          path: results/continuous_2020_2026/
+          retention-days: 30
+          if-no-files-found: warn
