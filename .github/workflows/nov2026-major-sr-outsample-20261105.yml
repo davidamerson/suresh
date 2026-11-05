@@ -1,0 +1,38 @@
+name: Major SR first unseen Oct30-Nov5 quotes vs screenshot
+on:
+  push:
+    branches: [nov2026-major-sr-outsample-20261105]
+    paths:
+      - "ph1_backtest/nov2026_major_sr_outsample_until_screenshot.py"
+      - ".github/workflows/nov2026-major-sr-outsample-20261105.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tick_holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install exact dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Syntax and preselected model integrity
+        run: |
+          python -m py_compile ph1_backtest/nov2026_major_sr_outsample_until_screenshot.py
+          python -u ph1_backtest/nov2026_major_sr_outsample_until_screenshot.py --selftest
+      - name: Download Oct warmup Nov full days and latest daily 05 tick file
+        run: |
+          set -o pipefail
+          mkdir -p results/2026
+          python -u ph1_backtest/nov2026_major_sr_outsample_until_screenshot.py --year 2026 --out results/2026 2>&1 | tee results/2026/execution.log
+      - name: Upload new-data trade ledger exact current S R levels and raw archive SHA256
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MajorSR-FixedModel-Unseen-Oct30-Nov05
+          path: results/2026/
+          retention-days: 30
+          if-no-files-found: warn
