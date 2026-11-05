@@ -542,7 +542,7 @@ def run(year,out):
                          sr_support_from_d1=int(level_counts[1,1]),sr_support_from_prior_week=int(level_counts[1,2]),
                          sr_missing_both=int(level_counts[2,0]),
                          year=year,period_ending=f'{year}-12-31' if year<=2025 else '2026-10-29',
-                         config=name,family=('REVERSE' if int(CFG[i,9])==-1 else 'MOMENTUM'),rr_group='${ratio}',lot_size=float(CFG[i,0]/100.),tp_gold_distance=float(CFG[i,5]),sl_gold_distance=float(CFG[i,6]),sell_tp_gold_distance=float(CFG[i,7]),sell_sl_gold_distance=float(CFG[i,8]),extra_slippage_side=float(CFG[i,1]),
+                         config=name,family=('REVERSE' if int(CFG[i,9])==-1 else 'MOMENTUM'),rr_group='EQ',lot_size=float(CFG[i,0]/100.),tp_gold_distance=float(CFG[i,5]),sl_gold_distance=float(CFG[i,6]),sell_tp_gold_distance=float(CFG[i,7]),sell_sl_gold_distance=float(CFG[i,8]),extra_slippage_side=float(CFG[i,1]),
                          daily_withdraw=bool(CFG[i,2]),Friday_flat=bool(CFG[i,3]),leverage=int(CFG[i,4]),
                          rows_processed=total,H1_windows_scheduled=len(starts),
                          H1_missing_or_no_quote=int(sum(missing)),
