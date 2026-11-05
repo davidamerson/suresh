@@ -12,7 +12,7 @@ at specified basket level for TP. Weekend carry, never forced Friday
 closure. 2020-2026 real Exness Raw Spread bid/ask, single continuous
 $1000, all causal H1/SR entry and rearm logic unchanged, 0.01lot each
 order, $0.07 fee EACH order, no withdrawals, no martingale beyond one child.
-""""""
+"""
 import argparse
 import hashlib
 import json
