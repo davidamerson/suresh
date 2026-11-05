@@ -1,0 +1,43 @@
+name: XAUUSD H1 high-break BUY80SL40 exploratory stress 2020-2026
+on:
+  push:
+    branches: [h1-reverse-vs-breakout-symmetric-40-20261105]
+    paths:
+      - "ph1_backtest/h1_high_only_momentum_tp80_sl40_stress.py"
+      - ".github/workflows/h1-high-only-buy80-40-slippage-check-20261105.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: High-only TP80 SL40 baseline and stress ${{ matrix.year }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2020,2021,2022,2023,2024,2025,2026]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Validate high-only selection and cost configurations
+        run: |
+          python -m py_compile ph1_backtest/h1_high_only_momentum_tp80_sl40_stress.py
+          python -u ph1_backtest/h1_high_only_momentum_tp80_sl40_stress.py --selftest
+      - name: Historical raw Bid Ask tick replay
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.year }}
+          python -u ph1_backtest/h1_high_only_momentum_tp80_sl40_stress.py --year ${{ matrix.year }} --out results/${{ matrix.year }} 2>&1 | tee results/${{ matrix.year }}/execution.log
+      - name: Upload original trade ledgers and source hashes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: H1-High-Only-Buy80SL40-Stress-${{ matrix.year }}
+          path: results/${{ matrix.year }}/
+          retention-days: 30
+          if-no-files-found: warn
