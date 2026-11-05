@@ -1,0 +1,40 @@
+name: XAUUSD Major SR adverse 80pip add-on 180TP 10SL 2020-26
+on:
+  push:
+    branches: [major-sr-adverse80-add-second-tp180-sl10-20261105]
+    paths:
+      - "ph1_backtest/major_sr_adverse80_two_order_basket_2020_2026.py"
+      - ".github/workflows/major-sr-adverse80-second180-sl10-full-replay.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: Tick replay 2020-26 TP90/SL90 plus second same-way at adverse80
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned runner
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Validate causal locked S/R and paired-exit interpretations
+        run: |
+          python -m py_compile ph1_backtest/major_sr_adverse80_two_order_basket_2020_2026.py
+          python -u ph1_backtest/major_sr_adverse80_two_order_basket_2020_2026.py --selftest
+      - name: Execute 2020–2026 actual Bid Ask tick replay
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/continuous_2020_2026
+          python -u ph1_backtest/major_sr_adverse80_two_order_basket_2020_2026.py --out results/continuous_2020_2026 2>&1 | tee results/continuous_2020_2026/execution.log
+      - name: Archive portfolio results, first/second order ledger, SHA256 inputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MajorSR-Adverse80-TwoOrder-TP180-SL10-2020-26
+          path: results/continuous_2020_2026/
+          retention-days: 30
+          if-no-files-found: warn
