@@ -35,7 +35,7 @@ All entries and exits in the uploaded GitHub artifact's `individual_trades.csv`.
 
 **These 7 separate broker orders represent ONLY 3 unique tick entry moments and 2 distinct S/R levels**, not seven independent market opportunities.
 - Unique-tick, one-ticket-only hypothetical: EQ 3/3 TP, +$26.79; 2:1 2/3 TP, +$14.785.
-- If limiting to one ticket per calendar-day *and boundary level*, even the Oct30 10:47 recross trade is excluded: EQ 2 TP, +$17.86, RR2 2 TP, +$4.85. These what-if totals are simple filtering of exact trade ledgers, NOT a separate rerun with portfolio/margin-aware trade suppression, but all original trades are individually independently executed in the simulator with no remaining open tickets.
+- If limiting to one ticket per calendar-day *and boundary level*, even the Oct30 10:47 recross trade is excluded: EQ 2 TP, +$17.86, RR2 2 TP, +$19.86. These what-if totals are simple filtering of exact trade ledgers, NOT a separate rerun with portfolio/margin-aware trade suppression, but all original trades are individually independently executed in the simulator with no remaining open tickets.
 
 ## Additional quote stress outcomes
 
