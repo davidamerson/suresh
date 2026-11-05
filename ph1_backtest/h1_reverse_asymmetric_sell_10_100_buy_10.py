@@ -468,7 +468,7 @@ def run(year,out):
     side_df=pd.DataFrame(side_rows)
     side_df.to_csv(out/'by_side_summary.csv',index=False)
     print('SIDE_TABLE\\n'+side_df.to_string(index=False),flush=True)
-        pd.DataFrame(trades).to_csv(out/'individual_trades.csv',index=False)
+    pd.DataFrame(trades).to_csv(out/'individual_trades.csv',index=False)
     pd.DataFrame(sessions).to_csv(out/'sessions.csv',index=False)
     pd.DataFrame(rows).to_csv(out/'summary.csv',index=False)
     pd.DataFrame({'UTC_Date':pd.date_range(f'{year}-01-01',periods=375,freq='D'),
