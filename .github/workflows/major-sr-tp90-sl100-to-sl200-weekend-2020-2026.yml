@@ -1,0 +1,40 @@
+name: Major SR TP90 SL100-200 no Friday closures, 2020-26
+on:
+  push:
+    branches: [major-sr-tp90-sl100-to-sl200-sweep-20261106]
+    paths:
+      - "ph1_backtest/major_sr_tp90_sl100_to_sl200_weekend_hold_2020_2026.py"
+      - ".github/workflows/major-sr-tp90-sl100-to-sl200-weekend-2020-2026.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: 11 TP90 SL models, including SL90 baseline, 2020-26 all XAUUSD ticks
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Verify no add-on and fixed entry and 11 predefined S L levels
+        run: |
+          python -m py_compile ph1_backtest/major_sr_tp90_sl100_to_sl200_weekend_hold_2020_2026.py
+          python -u ph1_backtest/major_sr_tp90_sl100_to_sl200_weekend_hold_2020_2026.py --selftest
+      - name: Replay 2020-2026 all archived Exness XAUUSD bid and ask ticks
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/continuous_2020_2026
+          python -u ph1_backtest/major_sr_tp90_sl100_to_sl200_weekend_hold_2020_2026.py --out results/continuous_2020_2026 2>&1 | tee results/continuous_2020_2026/execution.log
+      - name: Upload source hashes and complete winning losing order and equity ledgers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MajorSR-TP90-WiderSL100to200-2020-2026
+          path: results/continuous_2020_2026/
+          retention-days: 30
+          if-no-files-found: warn
