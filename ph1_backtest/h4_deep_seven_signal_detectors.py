@@ -34,7 +34,7 @@ from numba import njit
 from h4_major_trend_change_rr3_ten_variants_2020_2026 import observe_h4_reversal,NS_HOUR
 METHOD=0
 METHOD_NAMES=['PA_DISPLACEMENT','PA_TWO_BAR_ACCEPTANCE','EMA20_50_200',
-              'ADX_DMI14','CUSUM_MATH','DONCHIAN20','MACD12_26_9']
+              'ADX_DMI14','CUSUM_MATH','DONCHIAN20','MACD12_26_9','MACD_ZERO_LINE_REVERSAL']
 
 @njit
 def detect_confirmed_change(t,bid,si,sf,hi,lo,gi,ex,flags,ring):
@@ -186,6 +186,17 @@ def detect_confirmed_change(t,bid,si,sf,hi,lo,gi,ex,flags,ring):
             if earlierhist<=0. and hist>0. and macd>0.:event=1
             elif earlierhist>=0. and hist<0. and macd<0.:event=-1
         ex[34]=hist
+    elif METHOD==7:
+        # Genuine H4 MACD trend-DIRECTION regime flip, not a bullish
+        # histogram reacceleration within an already positive MACD.
+        # Require a completed 12/26 EMA difference crossover of ZERO,
+        # with H4 close on corresponding side of H4 EMA50.
+        macd=ex[31]-ex[32]
+        previous_macd=ex[35]
+        if count>=35:
+            if previous_macd<=0. and macd>0. and C>ex[3]:event=1
+            elif previous_macd>=0. and macd<0. and C<ex[3]:event=-1
+        ex[35]=macd
     # Next candle's first quote is the event's first executable price.
     ex[0]=bid
     if event!=0:flags[2]+=1
