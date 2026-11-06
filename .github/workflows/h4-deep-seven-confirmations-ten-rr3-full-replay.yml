@@ -1,0 +1,54 @@
+name: XAUUSD 7 confirmed H4 trend change methods x 10 RR3 systems
+on:
+  push:
+    branches: [major-trend-h4-structure-change-rr3-10models-20261106]
+    paths:
+      - "ph1_backtest/h4_deep_trend_change_seven_methods_runner.py"
+      - "ph1_backtest/h4_deep_seven_signal_detectors.py"
+      - ".github/workflows/h4-deep-seven-confirmations-ten-rr3-full-replay.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        method:
+          - PA_DISPLACEMENT
+          - PA_TWO_BAR_ACCEPTANCE
+          - EMA20_50_200
+          - ADX_DMI14
+          - CUSUM_MATH
+          - DONCHIAN20
+          - MACD12_26_9
+    name: ${{ matrix.method }} — ten original TP SL configs, 2020-26
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned tick-processing dependencies
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Test method and 10 RR3 models before seeing outcomes
+        shell: bash
+        run: |
+          python -m py_compile "ph1_backtest/h4_deep_trend_change_seven_methods_runner.py" "ph1_backtest/h4_deep_seven_signal_detectors.py"
+          python -u "ph1_backtest/h4_deep_trend_change_seven_methods_runner.py" --method "${{ matrix.method }}" --selftest --out "results/${{ matrix.method }}"
+      - name: Full Exness 2020-26 causal H4 entries and actual Bid Ask TP SL exits
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "results/${{ matrix.method }}"
+          python -u "ph1_backtest/h4_deep_trend_change_seven_methods_runner.py" --method "${{ matrix.method }}" --out "results/${{ matrix.method }}" 2>&1 | tee "results/${{ matrix.method }}/execution.log"
+      - name: Preserve complete independently auditable results and exact engine
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: H4TrendConfirm-${{ matrix.method }}-10RR3-2020-26
+          path: results/${{ matrix.method }}/
+          retention-days: 30
+          if-no-files-found: warn
