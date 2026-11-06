@@ -1,0 +1,35 @@
+name: Astrology market validation FRED historical GitHub archive
+on:
+  push:
+    branches: [astrology-empirical-global-pilot-20261106]
+    paths:
+      - '.github/workflows/astrology-market-fred-archive.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  market:
+    name: FRED archive controlled historical SP500 test
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install packages
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'scipy==1.15.3' 'scikit-learn==1.6.1' 'requests==2.32.5' 'pyswisseph==2.10.3.2'
+      - name: Validate exact astronomy and source code
+        run: python -m py_compile astro_research/astral_market_fred_public_archive.py
+      - name: Run fixed S&P500 risk prediction versus astronomy
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p astro_research/results/markets_fred_archive
+          python -u astro_research/astral_market_fred_public_archive.py --dataset markets --out astro_research/results/markets_fred_archive 2>&1 | tee astro_research/results/markets_fred_archive/execution.log
+      - name: Preserve results provenance and source hash
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrology-market-fred-archive-20261106
+          path: astro_research/results/markets_fred_archive/
+          retention-days: 30
