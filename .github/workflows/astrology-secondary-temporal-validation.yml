@@ -1,0 +1,44 @@
+name: Astrology chronological split stability checks
+on:
+  push:
+    branches: [astrology-empirical-global-pilot-20261106]
+    paths:
+      - '.github/workflows/astrology-secondary-temporal-validation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  split:
+    name: ${{ matrix.dataset }} train-through-${{ matrix.cutoff }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - {dataset: earthquakes, cutoff: 2012}
+          - {dataset: earthquakes, cutoff: 2020}
+          - {dataset: markets, cutoff: 2019}
+          - {dataset: markets, cutoff: 2022}
+          - {dataset: conflicts, cutoff: 2015}
+          - {dataset: conflicts, cutoff: 2020}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Pinned computational libraries
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'scipy==1.15.3' 'scikit-learn==1.6.1' 'requests==2.32.5' 'pyswisseph==2.10.3.2'
+      - name: Run secondary non-optimized time split
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "astro_research/results/secondary_${{ matrix.dataset }}_${{ matrix.cutoff }}"
+          python -u astro_research/secondary_temporal_robustness.py --dataset "${{ matrix.dataset }}" --cutoff "${{ matrix.cutoff }}" --out "astro_research/results/secondary_${{ matrix.dataset }}_${{ matrix.cutoff }}" 2>&1 | tee "astro_research/results/secondary_${{ matrix.dataset }}_${{ matrix.cutoff }}/execution.log"
+      - name: Keep result and source checksums
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astro-secondary-${{ matrix.dataset }}-${{ matrix.cutoff }}
+          path: astro_research/results/secondary_${{ matrix.dataset }}_${{ matrix.cutoff }}/
+          retention-days: 30
