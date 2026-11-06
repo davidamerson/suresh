@@ -1,0 +1,32 @@
+name: Astrology Market Stooq contingency dataset
+on:
+  push:
+    branches: [astrology-empirical-global-pilot-20261106]
+    paths: ['.github/workflows/astrology-market-stooq-contingency.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  market:
+    name: S&P500 historical vendor replication
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Packages
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'scipy==1.15.3' 'scikit-learn==1.6.1' 'requests==2.32.5' 'pyswisseph==2.10.3.2'
+      - name: Fetch historical market and compare models against locked holdout
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p astro_research/results/markets_stooq
+          python -u astro_research/astral_global_hypothesis_test_market_stooq.py --dataset markets --out astro_research/results/markets_stooq 2>&1 | tee astro_research/results/markets_stooq/execution.log
+      - name: Preserve vendor-sourced results and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrology-market-stooq-controlled-20261106
+          path: astro_research/results/markets_stooq/
+          retention-days: 30
