@@ -14,7 +14,7 @@ from scipy.stats import binomtest
 # Prior runner already archives sources, runs six tests; use it to obtain
 # verified source bytes and outcomes in this separate standalone job.
 import study_global_domains as source
-OUT=Path("results/astrology_calendar_robustness")
+OUT=Path("../results/astrology_calendar_robustness")
 OUT.mkdir(parents=True,exist_ok=True)
 RNG=np.random.default_rng(20261106)
 pairs=[(259,365),(260,364),(260,366),(261,365),(261,366),(250,350),(265,375)]
