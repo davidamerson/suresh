@@ -1,0 +1,33 @@
+name: Astrology Adversarial Calendar Aliasing Controls 2026
+on:
+  push:
+    branches: [astrology-cross-tradition-validation-20261106]
+    paths:
+      - 'astrology_quant/diagnose_calendar_robustness.py'
+      - '.github/workflows/astrology-calendar-robustness.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Reproducible packages
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'scipy==1.15.3' 'scikit-learn==1.6.1' 'pyswisseph==2.10.3.2' 'requests==2.32.5' 'beautifulsoup4==4.13.4' 'lxml==5.4.0'
+      - name: Completed-year rolling trials, naive baselines and 150 random calendar controls
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/astrology_calendar_robustness
+          cd astrology_quant
+          python -u diagnose_calendar_robustness.py 2>&1 | tee ../results/astrology_calendar_robustness/execution.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: astrology-calendar-adversarial-negative-controls
+          path: results/astrology_calendar_robustness/
+          retention-days: 90
