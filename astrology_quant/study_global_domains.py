@@ -40,19 +40,28 @@ def owid(slug,domain,name):
     cols=list(df.columns)
     entity=next((c for c in cols if c.lower()=="entity"),cols[0])
     year=next((c for c in cols if c.lower()=="year"),"Year")
-    subset=df[df[entity].astype(str).str.strip().str.casefold()=="world"]
+    # EM-DAT chart labels global total as "All disasters", not "World".
+    key="all disasters" if domain=="natural" else "world"
+    subset=df[df[entity].astype(str).str.strip().str.casefold()==key].copy()
     possible=[c for c in subset.columns if c not in (entity,year,"Code")]
-    if not possible:raise ValueError("No target column "+str(df.columns))
-    # OWID chart export is normally single data column. If multiple, select
-    # exact chart target / total, otherwise mark dataset unavailable, never guess.
-    if len(possible)==1:target=possible[0]
-    else:
-        options=[c for c in possible if "total" in c.lower() or domain in c.lower()]
-        if len(options)!=1:raise ValueError("Ambiguous outcome columns "+str(possible))
-        target=options[0]
-    data={int(z):float(v) for z,v in zip(subset[year],pd.to_numeric(subset[target],errors="coerce")) if pd.notna(v) and int(z)<=2025}
-    if len(data)<20:raise ValueError("Not enough World observations "+str(len(data)))
-    return name,data,"OWID "+slug+" (column "+target+")"
+    if not possible:raise ValueError("No outcome columns "+str(df.columns))
+    if domain=="natural":
+        if len(possible)!=1:raise ValueError("Disaster chart unexpected columns "+str(possible))
+        target=possible[0]
+        vals=pd.to_numeric(subset[target],errors="coerce")
+        detail="total all-disaster events (Entity=All disasters)"
+    elif domain=="armed":
+        # UCDP chart separates 5 mutually defined conflict classes; world total
+        # is the sum of those five categories for each year.
+        expected=["One-sided violence","Extrasystemic","Non-state","Intrastate","Interstate"]
+        if any(c not in possible for c in expected):raise ValueError("Expected 5 UCDP conflict types "+str(possible))
+        vals=subset[expected].apply(pd.to_numeric,errors="coerce").fillna(0).sum(axis=1)
+        detail="sum of 5 conflict classes, global World entity"
+    else: raise ValueError("Unknown OWID domain")
+    data={int(z):float(v) for z,v in zip(subset[year],vals) if pd.notna(v) and int(z)<=2025}
+    if len(data)<20:raise ValueError("Not enough global observations "+str(len(data)))
+    print("OWID_CHOSEN",name,detail,len(data),"first",list(data.items())[:3],"last",list(data.items())[-3:],flush=True)
+    return name,data,"OWID "+slug+" ("+detail+")""
 
 def stocks():
     url="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"
