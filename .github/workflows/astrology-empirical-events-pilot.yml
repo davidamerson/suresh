@@ -1,0 +1,42 @@
+name: Astrology empirical astronomy-vs-events preregistered test
+on:
+  push:
+    branches: [astrology-empirical-global-pilot-20261106]
+    paths:
+      - '.github/workflows/astrology-empirical-events-pilot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  comparative-events:
+    name: ${{ matrix.dataset }} astronomy versus controlled forecasts
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        dataset: [earthquakes, markets, conflicts]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install fixed packages
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'scipy==1.15.3' 'scikit-learn==1.6.1' 'requests==2.32.5' 'pyswisseph==2.10.3.2'
+      - name: Validate script and frozen protocol
+        run: |
+          python -m py_compile astro_research/astral_global_hypothesis_test.py
+          test -f astro_research/PREREGISTERED_PROTOCOL.md
+      - name: Fetch official event data and compute heldout comparisons
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "astro_research/results/${{ matrix.dataset }}"
+          python -u astro_research/astral_global_hypothesis_test.py --dataset "${{ matrix.dataset }}" --out "astro_research/results/${{ matrix.dataset }}" 2>&1 | tee "astro_research/results/${{ matrix.dataset }}/execution.log"
+      - name: Preserve source hashes, registered model scores and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrology-pilot-${{ matrix.dataset }}-20261106
+          path: astro_research/results/${{ matrix.dataset }}/
+          retention-days: 30
+          if-no-files-found: warn
