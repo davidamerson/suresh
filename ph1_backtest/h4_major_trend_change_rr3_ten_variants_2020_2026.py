@@ -62,7 +62,7 @@ def observe_h4_reversal(t,bid,si,sf,hi,lo,gi):
     sf: active OHLC hi,lo,close [0:3], prior close [3],
         latest/previous confirmed H4 high [4:6],
         latest/previous confirmed H4 low [6:8],
-        last trigger pivot [10].
+        pivot levels [4:8]. The prior confirmed trigger is saved by engine.
     hi/lo: five last fully CLOSED H4 highs/lows.
     gi[0]/gi[1]: confirmed high/low counts.
     """
@@ -89,11 +89,13 @@ def observe_h4_reversal(t,bid,si,sf,hi,lo,gi):
     if old==-1 and sf[4]>0. and p>0.:
         if p<=sf[4] and c>sf[4]:
             signal=1
-            sf[10]=sf[4]
+
+            # exact trigger level captured by engine from pivot pre-state
     elif old==1 and sf[6]>0. and p>0.:
         if p>=sf[6] and c<sf[6]:
             signal=-1
-            sf[10]=sf[6]
+
+            # exact trigger level captured by engine from pivot pre-state
     if signal!=0:
         si[2]=signal
         si[3]+=1
@@ -146,7 +148,11 @@ def engine(ts,bids,asks,starts,ends,sids,CFG,cash,withdrawn,daily,
         t=ts[z];bid=bids[z];ask=asks[z]
         if not (np.isfinite(bid) and np.isfinite(ask) and bid>0 and ask>=bid):
             continue
+        prior_confirmed_high=sr_f[4]
+        prior_confirmed_low=sr_f[6]
         signal=observe_h4_reversal(t,bid,sr_i,sr_f,daily_high,daily_low,global_i)
+        if signal!=0:
+            global_f[0]=prior_confirmed_high if signal==1 else prior_confirmed_low
         day=t//NS_DAY
         for c in range(N):
             if stats_i[c,10]!=0:continue
@@ -214,8 +220,8 @@ def engine(ts,bids,asks,starts,ends,sids,CFG,cash,withdrawn,daily,
                         ti[c,j,3]=0 if side==1 else 2
                         ti[c,j,4]=0
                         tf[c,j,0]=entry
-                        tf[c,j,2]=sf_level=sr_f[10] # already known H4 reversal pivot
-                        tf[c,j,3]=sf_level
+                        tf[c,j,2]=global_f[0] # exact PRIOR confirmed H4 reversal pivot
+                        tf[c,j,3]=global_f[0]
                         tf[c,j,4]=units;tf[c,j,5]=ask-bid
                         tf[c,j,6]=entry-side*(CFG[c,6] if side==1 else CFG[c,8])
                         cash[c]-=fee
