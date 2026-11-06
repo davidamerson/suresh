@@ -1,0 +1,37 @@
+name: H4 EMA Cross ATR Valid Open Ticket Audit 2020-2026
+on:
+  push:
+    branches: [h4-advanced-confirmed-reversal-nine-models-20261106]
+    paths:
+      - 'ph1_backtest/h4_advanced_ema_repaired_runner.py'
+      - '.github/workflows/h4-advanced-ema-audit-repair.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: EMA Cross ATR 10 TP SL exact open plus closed audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5' 'tzdata==2026.6'
+      - name: Selftest completed H4 and fixed ten TP SL, parse first
+        run: |
+          python -m py_compile ph1_backtest/h4_advanced_ema_repaired_runner.py
+          python -u ph1_backtest/h4_advanced_ema_repaired_runner.py --method EMA_CROSS_ATR_CONFIRM --selftest --out results/EMA_CROSS_ATR_CONFIRM
+      - name: Full continuous Exness Bid Ask 2020-2026 plus correct open-ticket reconciliation
+        shell: bash
+        run: |
+          set -o pipefail
+          python -u ph1_backtest/h4_advanced_ema_repaired_runner.py --method EMA_CROSS_ATR_CONFIRM --out results/EMA_CROSS_ATR_CONFIRM 2>&1 | tee results/EMA_CROSS_ATR_CONFIRM/execution.log
+      - name: Preserve complete tickets and account source SHA256
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: H4Advanced-EMA_CROSS_ATR_CONFIRM-10RR3-REPAIRED
+          path: results/EMA_CROSS_ATR_CONFIRM/
+          retention-days: 30
