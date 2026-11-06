@@ -63,7 +63,7 @@ def configure(method):
 
 def selftest():
     assert len(previous.CONF)==10 and previous.CFG.shape==(10,19)
-    assert detectors.METHOD in range(7)
+    assert detectors.METHOD in range(8)
     method=ALL_METHODS[detectors.METHOD]
     for i,c in enumerate(previous.CONF):
         assert c[0]==f'{method}_TP{30*(i+1)}_SL{10*(i+1)}'
@@ -107,10 +107,21 @@ def execute(method,out):
     # Each H4 method event is a global causal signal and all RR profiles
     # entered same quote; no outcome-aware filtering or skipped losing paths.
     ledger=pd.read_csv(out/'ticket_ledger.csv')
+    try:
+        opened=pd.read_csv(out/'open_positions_at_cutoff.csv')
+    except pd.errors.EmptyDataError:
+        opened=pd.DataFrame(columns=['model','unrealized_gross_usd'])
     for _,r in summary.iterrows():
         sub=ledger[ledger.model==r['config']]
+        live=opened[opened.model==r['config']]
         assert len(sub)==int(r['trades_closed'])
-        assert abs(float(sub.net_ex_swap.sum())-float(r['net_profit']))<0.004
+        assert len(live)==int(r['active_positions_end'])
+        # Net historical account equity includes genuine still-OPEN
+        # floating P/L. Full roundtrip commission was booked on entry.
+        close_net=float(sub.net_ex_swap.sum())
+        floating_net=float(live.unrealized_gross_usd.sum())-0.07*len(live)
+        assert abs(close_net+floating_net-float(r['net_profit']))<0.005, (
+            r['config'],close_net,floating_net,r['net_profit'])
         assert len(sub[sub.result=='TP'])==int(r['TP'])
         assert len(sub[sub.result=='SL'])==int(r['SL'])
     first=None
@@ -132,7 +143,8 @@ def execute(method,out):
     meta['method_details_file']='h4_deep_seven_signal_detectors.py'
     meta['previous_h4_strategy_result_not_reused']='All 296709207 real quote ticks replayed, with different method-specific entries'
     meta['trend_confirmation_is_observation_not_guaranteed_direction']=True
-    meta['seven_methods_locked_before_any_backtest_of_these_seven']=ALL_METHODS
+    meta['method_family_experiments']=ALL_METHODS
+    meta['methodological_clarification']='MACD_ZERO_LINE_REVERSAL added after seeing seven-model outcomes; NOT part of original precommitted seven and NOT independent held-out evidence'
     meta['indicator_change_thresholds']='Fixed in detector source; no grid optimization'
     provenance.write_text(json.dumps(meta,indent=2))
     print('NEW_METHOD_FINAL',method,'signals',summary['trades_opened'].iloc[0],flush=True)
