@@ -61,7 +61,7 @@ def owid(slug,domain,name):
     data={int(z):float(v) for z,v in zip(subset[year],vals) if pd.notna(v) and int(z)<=2025}
     if len(data)<20:raise ValueError("Not enough global observations "+str(len(data)))
     print("OWID_CHOSEN",name,detail,len(data),"first",list(data.items())[:3],"last",list(data.items())[-3:],flush=True)
-    return name,data,"OWID "+slug+" ("+detail+")""
+    return name,data,"OWID "+slug+" ("+detail+")"
 
 def stocks():
     url="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"
