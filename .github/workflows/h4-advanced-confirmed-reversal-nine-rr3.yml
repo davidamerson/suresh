@@ -1,0 +1,55 @@
+name: H4 Advanced Confirmed Reversal Nine Methods 10 RR3 2020-2026
+on:
+  push:
+    branches: [h4-advanced-confirmed-reversal-nine-models-20261106]
+    paths:
+      - 'ph1_backtest/h4_advanced_reversal_detectors.py'
+      - 'ph1_backtest/h4_advanced_reversal_nine_runner.py'
+      - '.github/workflows/h4-advanced-confirmed-reversal-nine-rr3.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: ${{ matrix.method }} causal H4 full Exness ticks x10 TP/SL
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        method:
+          - MACD_BODY_EMA
+          - MACD_KAMA_EFF
+          - MACD_TWO_BAR_HOLD
+          - PA_MSS_MACD
+          - PA_MSS_ACCEPT_MACD
+          - ATR_SUPERTREND_FLIP
+          - CUSUM_EMA_REVERSAL
+          - OLS_SLOPE_REVERSAL
+          - EMA_CROSS_ATR_CONFIRM
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5' 'tzdata==2026.6'
+      - name: Validate Python and predeclared model without future candles
+        run: |
+          python -m py_compile ph1_backtest/h4_advanced_reversal_detectors.py ph1_backtest/h4_advanced_reversal_nine_runner.py
+          python -u ph1_backtest/h4_advanced_reversal_nine_runner.py --method "${{ matrix.method }}" --selftest --out "results/${{ matrix.method }}"
+      - name: Replay Exness 2020 Jan 29 to 2026 Nov 05 in continuous USD1000 account
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "results/${{ matrix.method }}"
+          python -u ph1_backtest/h4_advanced_reversal_nine_runner.py --method "${{ matrix.method }}" --out "results/${{ matrix.method }}" 2>&1 | tee "results/${{ matrix.method }}/execution.log"
+      - name: Preserve exact trade ledger, equity, gap stops, and data provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: H4Advanced-${{ matrix.method }}-10RR3-2020-26
+          path: results/${{ matrix.method }}/
+          retention-days: 30
+          if-no-files-found: warn
