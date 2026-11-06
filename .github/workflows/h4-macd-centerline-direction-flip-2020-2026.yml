@@ -1,0 +1,40 @@
+name: XAUUSD H4 MACD confirmed ZERO-LINE direction flip 10 RR3
+on:
+  push:
+    branches: [h4-macd-centerline-genuine-direction-flip-20261106]
+    paths:
+      - "ph1_backtest/h4_deep_trend_change_seven_methods_runner.py"
+      - "ph1_backtest/h4_deep_seven_signal_detectors.py"
+      - ".github/workflows/h4-macd-centerline-direction-flip-2020-2026.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: True MACD12 26 Zero crossing + EMA50 price confirmation
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Pin NumPy pandas numba requests tzdata
+        run: pip install "numpy==2.2.6" "pandas==2.2.3" "numba==0.61.2" "requests==2.32.5" "tzdata==2026.6"
+      - name: Confirm 10 original R3 settings and exact H4 source engine
+        run: |
+          python -m py_compile "ph1_backtest/h4_deep_trend_change_seven_methods_runner.py" "ph1_backtest/h4_deep_seven_signal_detectors.py"
+          python -u "ph1_backtest/h4_deep_trend_change_seven_methods_runner.py" --method MACD_ZERO_LINE_REVERSAL --selftest --out results/MACD_ZERO_LINE_REVERSAL
+      - name: Replay all historical Exness XAUUSD Bid Ask ticks 2020-2026
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/MACD_ZERO_LINE_REVERSAL
+          python -u "ph1_backtest/h4_deep_trend_change_seven_methods_runner.py" --method MACD_ZERO_LINE_REVERSAL --out results/MACD_ZERO_LINE_REVERSAL 2>&1 | tee results/MACD_ZERO_LINE_REVERSAL/execution.log
+      - name: Keep all ticket data, H4 signal provenance and equity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: H4TrendConfirm-MACD_ZERO_LINE_REVERSAL-10RR3-2020-26
+          path: results/MACD_ZERO_LINE_REVERSAL/
+          if-no-files-found: warn
+          retention-days: 30
