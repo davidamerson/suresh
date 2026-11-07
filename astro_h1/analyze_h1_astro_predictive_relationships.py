@@ -82,14 +82,24 @@ def evaluate(candle_path,astro_path,out):
         columns=list(dict.fromkeys(columns))
         X=d[columns].to_numpy(dtype=np.float64)
         std=StandardScaler()
-        Xtr=std.fit_transform(X[train])
-        Xte=std.transform(X[test])
+        # Train-only standardized clipping prevents rare near-zero-variance
+        # planetary orbs from exploding 2025-26 extrapolated predictions.
+        # This is a NUMERIC STABILITY correction, not a profitable signal
+        # threshold fitted on the test outcomes.
+        Xtr=np.clip(std.fit_transform(X[train]),-8.,8.)
+        Xte=np.clip(std.transform(X[test]),-8.,8.)
         reg=Ridge(alpha=150.,fit_intercept=True)
         reg.fit(Xtr,target[train])
-        yhat=reg.predict(Xte)
+        pred_raw=reg.predict(Xte)
+        low=float(np.quantile(target[train],.001))
+        high=float(np.quantile(target[train],.999))
+        yhat=np.clip(pred_raw,low,high)
         regvol=Ridge(alpha=150.,fit_intercept=True)
         regvol.fit(Xtr,target_range[train])
-        volhat=np.expm1(regvol.predict(Xte))
+        vlog=regvol.predict(Xte)
+        vlog=np.clip(vlog,float(np.quantile(target_range[train],.001)),
+                         float(np.quantile(target_range[train],.999)))
+        volhat=np.expm1(vlog)
         clf=LogisticRegression(C=0.08,max_iter=200,solver="lbfgs")
         clf.fit(Xtr,up[train])
         p_up=clf.predict_proba(Xte)[:,1]
