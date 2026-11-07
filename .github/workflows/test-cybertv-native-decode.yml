@@ -1,0 +1,53 @@
+name: Inspect CyberTV free-channel JNI decode in emulator
+on:
+  push:
+    branches: [cybertv-tv-app-20261108]
+    paths: [".github/workflows/test-cybertv-native-decode.yml"]
+permissions:
+  contents: read
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cybertv-tv-app-20261108
+      - name: Download original CyberTV 3.1 binary
+        run: |
+          set -e
+          curl -L --fail --silent --show-error --max-time 95 -A "Mozilla/5.0" "https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk" -o cybertv.apk
+          echo "APK_HASH"
+          sha256sum cybertv.apk
+      - name: Set up matching Frida server
+        run: |
+          python3 -m pip install --quiet frida
+          FRIDA_VERSION=$(python3 -c "import frida; print(frida.__version__)")
+          echo "FRIDA_VERSION=$FRIDA_VERSION"
+          curl -L --retry 2 --fail --silent --show-error --max-time 100 "https://github.com/frida/frida/releases/download/$FRIDA_VERSION/frida-server-$FRIDA_VERSION-android-x86_64.xz" -o frida.xz
+          xz -dc frida.xz > frida-server
+          chmod +x frida-server
+      - name: Enable isolated KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Launch original CyberTV app, inspect only result types not protected tokens
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 2048M
+          disable-animations: true
+          script: |
+            adb install -r cybertv.apk
+            adb root
+            adb wait-for-device
+            adb push frida-server /data/local/tmp/frida-server
+            adb shell chmod 755 /data/local/tmp/frida-server
+            adb shell 'nohup /data/local/tmp/frida-server >/dev/null 2>&1 </dev/null &'
+            adb shell monkey -p com.cy.cybertv -c android.intent.category.LAUNCHER 1
+            sleep 27
+            python3 cybertv_app_research/live_hook.py
