@@ -1,0 +1,64 @@
+name: XAUUSD Reversed MSS Only SL20 TP10 Exits Across Weekends 2020-2026
+on:
+  push:
+    branches: [mss-opposite-sl20-tp10-only-exits-20261107]
+    paths:
+      - 'mss_only_tp_sl/tick_replay_tp10_sl20_only.py'
+      - '.github/workflows/mss-opposite-tp10-sl20-only-exits.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            tag: full_unbroken_2020_2026
+          - first: 2025
+            last: 2026
+            tag: independent_start_2025_2026
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install pinned streaming research dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Compile and verify no time exits are present
+        run: |
+          python -m py_compile mss_only_tp_sl/tick_replay_tp10_sl20_only.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('mss_only_tp_sl/tick_replay_tp10_sl20_only.py').read_text()
+          assert 'stophit or takehit' in s
+          assert 'Friday close' not in s
+          assert 'time_expired=' not in s
+          assert "exit_type[k]=2 if stophit else 1" in s
+          print('ONLY_TP_SL_EXITS_STATIC_CHECK_PASS')
+          PY
+      - name: Download source H1 candles with original 48H liquidity MSS signals
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p local_data
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D local_data --repo davidamerson/suresh
+          test -s local_data/complete_monday_friday_h1_candles.csv
+      - name: Read every historical XAUUSD Raw Spread bid ask quote chronologically
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.tag }}
+          python -u mss_only_tp_sl/tick_replay_tp10_sl20_only.py --h1 local_data/complete_monday_friday_h1_candles.csv --first ${{ matrix.first }} --last ${{ matrix.last }} --out results/${{ matrix.tag }} 2>&1 | tee results/${{ matrix.tag }}/research.log
+      - name: Preserve every filled order and full source hashes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reversed-mss-tp-sl-only-${{ matrix.tag }}
+          path: results/${{ matrix.tag }}/
+          retention-days: 30
+          if-no-files-found: warn
