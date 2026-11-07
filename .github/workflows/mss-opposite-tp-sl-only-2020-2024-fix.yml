@@ -1,0 +1,42 @@
+name: MSS Reversed Exact Tick 2020-2024 Only Exits Audit
+on:
+  push:
+    branches: [mss-opposite-sl20-tp10-only-exits-20261107]
+    paths:
+      - 'mss_only_tp_sl/tick_replay_tp10_sl20_only_mixed_date_fixed.py'
+      - '.github/workflows/mss-opposite-tp-sl-only-2020-2024-fix.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  corrected_ledger_2020_2024:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - run: python -m py_compile mss_only_tp_sl/tick_replay_tp10_sl20_only_mixed_date_fixed.py
+      - name: Fetch locked H1 original reversed MSS candidate schedule
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p local_data
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D local_data --repo davidamerson/suresh
+          test -s local_data/complete_monday_friday_h1_candles.csv
+      - name: Reprocess 2020-2024 exact Bid Ask tick stream without non-SL TP exits
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/full_2020_2024
+          python -u mss_only_tp_sl/tick_replay_tp10_sl20_only_mixed_date_fixed.py --h1 local_data/complete_monday_friday_h1_candles.csv --first 2020 --last 2024 --out results/full_2020_2024 2>&1 | tee results/full_2020_2024/research.log
+      - name: Preserve per-year exact one-position trade audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mss-reversed-only-sl20-tp10-2020-2024-corrected
+          path: results/full_2020_2024/
+          retention-days: 30
+          if-no-files-found: warn
