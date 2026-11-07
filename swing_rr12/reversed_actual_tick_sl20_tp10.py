@@ -23,13 +23,13 @@ def loop_ticks(ns,bid,ask,book,basehour,on,entryh,entryns,ent,stop,take,side,qty
         m=(sec//60)%60
         first=hr!=last_hour[0]
         # Simulate each of 20 independent books, each one trade at any time.
-        for q in range(20):
+        for q in range(2):
             if on[q]!=0:
                 direction=side[q]
                 px=b if direction==1 else a
                 is_stop=px<=stop[q] if direction==1 else px>=stop[q]
                 is_tp=px>=take[q] if direction==1 else px<=take[q]
-                horizon=12 if q<10 else 24
+                horizon=12 if q==0 else 24
                 time_expired=hr>=entryh[q]+horizon
                 friday=dy==4 and hrday==19 and m>=59
                 if is_stop or is_tp or time_expired or friday:
@@ -103,19 +103,19 @@ def main():
     p.add_argument('--out',required=True);args=p.parse_args()
     out=Path(args.out);out.mkdir(exist_ok=True,parents=True)
     basehour,book=prepare(args.h1)
-    on=np.zeros(20,dtype=np.int8)
-    entryh=np.zeros(20,dtype=np.int64)
-    entryns=np.zeros(20,dtype=np.int64)
-    ent=np.zeros(20,dtype=np.float64)
-    stop=np.zeros(20,dtype=np.float64);take=np.zeros(20,dtype=np.float64)
-    side=np.zeros(20,dtype=np.int8)
-    src=np.zeros((20,2000),dtype=np.int64)
-    ends=np.zeros((20,2000),dtype=np.int64)
-    ens=np.zeros((20,2000),dtype=np.float64)
-    exns=np.zeros((20,2000),dtype=np.float64)
-    pnl=np.zeros((20,2000),dtype=np.float64)
-    extype=np.zeros((20,2000),dtype=np.int8)
-    count=np.zeros(20,dtype=np.int64)
+    on=np.zeros(2,dtype=np.int8)
+    entryh=np.zeros(2,dtype=np.int64)
+    entryns=np.zeros(2,dtype=np.int64)
+    ent=np.zeros(2,dtype=np.float64)
+    stop=np.zeros(2,dtype=np.float64);take=np.zeros(2,dtype=np.float64)
+    side=np.zeros(2,dtype=np.int8)
+    src=np.zeros((2,2000),dtype=np.int64)
+    ends=np.zeros((2,2000),dtype=np.int64)
+    ens=np.zeros((2,2000),dtype=np.float64)
+    exns=np.zeros((2,2000),dtype=np.float64)
+    pnl=np.zeros((2,2000),dtype=np.float64)
+    extype=np.zeros((2,2000),dtype=np.int8)
+    count=np.zeros(2,dtype=np.int64)
     last_hour=np.full(1,-1,dtype=np.int64)
     last_tick=np.zeros(3,dtype=np.float64)
     allticks=np.zeros(1,dtype=np.int64)
@@ -152,10 +152,10 @@ def main():
                    source_bytes=nbytes,raw_rows=rows,first_utc=str(pd.Timestamp(first,unit='ns',tz='UTC')) if first else None,
                    last_utc=str(pd.Timestamp(last,unit='ns',tz='UTC')) if last else None))
             print('MONTH',year,mm,'ticks',rows,'all_ticks',int(allticks[0]),
-                  '12HSL100',int(count[9]),'24HSL100',int(count[19]),flush=True)
+                  '12H_SL20',int(count[0]),'24H_SL20',int(count[1]),flush=True)
     # At segment boundary, force close open trade at last available actual raw quote,
     # with explicit end-of-partition marker; document edge.
-    for q in range(20):
+    for q in range(2):
         if on[q]:
             k=count[q]
             src[q,k]=entryns[q]
@@ -168,9 +168,9 @@ def main():
             count[q]+=1
             on[q]=0
     rows=[]
-    for q in range(20):
+    for q in range(2):
         sl=20
-        hold=12 if q<10 else 24
+        hold=12 if q==0 else 24
         for j in range(int(count[q])):
             rows.append(dict(sl=sl,tp=10,hold_hours=hold,
                 entry_utc=str(pd.Timestamp(src[q,j],unit='ns',tz='UTC')),
