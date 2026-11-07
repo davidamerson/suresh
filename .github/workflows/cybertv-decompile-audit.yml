@@ -1,0 +1,73 @@
+name: CyberTV APK decompilation audit
+on:
+  push:
+    branches: [cybertv-static-audit-20261107]
+    paths: ['.github/workflows/cybertv-decompile-audit.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download and statically inspect application with JADX
+        shell: bash
+        run: |
+          set -e
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' --max-time 100 'https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk' -o cybertv.apk
+          printf 'APK_BYTES '; wc -c <cybertv.apk
+          printf 'APK_SHA256 '; sha256sum cybertv.apk
+          python3 - <<'PY'
+          import os,glob,subprocess
+          a=glob.glob(os.environ.get('ANDROID_HOME','/opt/android-sdk')+'/build-tools/*/aapt')
+          if a:
+              p=subprocess.run([a[-1],'dump','badging','cybertv.apk'],capture_output=True,text=True)
+              for l in p.stdout.splitlines():
+                  if l.startswith(('package:','sdkVersion:','targetSdkVersion:','application-label:','uses-feature:')):print('MANIFEST',l[:350])
+              q=subprocess.run([a[-1],'dump','permissions','cybertv.apk'],capture_output=True,text=True)
+              print('MANIFEST_PERMISSIONS',q.stdout[:6000])
+          PY
+          python3 - <<'PY'
+          import urllib.request, json
+          api='https://api.github.com/repos/skylot/jadx/releases/latest'
+          req=urllib.request.Request(api,headers={'User-Agent':'Mozilla/5.0','Accept':'application/vnd.github+json'})
+          d=json.load(urllib.request.urlopen(req,timeout=30))
+          a=next((e for e in d['assets'] if e['name'].endswith('.zip') and 'jadx-' in e['name']),None)
+          if not a: raise ValueError('JADX release not found')
+          print('JADX_RELEASE',d['tag_name'], 'ASSET',a['name'])
+          open('jadx_url.txt','w').write(a['browser_download_url'])
+          PY
+          curl -L --fail --silent --show-error --max-time 120 "$(cat jadx_url.txt)" -o jadx.zip
+          unzip -q jadx.zip -d jadx
+          chmod +x jadx/bin/jadx
+          jadx/bin/jadx --no-res --no-imports -j 2 -d decompiled cybertv.apk >/tmp/jadx-output.txt 2>&1 || true
+          python3 - <<'PY'
+          import glob,re,os
+          paths=glob.glob('decompiled/sources/**/*.java',recursive=True)
+          print('DECOMPILED_JAVA_FILE_COUNT',len(paths))
+          patterns={
+              'backend_proxy':r'user\\.cyberyakku\\.lk|proxy\\.php|user_status\\.php',
+              'backend_content':r'floodsupport\\.site|trending\\.json',
+              'channel_data_types':r'\\.m3u8|\\.mpd|\\.m3u|x-tvg-url',
+              'player':r'Shaka|ExoPlayer|Media3|androidx\\.media3|MediaItem',
+              'sri_lanka_names':r'Sirasa|Derana|Swarnavahini|Rupavahini|Siyatha'
+          }
+          for label,pat in patterns.items():
+              hits=[]
+              for path in paths:
+                  try:
+                      txt=open(path,encoding='utf-8',errors='ignore').read()
+                  except Exception:continue
+                  if re.search(pat,txt,re.I):
+                      hits.append(os.path.relpath(path,'decompiled/sources'))
+              print('MATCH_CATEGORY',label,'FILE_COUNT',len(hits))
+              for p in hits[:18]: print('MATCH_FILE',label,p)
+          for p in paths:
+              try: t=open(p,encoding='utf-8',errors='ignore').read()
+              except:continue
+              if 'user.cyberyakku.lk' in t or 'tv1.floodsupport.site' in t:
+                  print('BACKEND_REFERENCED_IN',os.path.relpath(p,'decompiled/sources'))
+                  for m in re.findall(r'https?://[^\\s\\"\\\\]{5,200}',t):
+                      if any(k in m.lower() for k in ['cyberyakku.lk','floodsupport.site']): print('BACKEND_URL',m.split('?')[0][:160])
+          print('JADX_AUDIT_DONE')
+          PY
