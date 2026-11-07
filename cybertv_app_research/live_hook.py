@@ -30,6 +30,37 @@ Java.perform(function () {
             while((m=regex.exec(text)) !== null) {
                 if (hosts.indexOf(m[1]) < 0) hosts.push(m[1]);
             }
+            let manifestHttp = null;
+            let manifestProtected = null;
+            let manifestHasPssh = null;
+            let manifestError = "";
+            if (/^(Sirasa TV|ITN|TV Derana)$/.test(name) && /^https:\/\//i.test(text) && /\.mpd/i.test(text)) {
+                try {
+                    const HttpURLConnection = Java.use('java.net.HttpURLConnection');
+                    const URL = Java.use('java.net.URL');
+                    const InputStreamReader = Java.use('java.io.InputStreamReader');
+                    const BufferedReader = Java.use('java.io.BufferedReader');
+                    const conn = Java.cast(URL.$new(text).openConnection(), HttpURLConnection);
+                    conn.setConnectTimeout(5500);
+                    conn.setReadTimeout(5500);
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                    manifestHttp = conn.getResponseCode();
+                    if (manifestHttp === 200) {
+                        const reader = BufferedReader.$new(InputStreamReader.$new(conn.getInputStream()));
+                        let xml = "";
+                        for (let i = 0; i < 220; i++) {
+                            const line = reader.readLine();
+                            if (line === null) break;
+                            xml += String(line);
+                            if (xml.length > 50000) break;
+                        }
+                        reader.close();
+                        manifestProtected = /ContentProtection|widevine|clearkey|playready/i.test(xml);
+                        manifestHasPssh = /cenc:pssh|<pssh/i.test(xml);
+                    }
+                    conn.disconnect();
+                } catch (e) { manifestError = String(e).slice(0, 120); }
+            }
             send({type:'CHANNEL_CLASSIFICATION',name:name,group:category,
                 inputLength:encoded.length,inputHex:/^[a-f0-9]+$/i.test(encoded),
                 resultLength:text.length,validHttp:/^https?:\/\//i.test(text),
@@ -37,6 +68,7 @@ Java.perform(function () {
                 dash:/\.mpd/i.test(text),referencesDRM:/widevine|clearkey|drm|license/i.test(text),
                 referencesPRO:/\bPRO\b/i.test(text),
                 containsSignedOrAuth:/[?&](token|sig|expires|auth|key)=/i.test(text),
+                manifestHttp:manifestHttp,manifestProtected:manifestProtected,manifestHasPssh:manifestHasPssh,manifestError:manifestError,
                 resultEmpty:!text || text==='null',
                 error:error});
             total++;
