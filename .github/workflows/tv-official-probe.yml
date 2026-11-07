@@ -18,6 +18,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import urllib.request,urllib.parse,base64,re,subprocess,html,datetime
+          from html.parser import HTMLParser
           urls={'Swarnavahini':'https://sky.lk/','ITN':'https://itn.lk/live/','Vasantham TV':'https://www.vasantham.lk/','Sirasa TV':'https://live.sirasatv.lk/'}
           for name,url in urls.items():
             print('OFFICIAL_PAGE',name,url,flush=True)
@@ -26,7 +27,13 @@ jobs:
               with urllib.request.urlopen(req,timeout=22) as f:
                 body=f.read(500000).decode('utf-8','replace')
                 print('OFFICIAL_HTTP',name,f.status,'BYTES',len(body),flush=True)
-              iframes=re.findall(r'<iframe[^>]+src=["\\x27]([^"\\x27]+)',body,re.I)
+              class F(HTMLParser):
+                def __init__(self):super().__init__();self.urls=[]
+                def handle_starttag(self,tag,attrs):
+                  if tag=='iframe':
+                    d=dict(attrs)
+                    if d.get('src'):self.urls.append(html.unescape(d['src']))
+              f=F();f.feed(body);iframes=f.urls
               print('OFFICIAL_IFRAMES',name,[i[:90] for i in iframes[:6]],flush=True)
               for u in iframes:
                 if name=='Swarnavahini' and 'iframes.5centscdn.com/videojs/hls/' in u:
