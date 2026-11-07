@@ -1,0 +1,51 @@
+name: Opposite MSS Buy Sell Raw Tick SL20 TP10
+on:
+  push:
+    branches: [xauusd-swing-rr12-sl10-to-sl100-20261107]
+    paths:
+      - 'swing_rr12/reversed_actual_tick_sl20_tp10.py'
+      - '.github/workflows/reversed-mss-sl20-tp10.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  reverse:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2024
+            tag: train_2020_2024
+          - first: 2025
+            last: 2026
+            tag: holdout_2025_2026
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - run: python -m py_compile swing_rr12/reversed_actual_tick_sl20_tp10.py
+      - name: Obtain original Exness verified H1 signals
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p local_data
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D local_data --repo davidamerson/suresh
+          test -s local_data/complete_monday_friday_h1_candles.csv
+      - name: Exact reverse-side tick replay without approximate candle OHLC ordering
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.tag }}
+          python -u swing_rr12/reversed_actual_tick_sl20_tp10.py --h1 local_data/complete_monday_friday_h1_candles.csv --first ${{ matrix.first }} --last ${{ matrix.last }} --out results/${{ matrix.tag }} 2>&1 | tee results/${{ matrix.tag }}/run.log
+      - name: Preserve every reverse trade and execution source provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reverse-swing-actual-ticks-${{ matrix.tag }}
+          path: results/${{ matrix.tag }}/
+          retention-days: 30
