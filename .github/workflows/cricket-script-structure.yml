@@ -1,0 +1,42 @@
+name: Cricket player script structure inspection
+on:
+  push:
+    branches: [cybertv-static-audit-20261107]
+    paths: ['.github/workflows/cricket-script-structure.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Identify public player configuration shape without keys
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re,html
+          pageurl='https://livecricketsl.cc.nf/livecricket/sports.php?id=tencric'
+          req=urllib.request.Request(pageurl,headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0 Safari/537.36'})
+          try: page=urllib.request.urlopen(req,timeout=30).read(200000).decode('utf8','replace')
+          except Exception as e:print('ERROR',str(e));raise SystemExit()
+          print('HTML_SIZE',len(page))
+          scripts=re.findall(r'<script([^>]*)>(.*?)</script>',page,re.S|re.I)
+          print('SCRIPTS_FOUND',len(scripts))
+          for i,(attr,s) in enumerate(scripts):
+              print('SCRIPT',i,'SIZE',len(s),'INLINE',not 'src=' in attr)
+              if not s:continue
+              for keyword in ['m3u8','mpd','manifest','dash','hls','xhr','source','fetch','atob','load(']:
+                  if keyword in s.lower():
+                      print('HAS',i,keyword)
+              # Only names of referenced HTTP domains and public media paths, no query tokens
+              hosts=set(re.findall(r'https?://([a-z0-9.-]+)',s,re.I))
+              hosts={v for v in hosts if v not in ('cdn.jsdelivr.net','cdnjs.cloudflare.com','www.google-analytics.com')}
+              print('SCRIPT_PUBLIC_HOSTS',i,sorted(hosts)[:25])
+              for word in ['.m3u8','.mpd','manifest','artplayer','shaka','source']:
+                  for m in list(re.finditer(re.escape(word),s,re.I))[:3]:
+                      segment=s[max(0,m.start()-100):min(len(s),m.end()+150)].replace('\n',' ')
+                      # Remove quoted strings and all URLs; report only structural context, no credentials
+                      segment=re.sub(r'https?://[^\\s"\\x27]+','[URL]',segment)
+                      segment=re.sub(r'([\\x22\\x27])[^\\x22\\x27]{7,}\\1','[STRING]',segment)
+                      segment=re.sub(r'(?i)(license|clearkey|kid|key|token|secret)[^,;]{0,80}',r'[DRM_OR_SECRET]',segment)
+                      print('SCRIPT_STRUCTURE',i,word,segment[:230])
+          PY
