@@ -1,0 +1,66 @@
+name: XAUUSD Reversed MSS TP10 SL10 ONLY Exits True Raw Ticks 2020-2026
+on:
+  push:
+    branches: [mss-opposite-tp10-sl10-only-exits-20261107]
+    paths:
+      - 'mss_only_tp_sl/tick_replay_tp10_sl10_only.py'
+      - '.github/workflows/mss-reverse-tp10-sl10-only-ticks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            label: continuous_2020_2026
+          - first: 2025
+            last: 2026
+            label: independent_2025_2026
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install pinned analysis dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Verify exact $10 stop and $10 target and no other exit
+        run: |
+          python -m py_compile mss_only_tp_sl/tick_replay_tp10_sl10_only.py
+          python - <<'PY'
+          from pathlib import Path
+          src = Path('mss_only_tp_sl/tick_replay_tp10_sl10_only.py').read_text()
+          assert 'st[3]=px-side*10.' in src
+          assert 'st[4]=px+side*10.' in src
+          assert 'if stophit or takehit:' in src
+          assert 'time_expired=' not in src
+          assert 'friday=' not in src
+          assert "format='mixed'" in src
+          print('AUDIT_TP10_SL10_EXITS_ONLY_CONFIRMED')
+          PY
+      - name: Retrieve originally verified H1 candles for locked MSS signals
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p orig
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D orig --repo davidamerson/suresh
+          test -s orig/complete_monday_friday_h1_candles.csv
+      - name: Every actual raw Bid Ask tick without forcing any closing date
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.label }}
+          python -u mss_only_tp_sl/tick_replay_tp10_sl10_only.py --h1 orig/complete_monday_friday_h1_candles.csv --first ${{ matrix.first }} --last ${{ matrix.last }} --out results/${{ matrix.label }} 2>&1 | tee results/${{ matrix.label }}/replay.log
+      - name: Preserve trades, yearly returns, peak adverse drawdown, source SHA256
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xauusd-reversed-mss-tp10-sl10-only-${{ matrix.label }}
+          path: results/${{ matrix.label }}/
+          retention-days: 30
+          if-no-files-found: warn
