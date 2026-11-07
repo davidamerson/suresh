@@ -1,0 +1,36 @@
+name: XAUUSD H1 Full Exness Archive Gold Bid Ask OHLC 2020-2026
+on:
+  push:
+    branches: [xauusd-h1-astrology-time-cycles-20261107]
+    paths:
+      - 'astro_h1/extract_exness_h1.py'
+      - '.github/workflows/astro-h1-extract-2020-2026.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install streaming tick processing dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Preflight no lookahead and compile
+        run: python -m py_compile astro_h1/extract_exness_h1.py
+      - name: Download verify and process every archived raw tick to H1 OHLC
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/astro_h1
+          python -u astro_h1/extract_exness_h1.py --out results/astro_h1 2>&1 | tee results/astro_h1/extract.log
+      - name: Preserve verified tick sources and 7 year H1 candles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xauusd-2020-2026-h1-astro-source-bid-candles
+          path: results/astro_h1/
+          retention-days: 30
+          if-no-files-found: warn
