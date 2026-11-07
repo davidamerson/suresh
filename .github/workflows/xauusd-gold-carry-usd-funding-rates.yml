@@ -1,0 +1,27 @@
+name: XAUUSD Gold Carry Fed Verified USD Rates 2020-2026
+on:
+  push:
+    branches: [xauusd-gold-carry-test-20261107]
+    paths:
+      - 'carry_xau/fetch_fed_usd_interest_rates.py'
+      - '.github/workflows/xauusd-gold-carry-usd-funding-rates.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install pandas requests
+      - name: Public FRED download SOFR rate
+        run: python -u carry_xau/fetch_fed_usd_interest_rates.py --out results/gold_carry
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: federal-reserve-sofr-and-funding-2020-2026
+          path: results/gold_carry/
+          retention-days: 30
