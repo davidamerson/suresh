@@ -1,0 +1,31 @@
+name: Identify CyberTV native hex decoder library
+on:
+  push:
+    branches: [cybertv-tv-app-20261108]
+    paths: [".github/workflows/inspect-native-decoder.yml"]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Read APK native library metadata without executing protected streams
+        run: |
+          set -e
+          curl -L --fail --silent --show-error -A "Mozilla/5.0" --max-time 90 "https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk" -o cybertv.apk
+          python3 - <<'PY'
+          import zipfile,os
+          z=zipfile.ZipFile('cybertv.apk')
+          files=[n for n in z.namelist() if n.startswith('lib/arm64-v8a/') and n.endswith('.so')]
+          print('NATIVE_LIBRARIES',len(files))
+          for n in files:
+            d=z.read(n);print('NATIVE_LIB',n,'BYTES',len(d))
+            open(os.path.basename(n),'wb').write(d)
+          PY
+          for f in *.so; do
+            echo "NATIVE_LIBRARY_SYMBOLS $f"
+            readelf -Ws "$f" 2>/dev/null | grep -Ei 'nativeDecryptName|Java_com_cy_cybertv_SplashScreen|JNI_OnLoad' | cut -c1-210 || true
+            echo "NATIVE_LIBRARY_REFERENCES $f"
+            strings -a "$f" | grep -E '^(AES|AES-|AES/|EVP_|HMAC|SHA256|JNI_OnLoad|Java_com_cy_cybertv_SplashScreen_nativeDecryptName|http[s]?://)' | grep -v -Ei 'secret|token|key=' | head -25 || true
+          done
