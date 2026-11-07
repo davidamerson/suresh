@@ -1,0 +1,68 @@
+name: Cricket browser network manifest inspection
+on:
+  push:
+    branches: [cybertv-static-audit-20261107]
+    paths: ['.github/workflows/cricket-browser-network.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Install isolated headless Chromium inspector
+        run: |
+          python3 -m pip install -q playwright
+          python3 -m playwright install --with-deps chromium >/dev/null
+      - name: Inspect publicly accessible player network requests without DRM bypass
+        run: |
+          python3 - <<'PY'
+          from playwright.sync_api import sync_playwright
+          from urllib.parse import urlsplit
+          seen=set()
+          def fmt(url):
+              try:
+                  u=urlsplit(url)
+                  return u.scheme+'://'+u.netloc+u.path
+              except: return '[INVALID_URL]'
+          def relevant(u):
+              s=u.lower()
+              return any(x in s for x in ['.mpd','.m3u8','manifest','playlist','player.php','sports.php','api/','stream.php'])
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True,args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
+              context=browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0.0.0 Safari/537.36',ignore_https_errors=True)
+              page=context.new_page()
+              def handle_req(req):
+                  if relevant(req.url):
+                      z=fmt(req.url)
+                      if z not in seen:
+                          seen.add(z);print('REQUEST',req.method,z)
+              def handle_response(res):
+                  if relevant(res.url):print('RESPONSE',res.status,fmt(res.url))
+              def failed(req):
+                  if relevant(req.url):print('FAILED_REQUEST',fmt(req.url),str(req.failure)[:120])
+              page.on('request',handle_req)
+              page.on('response',handle_response)
+              page.on('requestfailed',failed)
+              try:
+                  response=page.goto('https://livecricketsl.cc.nf/livecricket/sports.php?id=tencric',wait_until='domcontentloaded',timeout=40000)
+                  print('PAGE_STATUS',response.status if response else None,'FINAL_URL',page.url)
+                  page.wait_for_timeout(12000)
+                  print('PAGE_TITLE',page.title())
+                  print('VIDEO_COUNT',page.locator('video').count())
+                  try:
+                      vid=page.locator('video').first
+                      if vid.count():
+                          vid.evaluate('(v)=>v.play().catch(()=>{})')
+                          page.wait_for_timeout(7000)
+                          print('VIDEO_STATE',vid.evaluate('(v)=>({readyState:v.readyState,paused:v.paused,currentTime:v.currentTime,networkState:v.networkState,videoWidth:v.videoWidth,videoHeight:v.videoHeight})'))
+                  except Exception as e:print('VIDEO_STATE_ERROR',str(e)[:130])
+                  txt=page.locator('body').inner_text(timeout=3000)
+                  print('PAGE_TEXT_PREFIX',txt[:350].replace('\n',' '))
+                  print('MANIFEST_LIKE_URL_COUNT',len(seen))
+                  print('MANIFEST_LIKE_URLS',sorted(seen)[:55])
+              except Exception as e:
+                  print('BROWSER_ERROR',str(e)[:300])
+              finally:
+                  browser.close()
+          PY
