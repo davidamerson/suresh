@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 14
     steps:
+      - uses: actions/checkout@v4
       - name: Download exact APK as static data
         run: |
           curl -L --fail --silent --show-error --max-time 90 -A 'Mozilla/5.0' 'https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk' -o cybertv.apk
@@ -44,34 +45,4 @@ jobs:
             adb pull /data/user/0/com.cy.cybertv/databases localdata/ 2>&1 || true
             echo DATABASE_FILES
             find localdata -type f -printf '%P %s bytes\n' | head -50
-            python3 - <<'PY'
-            import glob,sqlite3,re,os
-            files=glob.glob('localdata/**/*',recursive=True)
-            dbs=[f for f in files if os.path.isfile(f) and (f.endswith(('.db','.sqlite','.sqlite3')) or b'SQLite format 3' in open(f,'rb').read(20))]
-            print('LOCAL_DATABASE_COUNT',len(dbs))
-            patt=re.compile(r'(?i)Sirasa|Derana|Swarnavahini|Rupavahini|Hiru TV|Shakthi|Siyatha|ITN|Vasantham|Supreme TV|TV1|Nethra')
-            urls=re.compile(r'https?://[^\s\x22\x27<>]{10,260}',re.I)
-            for path in dbs:
-                print('DB_FILE',os.path.basename(path),'BYTES',os.path.getsize(path))
-                try: con=sqlite3.connect('file:'+os.path.abspath(path)+'?mode=ro',uri=True)
-                except Exception as e: print('DB_OPEN_ERROR',type(e).__name__);continue
-                tables=[r[0] for r in con.execute("select name from sqlite_master where type='table' and name not like 'sqlite_%'")]
-                print('TABLE_NAMES',tables[:50])
-                for table in tables[:60]:
-                    try:
-                        cols=[x[1] for x in con.execute('PRAGMA table_info("'+table.replace('"','""')+'")')]
-                        print('TABLE_SCHEMA',table,cols[:35])
-                        matched=0
-                        for row in con.execute('select * from "'+table.replace('"','""')+'"'):
-                            s=' | '.join(str(x)[:1000] for x in row if x is not None)
-                            if not patt.search(s):continue
-                            matched+=1
-                            public_urls=[u.split('?')[0] for u in urls.findall(s)]
-                            sanitized=re.sub(r'https?://[^\s|]+','[URL]',s)
-                            print('LOCAL_CHANNEL_RECORD',table,sanitized[:230],'PUBLIC_URL_PATHS',public_urls[:5])
-                            if matched>=55:break
-                        print('LOCAL_CHANNEL_MATCHES_SHOWN',table,matched)
-                    except Exception as e:print('TABLE_READ_ERROR',table,type(e).__name__)
-                con.close()
-            print('LOCAL_CACHE_AUDIT_FINISHED')
-            PY
+            python3 cybertv_audit/cache_probe.py
