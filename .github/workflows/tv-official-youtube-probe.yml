@@ -1,0 +1,51 @@
+name: Check official YouTube live broadcasts for Sri Lankan TV
+on:
+  push:
+    branches: [srilanka-tv-verification-20261108]
+    paths: [.github/workflows/tv-official-youtube-probe.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Install yt-dlp and decoder
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m pip install --break-system-packages --quiet yt-dlp
+      - name: Check whether official channels are streaming live, and decode video when possible
+        run: |
+          python3 - <<'PY'
+          import yt_dlp,subprocess,concurrent.futures,re
+          channels={
+            'TV Derana':'https://www.youtube.com/@tvderanalive/live',
+            'Sirasa TV':'https://www.youtube.com/@SirasaOfficial/live',
+            'ITN':'https://www.youtube.com/@ITNSriLanka/live',
+            'Swarnavahini':'https://www.youtube.com/@swarnavahinitv/live',
+            'Supreme TV':'https://www.youtube.com/@SupremeNowLK/live',
+            'Ada Derana 24':'https://www.youtube.com/@AdaDeranaNews/live',
+            'Vasantham TV':'https://www.youtube.com/@vasanthamtv/live',
+          }
+          def check(item):
+            name,url=item
+            try:
+              opts={'quiet':True,'no_warnings':True,'skip_download':True,'noplaylist':True,'socket_timeout':12,'retries':0,'fragment_retries':0,'extract_flat':False}
+              with yt_dlp.YoutubeDL(opts) as ydl:info=ydl.extract_info(url,download=False)
+              if not info:return (name,'NO_VIDEO',None)
+              status=info.get('live_status')
+              title=(info.get('title') or '')[:100]
+              if status!='is_live':return (name,'NOT_CURRENTLY_LIVE',status,title)
+              candidates=[f for f in (info.get('formats') or []) if f.get('vcodec') not in (None,'none') and ('m3u8' in (f.get('protocol') or '') or '.m3u8' in (f.get('url') or ''))]
+              candidates.sort(key=lambda f:f.get('height') or 0)
+              if not candidates:return (name,'LIVE_BUT_NO_HLS_SOURCE',title)
+              selected=candidates[-1]['url']
+              cmd=['ffmpeg','-hide_banner','-loglevel','error','-nostdin','-rw_timeout','10000000','-i',selected,'-map','0:v:0','-frames:v','5','-f','null','-','-progress','pipe:1']
+              p=subprocess.run(cmd,capture_output=True,text=True,timeout=25)
+              frames=max([int(x) for x in re.findall(r'^frame=(\d+)',p.stdout,re.M)] or [0])
+              return (name,'VIDEO_CONFIRMED' if p.returncode==0 and frames>=5 else 'LIVE_SOURCE_UNPLAYABLE',frames,title,p.stderr[:120].replace('\n',' '))
+            except Exception as e:return (name,'ERROR',type(e).__name__,str(e)[:160])
+          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            for result in pool.map(check,channels.items()):print('OFFICIAL_YOUTUBE_CHECK',result,flush=True)
+          PY
