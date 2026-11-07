@@ -1,0 +1,71 @@
+name: Reversed MSS 19 TP SL Raw BidAsk MFE MAE 2020-2026
+on:
+  push:
+    branches: [mss-opposite-tp-sl-19-grid-mae-mfe-20261107]
+    paths:
+      - 'mss_mae_mfe/grid19_tick_mae_mfe_2020_2026.py'
+      - '.github/workflows/mss-mae-mfe-grid19-real-ticks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  tick_audit:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            label: full_continuous_2020_2026
+          - first: 2025
+            last: 2026
+            label: independent_OOS_2025_2026
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install pinned streaming Python modules
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Preflight all 19 predefined configurations and no time exits
+        run: |
+          python -m py_compile mss_mae_mfe/grid19_tick_mae_mfe_2020_2026.py
+          python - <<'PY'
+          import importlib.util
+          p='mss_mae_mfe/grid19_tick_mae_mfe_2020_2026.py'
+          spec=importlib.util.spec_from_file_location('grid',p)
+          m=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(m)
+          actual=list(zip(m.TP.tolist(),m.SL.tolist()))
+          expected=[(float(t),10.) for t in range(10,0,-1)]+[(10.,float(s)) for s in range(9,0,-1)]
+          assert actual==expected,(actual,expected)
+          txt=open(p).read()
+          assert 'hitSL or hitTP' in txt
+          assert 'time_expired=' not in txt
+          assert 'friday=' not in txt
+          assert len(actual)==19
+          print('ALL_19_FIXED_COMBINATIONS_VERIFIED',actual)
+          PY
+      - name: Download previously verified Exness H1 data for locked entry signals
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p h1
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D h1 --repo davidamerson/suresh
+          test -s h1/complete_monday_friday_h1_candles.csv
+      - name: Stream every Exness raw Bid Ask tick; record winning MAE and losing MFE
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.label }}
+          python -u mss_mae_mfe/grid19_tick_mae_mfe_2020_2026.py --h1 h1/complete_monday_friday_h1_candles.csv --first ${{ matrix.first }} --last ${{ matrix.last }} --out results/${{ matrix.label }} 2>&1 | tee results/${{ matrix.label }}/run.log
+      - name: Publish all 19 strategy outcomes, excursions and source checksums
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold19-mae-mfe-rawtick-${{ matrix.label }}
+          path: results/${{ matrix.label }}/
+          retention-days: 30
+          if-no-files-found: warn
