@@ -1,0 +1,33 @@
+name: Analyze CyberTV hexadecimal channel link method
+on:
+  push:
+    branches: [cybertv-tv-app-20261108]
+    paths: [".github/workflows/analyze-cybertv-hex.yml"]
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cybertv-tv-app-20261108
+      - name: Download APK, verify and decompile
+        run: |
+          set -e
+          curl --retry 2 -L --fail --silent --show-error --max-time 95 -A "Mozilla/5.0" "https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk" -o cybertv.apk
+          sha256sum cybertv.apk
+          python3 - <<'PY'
+          import json,urllib.request
+          req=urllib.request.Request('https://api.github.com/repos/skylot/jadx/releases/latest',headers={'User-Agent':'Mozilla/5.0'})
+          data=json.load(urllib.request.urlopen(req,timeout=30))
+          url=next(a['browser_download_url'] for a in data['assets'] if 'jadx-' in a['name'] and a['name'].endswith('.zip'))
+          open('jadx_url.txt','w').write(url)
+          PY
+          curl -L --fail --silent --show-error --max-time 140 "$(cat jadx_url.txt)" -o jadx.zip
+          unzip -q jadx.zip -d jadx
+          chmod +x jadx/bin/jadx
+          jadx/bin/jadx -j 2 --no-res --no-imports -d jadx_out cybertv.apk >/dev/null 2>&1 || true
+      - name: Search channel database processing and crypto calls
+        run: python3 cybertv_app_research/inspect.py
