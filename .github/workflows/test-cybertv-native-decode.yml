@@ -21,7 +21,7 @@ jobs:
           sha256sum cybertv.apk
       - name: Set up matching Frida server
         run: |
-          python3 -m pip install --quiet frida
+          python3 -m pip install --quiet "frida==16.6.6"
           FRIDA_VERSION=$(python3 -c "import frida; print(frida.__version__)")
           echo "FRIDA_VERSION=$FRIDA_VERSION"
           curl -L --retry 2 --fail --silent --show-error --max-time 100 "https://github.com/frida/frida/releases/download/$FRIDA_VERSION/frida-server-$FRIDA_VERSION-android-x86_64.xz" -o frida.xz
