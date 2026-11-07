@@ -49,6 +49,8 @@ Java.perform(function () {
     }
 });
 """
+# Give the normal app time to populate its local channel database before inspecting.
+script_source = "setTimeout(function () {\n" + script_source + "\n}, 11000);"
 ready = threading.Event()
 def message(msg,data):
     if msg['type']=='send':
@@ -60,13 +62,23 @@ def message(msg,data):
         ready.set()
 try:
     device=frida.get_usb_device(timeout=20)
-    app=device.get_process('com.cy.cybertv')
-    print('ATTACHED_PID',app.pid,flush=True)
-    session=device.attach(app.pid)
+    try:
+        app=device.get_process('com.cy.cybertv')
+        pid=app.pid
+        print('ATTACH_EXISTING_PID',pid,flush=True)
+        session=device.attach(pid)
+        spawned=False
+    except frida.ProcessNotFoundError:
+        print('APP_NOT_RUNNING_TRY_SPAWN',flush=True)
+        pid=device.spawn(['com.cy.cybertv'])
+        session=device.attach(pid)
+        spawned=True
+        print('SPAWNED_PID',pid,flush=True)
     script=session.create_script(script_source)
     script.on('message',message)
     script.load()
-    ready.wait(timeout=40)
+    if spawned: device.resume(pid)
+    ready.wait(timeout=55)
     script.unload()
     session.detach()
 except Exception as e:
