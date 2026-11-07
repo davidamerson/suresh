@@ -266,14 +266,14 @@ def main():
                 quote_movement_usd=movement if done else None,
                 roundtrip_cost_usd=COST_PER_LEG,
                 net_after_fee_usd=movement-COST_PER_LEG if done else None,
-                holding_hours=(float(st["leg_exit_ns"][q,side]-st["group_entry_ns"][q])/3.6e12 if done else None))
+                holding_hours=(float(st["leg_exit_ns"][q,side]-st["group_entry_ns"][q])/3.6e12 if done else None)))
         pairs.append(dict(pair_id=q+1, entry_utc=iso(st["group_entry_ns"][q]),
             exit_utc=iso(st["group_exit_ns"][q]),entry_bid=float(st["group_entry_bid"][q]),
             entry_ask=float(st["group_entry_ask"][q]),entry_spread=float(st["group_entry_ask"][q]-st["group_entry_bid"][q]),
             fully_closed=closed, buy_outcome=r["buy_reason"],sell_outcome=r["sell_reason"],
             realized_so_far_usd=pair_pnl,
             pair_net_if_closed_usd=pair_pnl if closed else None,
-            holding_hours_if_closed=(float(st["group_exit_ns"][q]-st["group_entry_ns"][q])/3.6e12 if closed else None))
+            holding_hours_if_closed=(float(st["group_exit_ns"][q]-st["group_entry_ns"][q])/3.6e12 if closed else None)))
     pair_df=pd.DataFrame(pairs)
     leg_df=pd.DataFrame(legs)
     pair_df.to_csv(out/"PAIR_LEDGER_EXACT_BID_ASK.csv",index=False)
