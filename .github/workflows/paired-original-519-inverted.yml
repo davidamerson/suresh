@@ -1,0 +1,55 @@
+name: Paired Original 519 MSS Trades Inverted SL20 TP10 Raw BidAsk
+on:
+  push:
+    branches: [xauusd-swing-rr12-sl10-to-sl100-20261107]
+    paths:
+      - 'swing_rr12/paired_exact_519_reverse.py'
+      - '.github/workflows/paired-original-519-inverted.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  paired:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2024
+            tag: original_train
+            original_id: 42380970705
+            original_name: xauusd-swing-rr12-real-ticks-training_2020_2024
+          - first: 2025
+            last: 2026
+            tag: original_holdout
+            original_id: 42380970705
+            original_name: xauusd-swing-rr12-real-ticks-forward_2025_2026
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - run: python -m py_compile swing_rr12/paired_exact_519_reverse.py
+      - name: Retrieve exact old trades for same trade start timestamps
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p old
+          gh run download ${{ matrix.original_id }} -n ${{ matrix.original_name }} -D old --repo davidamerson/suresh
+          test -s old/RAW_TICK_RR12_10_100_TRADE_LEDGER.csv
+      - name: Replicate the actual same 519 original-entry seconds with inverse orders
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.tag }}
+          python -u swing_rr12/paired_exact_519_reverse.py --orig old/RAW_TICK_RR12_10_100_TRADE_LEDGER.csv --first ${{ matrix.first }} --last ${{ matrix.last }} --out results/${{ matrix.tag }} 2>&1 | tee results/${{ matrix.tag }}/run.log
+      - name: Save original versus inverse exact matched trade audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paired-519-original-versus-opposite-${{ matrix.tag }}
+          path: results/${{ matrix.tag }}/
+          retention-days: 30
