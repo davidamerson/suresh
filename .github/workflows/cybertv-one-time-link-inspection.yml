@@ -1,0 +1,56 @@
+name: CyberTV one-time local channel link-code inspection
+on:
+  push:
+    branches: [cybertv-static-audit-20261107]
+    paths: ['.github/workflows/cybertv-one-time-link-inspection.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download and statically inspect free-channel record processing
+        shell: bash
+        run: |
+          set -e
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' --max-time 100 'https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk' -o cybertv.apk
+          python3 - <<'PY'
+          import json,urllib.request
+          req=urllib.request.Request('https://api.github.com/repos/skylot/jadx/releases/latest',headers={'User-Agent':'Mozilla/5.0'})
+          o=json.load(urllib.request.urlopen(req,timeout=30))
+          open('jadx_url.txt','w').write(next(x['browser_download_url'] for x in o['assets'] if x['name'].endswith('.zip') and 'jadx-' in x['name']))
+          PY
+          curl -L --fail --silent --show-error --max-time 120 "$(cat jadx_url.txt)" -o jadx.zip
+          unzip -q jadx.zip -d jadx
+          chmod +x jadx/bin/jadx
+          jadx/bin/jadx -j 2 --no-res --no-imports -d decompiled cybertv.apk >/dev/null 2>&1 || true
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root=Path('decompiled/sources/com/cy/cybertv')
+          terms=[r'DDDD',r'exopleyr',r'channelss.db',r'Sirasa',r'\bdecrypt\b',r'AES/',r'getString\("link"\)',r'getColumnIndex\("link"\)',r'getColumnIndexOrThrow\("link"\)',r'hexString',r'Hex\.decode',r'getString\(\d+\)']
+          res=[]
+          for f in root.rglob('*.java'):
+            s=f.read_text(encoding='utf8',errors='replace')
+            for term in terms:
+              m=re.search(term,s,re.I)
+              if m:
+                res.append((term,str(f),m.start(),len(s)))
+          print('FILES_MATCH',len(res))
+          for term,path,pos,size in res[:180]:
+            print('MATCH',term,path, 'FILE_BYTES',size)
+          # Inspect snippets for static data processing only. Redact hardcoded keys, tokens, device IDs and actual signed requests.
+          focus=['DDDD','exopleyr','channelss.db','getString("link")','getColumnIndex("link")']
+          seen=set()
+          for term,path,pos,size in res:
+            if term not in focus or (term,path) in seen:continue
+            seen.add((term,path))
+            s=Path(path).read_text(encoding='utf8',errors='replace')
+            a=max(0,pos-450); b=min(len(s),pos+850)
+            v=s[a:b].replace('\n',' ')
+            v=re.sub(r'https?://[^"\s]{12,}', '[URL_REDACTED]', v)
+            v=re.sub(r'(?i)(key|secret|password|token|sig)\s*=\s*"[^"]+"',r'\1="[REDACTED]"',v)
+            print('CODE_CONTEXT',term,path,v[:1000])
+          print('END_STATIC_INSPECTION')
+          PY
