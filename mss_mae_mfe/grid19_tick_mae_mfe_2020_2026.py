@@ -160,7 +160,7 @@ def qstats(v):
 def excursions_summary(trades):
     rows=[]
     for (tp,sl),g in trades.groupby(['TP_USD','SL_USD'],sort=False):
-        for outcome,part,measure in [('TP','MAE_USD'),('SL','MFE_USD')]:
+        for outcome,measure in [('TP','MAE_USD'),('SL','MFE_USD')]:
             sub=g[g.exit_reason==outcome]
             values=sub[measure].to_numpy(float)
             qs=qstats(values)
