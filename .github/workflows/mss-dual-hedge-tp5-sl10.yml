@@ -1,0 +1,68 @@
+name: XAUUSD MSS simultaneous BUY SELL TP5 SL10 2020-2026
+on:
+  push:
+    branches: [mss-dual-hedge-tp5-sl10-20261108]
+    paths:
+      - 'mss_dual_hedge/dual_hedge_tp5_sl10.py'
+      - '.github/workflows/mss-dual-hedge-tp5-sl10.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            label: continuous_2020_2026
+          - first: 2025
+            last: 2026
+            label: independent_2025_2026
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install exact pinned Python dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Compile and validate independent BUY SELL TP/SL rules
+        run: |
+          python -m py_compile mss_dual_hedge/dual_hedge_tp5_sl10.py
+          python - <<'PY'
+          import importlib.util
+          p='mss_dual_hedge/dual_hedge_tp5_sl10.py'
+          spec=importlib.util.spec_from_file_location('hedge',p)
+          mod=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+          assert (mod.TP,mod.SL,mod.COST_PER_LEG)==(5.,10.,.22)
+          mod.selftest()
+          PY
+      - name: Fetch the previously audited original H1 MSS signal data
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p h1
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D h1 --repo davidamerson/suresh
+          test -s h1/complete_monday_friday_h1_candles.csv
+      - name: Replay exact historical Exness BID ASK ticks, two orders per signal
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.label }}
+          python -u mss_dual_hedge/dual_hedge_tp5_sl10.py \
+            --h1 h1/complete_monday_friday_h1_candles.csv \
+            --first ${{ matrix.first }} --last ${{ matrix.last }} \
+            --out results/${{ matrix.label }} 2>&1 | tee results/${{ matrix.label }}/run.log
+      - name: Preserve all paired ledgers and source archive SHA256
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mss-both-buy-sell-tp5-sl10-${{ matrix.label }}
+          path: results/${{ matrix.label }}/
+          retention-days: 30
+          if-no-files-found: warn
