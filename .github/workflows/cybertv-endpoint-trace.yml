@@ -1,0 +1,66 @@
+name: CyberTV and cricket safe endpoint trace
+on:
+  push:
+    branches: [cybertv-static-audit-20261107]
+    paths: ['.github/workflows/cybertv-endpoint-trace.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Inspect published pages and selected APK classes without running the APK
+        run: |
+          set -e
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' --max-time 90 'https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk' -o cybertv.apk
+          python3 - <<'PY'
+          import urllib.request,json
+          q=urllib.request.Request('https://api.github.com/repos/skylot/jadx/releases/latest',headers={'User-Agent':'Mozilla/5.0'})
+          d=json.load(urllib.request.urlopen(q,timeout=30))
+          print('JADX_VERSION',d['tag_name'])
+          open('jadx_url.txt','w').write(next(x['browser_download_url'] for x in d['assets'] if 'jadx-' in x['name'] and x['name'].endswith('.zip')))
+          PY
+          curl -L --fail --silent --show-error --max-time 120 "$(cat jadx_url.txt)" -o jadx.zip
+          unzip -q jadx.zip -d jadx
+          chmod +x jadx/bin/jadx
+          mkdir -p classes
+          for spec in 'ProxyProvisioner' 'SplashScreen' 'ProStatusHelper' 'TrendingHelper' 'Task.RequestTask'; do
+            clean="${spec//./_}"
+            jadx/bin/jadx --no-res --single-class "com.cy.cybertv.${spec}" --single-class-output "classes/${clean}.java" cybertv.apk >/dev/null 2>&1 || true
+          done
+          python3 - <<'PY'
+          import glob,re,os
+          for path in glob.glob('classes/*.java'):
+              t=open(path,encoding='utf-8',errors='ignore').read()
+              print('CLASS_FILE',os.path.basename(path),'BYTES',len(t))
+              for i,l in enumerate(t.splitlines(),1):
+                  q=l.lower()
+                  if any(key in q for key in ['cyberyakku.lk','floodsupport.site','proxy.php','requesttask(', 'user.php','user_status.php','trending.json','sharedpreferences','getsharedpreferences','firebase','httpurlconnection','jsonobject(','jsonarray(','getstring("stream','getstring("url','setdatasource(']):
+                      if any(v in q for v in ['clearkey','licensekey','license_key','password','secret']): continue
+                      safe=re.sub(r'(uid|token|password|secret|key)=([^"&\\s]+)',r'\\1=[REDACTED]',l,flags=re.I)
+                      safe=re.sub(r'(https?://[^"\\s?]+)\\?[^"\\s]+',r'\\1?[PARAMETERS]',safe)
+                      print('APP_CODE_SIGNAL',os.path.basename(path),i,safe.strip()[:270])
+          PY
+          python3 - <<'PY'
+          import urllib.request,re,html,base64
+          url='https://livecricketsl.cc.nf/livecricket/sports.php?id=tencric'
+          q=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) Chrome/120','Accept':'text/html'})
+          try:
+              page=urllib.request.urlopen(q,timeout=30).read(250000).decode('utf-8','replace')
+              print('CRICKET_HTML_BYTES',len(page))
+              pats=[r'https?://[^\s"\x27<>]{8,250}\\.(?:mpd|m3u8)(?:\\?[^\s"\x27<>]{0,150})?',r'https?://[^\s"\x27<>]{8,220}(?:manifest|playlist)[^\s"\x27<>]{0,100}']
+              seen=set()
+              for pattern in pats:
+                  for v in re.findall(pattern,page,re.I):
+                      s=html.unescape(v)
+                      if isinstance(s,tuple): continue
+                      if any(x in s.lower() for x in ['license','key=','token=','auth=']): continue
+                      s=s.split('?')[0]
+                      seen.add(s)
+              print('CRICKET_PUBLIC_MANIFEST_URLS',sorted(seen)[:35])
+              for w in ['artplayer','shaka.Player','shaka-player','new Artplayer','fetch(','atob(','drm','base64','xhr','XMLHttpRequest','streams']:
+                  print('CRICKET_PAGE_HAS',w,w.lower() in page.lower())
+          except Exception as e:
+              print('CRICKET_SOURCE_ERROR',repr(e))
+          PY
