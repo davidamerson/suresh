@@ -1,0 +1,58 @@
+name: CyberTV APK static audit
+on:
+  push:
+    branches: [cybertv-static-audit-20261107]
+    paths: ['.github/workflows/cybertv-static-audit.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Download APK safely as data and inspect without execution
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request, zipfile, hashlib, re, io
+          u='https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk'
+          req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36','Accept':'*/*'})
+          try:
+              with urllib.request.urlopen(req,timeout=90) as f:
+                  print('HTTP',f.status,'URL',f.geturl(),'TYPE',f.headers.get('Content-Type'),'LENGTH',f.headers.get('Content-Length'))
+                  raw=f.read(90000001)
+          except Exception as e:
+              print('APK_FETCH_FAILURE',repr(e))
+              raise
+          print('DOWNLOADED_BYTES',len(raw))
+          print('SHA256',hashlib.sha256(raw).hexdigest())
+          if not raw.startswith(b'PK') or len(raw)>90000000:
+              print('INVALID_OR_TOO_LARGE_APK',repr(raw[:100]))
+              raise SystemExit(1)
+          z=zipfile.ZipFile(io.BytesIO(raw))
+          names=z.namelist()
+          print('ARCHIVE_ENTRIES',len(names))
+          print('DEX_FILES',[n for n in names if re.fullmatch(r'classes\d*\.dex',n)])
+          print('RELEVANT_ASSETS',[n for n in names if re.search(r'(?i)channel|playlist|live|stream|config|m3u|\.json$|\.sqlite$',n)][:70])
+          relevant=[]
+          for n in names:
+              if n.endswith('.dex') or (n.startswith(('assets/','res/raw/')) and n.endswith(('.json','.txt','.m3u','.m3u8','.xml','.js','.db','.sqlite','.html'))):
+                  try:
+                      d=z.read(n)
+                      if len(d)<=30000000: relevant.append((n,d))
+                  except Exception: pass
+          print('STATIC_FILES_SCANNED',len(relevant))
+          urls=set(); channelnames=set()
+          for n,d in relevant:
+              for m in re.findall(rb'https?://[^\x00\x01-\x20\x22\x27<>\\]{4,250}',d):
+                  s=m.decode('latin1','ignore').rstrip('),;]}')
+                  if any(t in s.lower() for t in ['token=','apikey=','api_key=','pass=','secret=','authorization=','license_key=','clearkey','kid=','key=']): continue
+                  if any(c in s for c in ['{','}','$']): continue
+                  urls.add(s[:220])
+              for m in re.findall(rb'(?i)(?:Sirasa TV|TV Derana|Swarnavahini|Rupavahini|Hiru TV|Shakthi TV|ITN|Siyatha TV)',d):
+                  channelnames.add(m.decode('ascii','ignore'))
+          print('LOCAL_CHANNEL_NAMES',sorted(channelnames))
+          print('TOTAL_URLS',len(urls))
+          for v in sorted(urls)[:140]: print('PUBLIC_URL',v)
+          print('STATIC_AUDIT_COMPLETE')
+          PY
