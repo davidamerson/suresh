@@ -152,7 +152,7 @@ def main():
                    source_bytes=nbytes,raw_rows=rows,first_utc=str(pd.Timestamp(first,unit='ns',tz='UTC')) if first else None,
                    last_utc=str(pd.Timestamp(last,unit='ns',tz='UTC')) if last else None))
             print('MONTH',year,mm,'ticks',rows,'all_ticks',int(allticks[0]),
-                  '12HSL100',int(count[9]),'24HSL100',int(count[19]),flush=True)
+                  'FRIDAY_SL100',int(count[9]),flush=True)
     # At segment boundary, force close open trade at last available actual raw quote,
     # with explicit end-of-partition marker; document edge.
     for q in range(10):
