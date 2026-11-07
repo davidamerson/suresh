@@ -1,0 +1,296 @@
+{
+  "checked_at": "2026-11-07 20:27 UTC",
+  "included": {
+    "Hiru TV": {
+      "name": "Hiru TV",
+      "url": "https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8",
+      "success": true,
+      "verification": "confirmed by user on Android TV; remote runner may be geoblocked"
+    },
+    "Rupavahini": {
+      "name": "Rupavahini",
+      "url": "https://rpn.bozztv.com/slrclive/slrc/slrclive/index.m3u8",
+      "success": true,
+      "verification": "confirmed by user on Android TV; remote runner may be geoblocked"
+    },
+    "Siyatha TV": {
+      "name": "Siyatha TV",
+      "url": "https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8",
+      "success": true,
+      "verification": "confirmed by user on Android TV; remote runner may be geoblocked"
+    }
+  },
+  "missing": [
+    "Sirasa TV",
+    "TV Derana",
+    "Swarnavahini",
+    "ITN",
+    "Shakthi TV",
+    "Supreme TV",
+    "TV1",
+    "Nethra TV",
+    "Vasantham TV",
+    "Ada Derana 24"
+  ],
+  "probes": [
+    {
+      "name": "Hiru TV",
+      "url": "https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Hiru TV",
+      "url": "https://tv.lotustechnologieslk.net:1936/8012/8012/playlist.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Rupavahini",
+      "url": "https://rpn.bozztv.com/slrclive/slrc/slrclive/index.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Siyatha TV",
+      "url": "https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Siyatha TV",
+      "url": "https://stvlk.live/live/eml079n7ui3ytg1c6x4/index.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Sirasa TV",
+      "url": "https://edge2-moblive.yuppcdn.net/transsd/smil:sirtv09.smil/playlist.m3u8?dvr",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "TV Derana",
+      "url": "https://edge3-moblive.yuppcdn.net/transhd2/smil:detv04.smil/index.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "TV Derana",
+      "url": "https://ythls.armelin.one/channel/UCbkMFGQ_RWIf0OiYeOpf6Ng.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Swarnavahini",
+      "url": "https://teledrama.ebc.lk/TTT/proxy.php",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Swarnavahini",
+      "url": "https://jk3lz8xklw79-hls-live.5centscdn.com/efm/098f6bcd4621d373cade4e832627b4f6.sdp/playlist.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "ITN",
+      "url": "https://edge4-moblive.yuppcdn.net/transsd/smil:itn43.smil/playlist.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "ITN",
+      "url": "https://222103-hls.akamaized.net/668828a00bf80aa436254876/live_aabd3d003af211efadcf7986aa245789/rewind-3600.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "ITN",
+      "url": "https://j78dp2pnlq5r-hls-live.comcities.net/ITNDigital/cf467ddf13ba30dd3c71435cafa6fd6e.sdp/playlist_dvr.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Shakthi TV",
+      "url": "https://mumbai-edge.smartplaytv.in/ShakthiTV/index.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Shakthi TV",
+      "url": "https://edge4-moblive.yuppcdn.net/transsd/smil:saktv10.smil/playlist.m3u8?dvr",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "TV1",
+      "url": "https://edge4-moblive.yuppcdn.net/trans1sd/smil:tv111.smil/playlist.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Nethra TV",
+      "url": "https://edge3-moblive.yuppcdn.net/transsd/smil:chii02.smil/playlist.m3u8?dvr",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Nethra TV",
+      "url": "https://ythls.armelin.one/channel/UC6b6XrsNOxQiS-FdfE8-Avw.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Vasantham TV",
+      "url": "https://edge3-moblive.yuppcdn.net/trans1sd/smil:vatv07.smil/playlist.m3u8?dvr",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Vasantham TV",
+      "url": "https://222103-hls.akamaized.net/668828a00bf80aa436254876/live_2cdb4ef03c1311efadcf7986aa245789/rewind-3600.m3u8",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Hiru TV",
+      "url": "https://dc2.serverse.com:19360/hirutv/hirutv.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Hiru TV",
+      "url": "https://tv.lotustechnologieslk.net:1936/8012/8012/playlist.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Hiru TV",
+      "url": "https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "ITN",
+      "url": "https://edge4-moblive.yuppcdn.net/transsd/smil:itn43.smil/playlist.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "ITN",
+      "url": "https://j78dp2pnlq5r-hls-live.comcities.net/ITNDigital/cf467ddf13ba30dd3c71435cafa6fd6e.sdp/playlist_dvr.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Nethra TV",
+      "url": "https://ythls.armelin.one/channel/UC6b6XrsNOxQiS-FdfE8-Avw.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Nethra TV",
+      "url": "https://edge3-moblive.yuppcdn.net/transsd/smil:chii02.smil/playlist.m3u8?dvr=&checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Rupavahini",
+      "url": "https://edge2-moblive.yuppcdn.net/transsd/smil:runi01.smil/playlist.m3u8?dvr&checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Shakthi TV",
+      "url": "https://edge4-moblive.yuppcdn.net/transsd/smil:saktv10.smil/playlist.m3u8?dvr=&checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Sirasa TV",
+      "url": "https://edge2-moblive.yuppcdn.net/transsd/smil:sirtv09.smil/playlist.m3u8?dvr=&checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Siyatha TV",
+      "url": "https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Siyatha TV",
+      "url": "https://stvlk.live/live/eml079n7ui3ytg1c6x4/index.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "TV1",
+      "url": "https://edge4-moblive.yuppcdn.net/trans1sd/smil:tv111.smil/playlist.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "TV Derana",
+      "url": "https://edge3-moblive.yuppcdn.net/transhd2/smil:detv04.smil/index.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Vasantham TV",
+      "url": "https://edge3-moblive.yuppcdn.net/trans1sd/smil:vatv07.smil/playlist.m3u8?dvr=&checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Vasantham TV",
+      "url": "https://j78dp2pnlq5r-hls-live.comcities.net/ITNDigital/20a317b0496a4930b375290505e5d628.sdp/playlist_dvr.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    },
+    {
+      "name": "Vasantham TV",
+      "url": "https://222103-hls.akamaized.net/668828a00bf80aa436254876/live_2cdb4ef03c1311efadcf7986aa245789/rewind-3600.m3u8?checkedby:iptvcat.com",
+      "video_frames": 0,
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'ffmpeg'"
+    }
+  ]
+}

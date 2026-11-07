@@ -1,0 +1,9 @@
+#EXTM3U
+# Last checked 2026-11-07 20:27 UTC
+# Contains ONLY decoded streams or streams confirmed working by the TV Box owner.
+#EXTINF:-1 tvg-chno="5" group-title="Sri Lanka - TV owner confirmed",Rupavahini
+https://rpn.bozztv.com/slrclive/slrc/slrclive/index.m3u8
+#EXTINF:-1 tvg-chno="6" group-title="Sri Lanka - TV owner confirmed",Hiru TV
+https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8
+#EXTINF:-1 tvg-chno="7" group-title="Sri Lanka - TV owner confirmed",Siyatha TV
+https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8
