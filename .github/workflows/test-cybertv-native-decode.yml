@@ -1,4 +1,4 @@
-name: Inspect CyberTV free-channel JNI decode in emulator
+name: Verify CyberTV decoded DASH manifest protection
 on:
   push:
     branches: [cybertv-tv-app-20261108]
