@@ -1,0 +1,71 @@
+name: XAUUSD H1 Solar Lunar Vedic Western Hourly Predictive Test 2020-2026
+on:
+  push:
+    branches: [xauusd-h1-astrology-time-cycles-20261107]
+    paths:
+      - 'astro_h1/calc_astro_h1_features.py'
+      - 'astro_h1/analyze_h1_astro_predictive_relationships.py'
+      - '.github/workflows/astro-h1-cross-ephemeris-forecast.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  astro_features_and_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install audited astronomical and statistical packages
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'scipy==1.15.3' 'scikit-learn==1.6.1' 'pyswisseph==2.10.3.2' 'astral==3.2' 'requests==2.32.5'
+      - name: Static code checks and sample ephemeris local-time test
+        run: |
+          python -m py_compile astro_h1/calc_astro_h1_features.py astro_h1/analyze_h1_astro_predictive_relationships.py
+          python - <<'PY'
+          import sys,pandas as pd
+          sys.path.insert(0,'astro_h1')
+          from calc_astro_h1_features import features_at
+          a=features_at(pd.Timestamp('2025-01-03T11:00:01Z'))
+          assert a['moon_nakshatra_index'] in range(27)
+          assert 0<=a['lon_rahu_frac']<=1
+          assert 0<=a['col_rahu_frac']<=1
+          assert len(a)>100
+          print('EPHEMERIS_SMOKE_OK',len(a),a['tithi_index'],a['lon_hora_planet'])
+          PY
+      - name: Wait for separate complete Exness raw candle extraction run to finish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run watch 42357164359 --exit-status --interval 15 --repo davidamerson/suresh
+      - name: Download fully audited raw-tick-derived candles
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p results/astro_h1
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D results/astro_h1 --repo davidamerson/suresh
+          test -s results/astro_h1/complete_monday_friday_h1_candles.csv
+          test -s results/astro_h1/provenance.json
+      - name: Construct sidereal Panchanga, Swiss Ephemeris and London, Colombo, NY planetary hours
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/astro_h1_analysis
+          python -u astro_h1/calc_astro_h1_features.py --candles results/astro_h1/complete_monday_friday_h1_candles.csv --out results/astro_h1_analysis/planetary_at_candle_open.csv 2>&1 | tee results/astro_h1_analysis/ephemeris.log
+      - name: Holdout 2025-2026 H1 forecast 16 method families and same date hour yearly associations
+        shell: bash
+        run: |
+          set -o pipefail
+          python -u astro_h1/analyze_h1_astro_predictive_relationships.py --candles results/astro_h1/complete_monday_friday_h1_candles.csv --astro results/astro_h1_analysis/planetary_at_candle_open.csv --out results/astro_h1_analysis 2>&1 | tee results/astro_h1_analysis/study.log
+      - name: Preserve full OHLC, planetary hour-by-hour datasets and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xauusd-astro-h1-final-open-close-aspects-panchang-2020-2026
+          path: |
+            results/astro_h1_analysis/
+            results/astro_h1/complete_monday_friday_h1_candles.csv
+            results/astro_h1/provenance.json
+          retention-days: 30
+          if-no-files-found: warn
