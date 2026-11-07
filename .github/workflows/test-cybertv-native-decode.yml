@@ -49,5 +49,9 @@ jobs:
             adb shell chmod 755 /data/local/tmp/frida-server
             adb shell 'nohup /data/local/tmp/frida-server >/dev/null 2>&1 </dev/null &'
             adb shell monkey -p com.cy.cybertv -c android.intent.category.LAUNCHER 1
-            sleep 27
+            sleep 6
+            echo CYBERTV_PROCESS_BEFORE_ATTACH
+            adb shell pidof com.cy.cybertv || true
+            echo CYBERTV_FOREGROUND
+            adb shell dumpsys activity activities | grep -m1 mResumedActivity || true
             python3 -m cybertv_app_research.live_hook
