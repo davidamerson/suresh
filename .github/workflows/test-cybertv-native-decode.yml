@@ -50,4 +50,4 @@ jobs:
             adb shell 'nohup /data/local/tmp/frida-server >/dev/null 2>&1 </dev/null &'
             adb shell monkey -p com.cy.cybertv -c android.intent.category.LAUNCHER 1
             sleep 27
-            python3 cybertv_app_research/live_hook.py
+            python3 -m cybertv_app_research.live_hook
