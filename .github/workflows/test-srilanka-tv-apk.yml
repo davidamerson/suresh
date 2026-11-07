@@ -1,0 +1,53 @@
+name: Smoke test Sri Lanka TV APK on Android emulator
+on:
+  push:
+    branches: [cybertv-tv-app-20261108]
+    paths: [".github/workflows/test-srilanka-tv-apk.yml"]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: SriLankaTV-AndroidTV-Debug-APK
+          run-id: 42414274822
+          github-token: ${{ github.token }}
+          path: testapk
+      - name: Verify APK downloaded
+        run: |
+          ls -lah testapk
+          test -s testapk/SriLankaTV-AndroidTV-debug.apk
+      - name: Enable KVM acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install, open channel grid and test D-pad play
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 2048M
+          disable-animations: true
+          script: |
+            adb install -r testapk/SriLankaTV-AndroidTV-debug.apk
+            adb shell am start -n com.suresh.srilankatv/.MainActivity
+            sleep 6
+            echo ACTIVITY_BEFORE_SELECTION
+            adb shell dumpsys activity activities | grep -m1 mResumedActivity || true
+            adb shell uiautomator dump /sdcard/sri_tv_ui.xml
+            adb shell cat /sdcard/sri_tv_ui.xml | grep -oE 'Hiru TV|Rupavahini|Siyatha TV|Shakthi TV' | sort -u || true
+            echo CLICK_FIRST_CHANNEL
+            adb shell input keyevent 23
+            sleep 7
+            echo ACTIVITY_AFTER_SELECTION
+            adb shell dumpsys activity activities | grep -m1 mResumedActivity || true
+            echo CRASH_CHECK
+            adb logcat -d -v brief | grep -E 'FATAL EXCEPTION|Process: com.suresh.srilankatv' | tail -20 || true
