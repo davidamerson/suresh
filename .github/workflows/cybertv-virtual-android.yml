@@ -1,0 +1,52 @@
+name: CyberTV isolated emulator launch test
+on:
+  push:
+    branches: [cybertv-static-audit-20261107]
+    paths: ['.github/workflows/cybertv-virtual-android.yml']
+permissions:
+  contents: read
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and identify APK CPU architectures
+        run: |
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' --max-time 100 'https://cybertv.fifamatch.online/Cyber%20Tv%20V3_1.apk' -o cybertv.apk
+          python3 - <<'PY'
+          import zipfile,hashlib
+          z=zipfile.ZipFile('cybertv.apk')
+          print('APK_HASH',hashlib.sha256(open('cybertv.apk','rb').read()).hexdigest())
+          print('NATIVE_LIB_ARCHS',sorted(set(p.split('/')[1] for p in z.namelist() if p.startswith('lib/') and len(p.split('/'))>2)))
+          PY
+      - name: Enable emulator virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and launch CyberTV in isolated Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 2048M
+          disable-animations: true
+          script: |
+            echo VIRTUAL_DEVICE_INFORMATION
+            adb shell getprop ro.product.model
+            echo INSTALL_APK
+            adb install -r cybertv.apk || true
+            echo APP_PACKAGE
+            adb shell pm path com.cy.cybertv || true
+            echo LAUNCH_APP
+            adb shell monkey -p com.cy.cybertv -c android.intent.category.LAUNCHER 1 || true
+            sleep 25
+            echo FOREGROUND_ACTIVITY
+            adb shell dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity' | head -8 || true
+            echo UI_HIERARCHY
+            timeout 25s adb shell uiautomator dump /sdcard/window.xml || true
+            adb shell cat /sdcard/window.xml 2>/dev/null | head -c 9000 || true
+            echo JAVA_EXCEPTIONS
+            adb logcat -d -v brief | grep -E 'FATAL EXCEPTION|Process: com.cy.cybertv|com.cy.cybertv.*(Exception|Error|Failed)' | tail -35 || true
