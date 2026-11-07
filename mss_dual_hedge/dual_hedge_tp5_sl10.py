@@ -280,7 +280,7 @@ def main():
     leg_df.to_csv(out/"BOTH_LEGS_EXECUTION_LEDGER.csv",index=False)
     finished=pair_df[pair_df.fully_closed].copy()
     if len(finished):
-        finished["exit_year"]=pd.to_datetime(finished.exit_utc,utc=True).dt.year
+        finished["exit_year"]=pd.to_datetime(finished.exit_utc,utc=True,format='mixed').dt.year
         yearly=finished.groupby("exit_year").agg(
             completed_pairs=("pair_id","count"),
             net_usd=("pair_net_if_closed_usd","sum"),
