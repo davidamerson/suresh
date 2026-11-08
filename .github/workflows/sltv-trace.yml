@@ -2,7 +2,7 @@ name: SLTV APK runtime public stream URL trace
 on:
   push:
     branches: [sltv-dynamic-stream-trace-20261108]
-    paths: [".github/workflows/sltv-trace.yml"]
+    paths: [".github/workflows/sltv-trace.yml", "sltv_research/trace.py"]
 permissions:
   contents: read
 jobs:
