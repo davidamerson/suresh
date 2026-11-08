@@ -2,7 +2,7 @@ name: SLTV one-time authorized account registration and URL trace
 on:
   push:
     branches: [sltv-dynamic-stream-trace-20261108]
-    paths: [".github/workflows/sltv-secure-signup.yml"]
+    paths: [".github/workflows/sltv-secure-signup.yml", "sltv_research/secure_signup_trace.py"]
 permissions:
   contents: read
   issues: write
