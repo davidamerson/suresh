@@ -1,0 +1,61 @@
+name: SLTV APK runtime public stream URL trace
+on:
+  push:
+    branches: [sltv-dynamic-stream-trace-20261108]
+    paths: [".github/workflows/sltv-trace.yml"]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 27
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sltv-dynamic-stream-trace-20261108
+      - name: Download SLTV APK and Frida tools
+        run: |
+          set -euxo pipefail
+          curl -L --fail --silent --show-error --retry 3 --max-time 240 \
+            "https://github.com/nxt-owner/SLTV-APP/releases/download/V1.4.8/V1.4.8.apk" -o sltv.apk
+          ls -lh sltv.apk
+          unzip -t sltv.apk > /dev/null
+          python3 -m pip install --quiet "frida==16.6.6"
+          FVER=$(python3 -c "import frida;print(frida.__version__)")
+          curl -L --fail --silent --show-error --retry 3 --max-time 180 \
+            "https://github.com/frida/frida/releases/download/$FVER/frida-server-$FVER-android-x86_64.xz" -o frida.xz
+          xz -dc frida.xz > frida-server
+          chmod +x frida-server
+          sed -i '/shell("adb","exec-out","screencap","-p",timeout=25)/d' sltv_research/trace.py
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Launch Android emulator and observe SLTV public playback
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 2048M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            adb install -r sltv.apk
+            adb root
+            adb wait-for-device
+            adb push frida-server /data/local/tmp/frida-server
+            adb shell chmod 755 /data/local/tmp/frida-server
+            adb shell 'nohup /data/local/tmp/frida-server >/dev/null 2>&1 </dev/null &'
+            sleep 3
+            python3 -u sltv_research/trace.py
+      - name: Upload traces and screenshots (sensitive URL parameter values redacted)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sltv-runtime-trace
+          path: sltv_trace_results/
+          retention-days: 5
+          if-no-files-found: warn
