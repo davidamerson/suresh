@@ -138,23 +138,24 @@ def main():
     print("APP_STARTED",pkg,pid,flush=True)
     time.sleep(15)
     snap("01_launch")
-    tap_node("Live TV")
-    time.sleep(12)
-    snap("02_after_livetv")
-    if not tap_node("Hiru"): 
-        if not tap_node("Local"):
-            shell("adb","shell","input","keyevent","KEYCODE_DPAD_DOWN")
-            shell("adb","shell","input","keyevent","KEYCODE_DPAD_CENTER")
-    time.sleep(12)
-    snap("03_after_channel")
-    for name in ["Sirasa","Derana","Rupavahini","ITN"]:
-        shell("adb","shell","input","keyevent","KEYCODE_BACK")
-        time.sleep(2)
-        if not tap_node(name):
-            shell("adb","shell","input","keyevent","KEYCODE_DPAD_RIGHT")
-            shell("adb","shell","input","keyevent","KEYCODE_DPAD_CENTER")
-        time.sleep(9)
-        snap("04_"+name.lower())
+    shell("adb","shell","input","tap","465","1225")
+    print("TAPPED_GET_STARTED",flush=True)
+    time.sleep(9)
+    snap("02_get_started")
+    nodes=visible_nodes()
+    print("AFTER_START_NODES",json.dumps(nodes[:60],ensure_ascii=False),flush=True)
+    for label in ("Continue as Guest","Continue Without","Skip","Guest","Not now","Watch TV","Live TV"):
+        if tap_node(label):
+            print("OPTION_TAPPED",label,flush=True)
+            time.sleep(8)
+            snap("03_optional")
+            break
+    time.sleep(10)
+    snap("04_waited")
+    for channel in ("Hiru TV","Sirasa TV","TV Derana","Rupavahini","ITN"):
+        if tap_node(channel):
+            time.sleep(9)
+            snap("05_"+channel.lower().replace(" ","_"))
     time.sleep(7)
     with open(os.path.join(OUT,"network_paths.json"),"w") as f:json.dump(records,f,indent=2)
     c,log,_=shell("adb","logcat","-d","-t","500",timeout=25)
