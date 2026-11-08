@@ -86,7 +86,6 @@ Java.perform(function(){
 """
 
 def snap(label):
-    shell("adb","exec-out","screencap","-p",timeout=25) # avoid dumping screenshot bytes in process output?
     with open(os.path.join(OUT,label+".png"),"wb") as f:
         p=subprocess.run(["adb","exec-out","screencap","-p"], stdout=f,stderr=subprocess.PIPE,timeout=30)
     print("SCREENSHOT",label, flush=True)
