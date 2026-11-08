@@ -1,0 +1,112 @@
+name: SLTV one-time authorized account registration and URL trace
+on:
+  push:
+    branches: [sltv-dynamic-stream-trace-20261108]
+    paths: [".github/workflows/sltv-secure-signup.yml"]
+permissions:
+  contents: read
+  issues: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sltv-dynamic-stream-trace-20261108
+      - name: Generate ephemeral encryption key and wait for encrypted one-time credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /tmp/sltv_rsa.pem 2>/dev/null
+          openssl pkey -in /tmp/sltv_rsa.pem -pubout -out /tmp/sltv_pub.pem
+          python3 - <<'PY'
+          import os,base64,json,time,urllib.request,urllib.error,subprocess
+          url="https://api.github.com/repos/davidamerson/suresh/issues/1/comments"
+          headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","User-Agent":"SLTV-Secure-Test"}
+          pub=base64.b64encode(open("/tmp/sltv_pub.pem","rb").read()).decode()
+          data=json.dumps({"body":"SLTV_PUBLIC_KEY:"+pub}).encode()
+          req=urllib.request.Request(url, data=data,headers=headers,method="POST")
+          with urllib.request.urlopen(req,timeout=15) as r: assert r.status==201
+          print("PUBLIC_KEY_POSTED",flush=True)
+          for attempt in range(160):
+              try:
+                  req=urllib.request.Request(url+"?per_page=100",headers=headers)
+                  with urllib.request.urlopen(req,timeout=15) as r: comments=json.load(r)
+                  found=False
+                  for c in comments[::-1]:
+                      author=c.get("user",{}).get("login","")
+                      body=c.get("body","")
+                      if author=="davidamerson" and body.startswith("SLTV_ENCRYPTED_CREDENTIALS:"):
+                          cipher=base64.b64decode(body.split(":",1)[1].strip(),validate=True)
+                          if len(cipher)!=256: continue
+                          open("/tmp/sltv_cipher.bin","wb").write(cipher)
+                          try:
+                              subprocess.run(["openssl","pkeyutl","-decrypt","-inkey","/tmp/sltv_rsa.pem",
+                                "-in","/tmp/sltv_cipher.bin","-out","/tmp/sltv_credentials.json",
+                                "-pkeyopt","rsa_padding_mode:oaep","-pkeyopt","rsa_oaep_md:sha256"],
+                                check=True,capture_output=True)
+                              obj=json.load(open("/tmp/sltv_credentials.json"))
+                              if "email" not in obj or "password" not in obj: raise ValueError("invalid payload")
+                              os.chmod("/tmp/sltv_credentials.json",0o600)
+                              os.unlink("/tmp/sltv_cipher.bin")
+                              found=True
+                              print("ENCRYPTED_CREDENTIALS_RECEIVED",flush=True)
+                              break
+                          except Exception:
+                              continue
+                  if found:break
+              except Exception as e:
+                  print("POLL_TEMPORARY_ERROR",type(e).__name__,flush=True)
+              time.sleep(3)
+          else:
+              raise RuntimeError("No valid encrypted credentials arrived before deadline")
+          PY
+      - name: Download legitimate release APK and runtime tracing tools
+        run: |
+          set -euo pipefail
+          curl -L --fail --silent --show-error --retry 2 --max-time 240 "https://github.com/nxt-owner/SLTV-APP/releases/download/V1.4.8/V1.4.8.apk" -o sltv.apk
+          unzip -t sltv.apk >/dev/null
+          python3 -m pip install --quiet "frida==16.6.6"
+          FVER=$(python3 -c "import frida;print(frida.__version__)")
+          curl -L --fail --silent --show-error --max-time 180 "https://github.com/frida/frida/releases/download/$FVER/frida-server-$FVER-android-x86_64.xz" -o frida.xz
+          xz -dc frida.xz > frida-server
+          chmod +x frida-server
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run authorized signup and observe public playback request paths
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 2048M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            adb install -r sltv.apk
+            adb root
+            adb wait-for-device
+            adb push frida-server /data/local/tmp/frida-server
+            adb shell chmod 755 /data/local/tmp/frida-server
+            adb shell 'nohup /data/local/tmp/frida-server >/dev/null 2>&1 </dev/null &'
+            sleep 3
+            python3 -u sltv_research/secure_signup_trace.py
+      - name: Shred ephemeral account credentials
+        if: always()
+        run: |
+          shred -fu /tmp/sltv_credentials.json /tmp/sltv_rsa.pem /tmp/sltv_cipher.bin 2>/dev/null || true
+      - name: Upload redacted results only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sltv-authorized-urls-redacted
+          path: sltv_trace_results/
+          retention-days: 3
+          if-no-files-found: warn
