@@ -138,7 +138,7 @@ def main():
     print("APP_STARTED",pkg,pid,flush=True)
     time.sleep(15)
     snap("01_launch")
-    shell("adb","shell","input","tap","465","1225")
+    tap_node("Get Started")
     print("TAPPED_GET_STARTED",flush=True)
     time.sleep(9)
     snap("02_get_started")
