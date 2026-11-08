@@ -109,7 +109,7 @@ def visible_nodes():
 
 def tap_node(keyword):
     nodes=visible_nodes()
-    print("UI_NODES",json.dumps(nodes[:50],ensure_ascii=False),flush=True)
+    print("UI_LABELS",json.dumps([{"text":"<redacted>" if "@" in n["text"] else n["text"][:70],"bounds":n["bounds"]} for n in nodes[:50]],ensure_ascii=False),flush=True)
     for n in nodes:
         if keyword.lower() in n["text"].lower():
             m=re.search(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",n["bounds"])
