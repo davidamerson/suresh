@@ -155,15 +155,22 @@ def press_bounds(b):
     time.sleep(1)
     return True
 
+def tap_button(label):
+    for i in range(5):
+        nodes=private_ui()
+        match=next((n for n in nodes if n["class"].endswith("Button") and label.lower() in n["text"].lower() and n["bounds"]!="[0,0][0,0]"),None)
+        if match and press_bounds(match["bounds"]):
+            print("BUTTON_PRESSED",label,flush=True)
+            return True
+        move_up()
+    print("BUTTON_NOT_FOUND",label,flush=True)
+    return False
+
 def main():
     import frida
     with open("/tmp/sltv_credentials.json") as f:creds=json.load(f)
-    assert creds["email"].endswith("@gmail.com"), "Expected authorized test Gmail account"
-    _,pkgout,_=shell("adb","shell","pm","list","packages","-3")
-    pkgs=re.findall(r"package:([^\s]+)",pkgout)
-    print("INSTALLED_THIRD_PARTY",pkgs,flush=True)
-    if not pkgs: return
-    pkg="com.sltv.app" if "com.sltv.app" in pkgs else pkgs[-1]
+    assert creds["email"].endswith("@gmail.com")
+    pkg="com.sltv.app"
     d=frida.get_usb_device(timeout=30)
     pid=d.spawn([pkg])
     sess=d.attach(pid)
@@ -171,75 +178,67 @@ def main():
     script.on("message",on_message)
     script.load()
     d.resume(pid)
-    time.sleep(14)
+    time.sleep(13)
     snap("01_launch")
-    tap_node("Get Started")
+    assert tap_node("Create New Account"),"Unable to open signup from welcome screen"
     time.sleep(6)
-    snap("02_signin")
-    print("SIGNIN_NODES",json.dumps(visible_nodes()[:40]),flush=True)
-    for i in range(4):
-        if tap_node("Don't have an account"):
-            break
-        move_up()
-        print("SCROLLED_TO_SIGNUP",i,flush=True)
-    else:
-        tap_node("Sign Up")
-    time.sleep(7)
-    snap("03_signup_before_input")
+    snap("02_registration_before_input")
     nodes=private_ui()
-    print("SIGNUP_FORM_META",json.dumps(nodes[:50]),flush=True)
+    print("REG_FORM_META",json.dumps(nodes[:50]),flush=True)
     fields=[n for n in nodes if "EditText" in n["class"]]
-    print("EDITTEXT_COUNT",len(fields),flush=True)
-    if len(fields)<2:
-        print("BLOCKER: signup form unavailable",flush=True)
+    print("REG_FIELDS_COUNT",len(fields),flush=True)
+    if len(fields)<3:
+        print("BLOCKER: no usable registration form",flush=True)
         return
-    # Determine field roles using screen hints in accessibility nodes. The typical form:
-    # name, email, password, confirm password; only fill requested fields.
-    roles=[]
-    for i,n in enumerate(fields):
-        l=n["text"].lower()
-        if "email" in l: roles.append("email")
-        elif "confirm" in l: roles.append("confirm")
-        elif "password" in l:roles.append("password")
-        elif "name" in l:roles.append("name")
-        else:roles.append("")
-    if not any(roles):
-        if len(fields)==2:roles=["email","password"]
-        elif len(fields)==3:roles=["name","email","password"]
-        elif len(fields)>=4:roles=["name","email","password","confirm"]+[""]*(len(fields)-4)
-    print("FIELD_ROLES",roles,flush=True)
-    for n,role in zip(fields,roles):
-        val={"email":creds["email"],"password":creds["password"],"confirm":creds["password"],"name":"TV Test User"}.get(role)
-        if val and press_bounds(n["bounds"]):
-            input_text(val)
-            shell("adb","shell","input","keyevent","KEYCODE_BACK")
-            time.sleep(0.5)
-    # Clear plaintext copy from Python memory where possible; Android owns its form state.
+    roles=["name","email","password","confirm"] if len(fields)>=4 else ["email","password","confirm"]
+    for i,role in enumerate(roles[:len(fields)]):
+        nodes=private_ui()
+        current=[n for n in nodes if "EditText" in n["class"]]
+        if i>=len(current):move_up();current=[n for n in private_ui() if "EditText" in n["class"]]
+        if i>=len(current):
+            print("FIELD_BLOCKED",role,flush=True)
+            continue
+        target=current[i]
+        bounds=target["bounds"]
+        m=re.search(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",bounds)
+        if m and (int(m.group(4))-int(m.group(2))<35):
+            move_up()
+            current=[n for n in private_ui() if "EditText" in n["class"]]
+            target=current[i] if i<len(current) else target
+        if not press_bounds(target["bounds"]):
+            print("FIELD_NOT_VISIBLE",role,flush=True)
+            continue
+        val={"email":creds["email"],"password":creds["password"],"confirm":creds["password"],"name":"SLTV Test"}[role]
+        input_text(val)
+        shell("adb","shell","input","keyevent","KEYCODE_BACK")
+        print("FIELD_FILLED",role,flush=True)
+        time.sleep(1)
     del creds
-    n=private_ui()
-    print("POST_FILL_UI_META",json.dumps(n[:40]),flush=True)
-    for candidate in ["I agree","Accept Terms","Terms and Conditions","Create Account","Sign Up","Register"]:
-        if candidate in ("Create Account","Sign Up","Register"):
-            if tap_node(candidate):break
-        else:
-            tap_node(candidate)
-    time.sleep(12)
-    print("POST_CREATE_UI_META",json.dumps(private_ui()[:50]),flush=True)
-    if any("Verify" in n["text"] or "verification" in n["text"].lower() for n in private_ui()):
-        print("BLOCKER: email verification required; do not bypass.",flush=True)
-    for label in ("Continue","Go to Home","Got it","Skip","Not now","Home","Live TV","Watch"):
-        if tap_node(label):
+    nodes=private_ui()
+    print("REG_POST_FILL_LABELS",json.dumps(nodes[:40]),flush=True)
+    # Scroll to reach form's submit button, but do not select paid subscriptions.
+    for label in ("I Agree","I accept"):
+        tap_button(label)
+    submitted=tap_button("Create Account") or tap_button("Sign Up") or tap_button("Register")
+    print("REGISTRATION_SUBMITTED",submitted,flush=True)
+    time.sleep(14)
+    nodes=private_ui()
+    print("REGISTRATION_RESULT_LABELS",json.dumps(nodes[:65]),flush=True)
+    if any("verify" in n["text"].lower() or "verification" in n["text"].lower() for n in nodes):
+        print("BLOCKER: email verification may be required.",flush=True)
+    for label in ("Free Plan","Free","Continue for free","Continue","Skip","Not now","Home","Live TV","Watch"):
+        if tap_button(label):
             time.sleep(5)
-    print("HOME_UI_META",json.dumps(private_ui()[:60]),flush=True)
-    for channel in ["Hiru","Sirasa","Derana","Rupavahini","ITN"]:
+            nodes=private_ui()
+            print("AFTER_OPTION_LABELS",json.dumps(nodes[:40]),flush=True)
+    for channel in ("Hiru TV","Sirasa TV","TV Derana","Rupavahini","ITN"):
         if tap_node(channel):
-            time.sleep(10)
-            print("CHANNEL_TRIED",channel,flush=True)
+            time.sleep(8)
+            print("CHANNEL_SELECTED",channel,flush=True)
             shell("adb","shell","input","keyevent","KEYCODE_BACK")
             time.sleep(2)
-    os.makedirs(OUT,exist_ok=True)
+    print("FINAL_META",json.dumps(private_ui()[:60]),flush=True)
     with open(os.path.join(OUT,"network_paths.json"),"w") as f:json.dump(records,f,indent=2)
-    with open(os.path.join(OUT,"status.txt"),"w") as f:f.write("Logged redacted hosts/paths only. See public workflow log for nonsecret UI labels.\n")
     print("SUMMARY",json.dumps({"record_count":len(records),"hosts":sorted(set(x["host"] for x in records))}),flush=True)
 
 if __name__=="__main__":
