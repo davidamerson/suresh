@@ -19,6 +19,11 @@ android {
             applicationId "com.suresh.sltv.standalone"
             resValue "string", "app_name", "Sri Lanka TV Independent"
         }
+        phone {
+            dimension "mode"
+            applicationId "com.suresh.sltv.phone"
+            resValue "string", "app_name", "Sri Lanka TV Phone"
+        }
         sltvbridge {
             dimension "mode"
             applicationId "com.suresh.sltv.bridge"
