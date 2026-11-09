@@ -41,23 +41,21 @@ jobs:
             mkdir -p /tmp/sltv_smoke
             adb install /tmp/sltvapps/SLTV_Independent_AndroidTV.apk
             adb install /tmp/sltvapps/SLTV_Channel_Bridge_AndroidTV.apk
-            for entry in "com.suresh.sltv.standalone:independent" "com.suresh.sltv.bridge:bridge"; do
-              pkg=$(echo "$entry" | cut -d: -f1)
-              kind=$(echo "$entry" | cut -d: -f2)
-              adb shell am force-stop "$pkg" || true
-              adb shell am start -n "$pkg/com.suresh.srilankatv.MainActivity"
-              sleep 10
-              adb exec-out screencap -p >"/tmp/sltv_smoke/$kind.png"
-              adb shell uiautomator dump /sdcard/windowsmoke.xml >/dev/null
-              adb shell cat /sdcard/windowsmoke.xml >"/tmp/sltv_smoke/$kind.xml"
-              if [ "$kind" = independent ]; then
-                grep -qi "INDEPENDENT" "/tmp/sltv_smoke/$kind.xml"
-              else
-                grep -qi "SLTV CHANNEL BRIDGE" "/tmp/sltv_smoke/$kind.xml"
-              fi
-              echo "SMOKE_OK $kind $pkg"
-              adb shell input keyevent KEYCODE_BACK
-            done
+            adb shell am start -n com.suresh.sltv.standalone/com.suresh.srilankatv.MainActivity
+            sleep 10
+            adb exec-out screencap -p > /tmp/sltv_smoke/independent.png
+            adb shell uiautomator dump /sdcard/windowsmoke.xml
+            adb shell cat /sdcard/windowsmoke.xml > /tmp/sltv_smoke/independent.xml
+            grep -qi "INDEPENDENT" /tmp/sltv_smoke/independent.xml
+            echo SMOKE_OK_independent
+            adb shell am force-stop com.suresh.sltv.standalone
+            adb shell am start -n com.suresh.sltv.bridge/com.suresh.srilankatv.MainActivity
+            sleep 10
+            adb exec-out screencap -p > /tmp/sltv_smoke/bridge.png
+            adb shell uiautomator dump /sdcard/windowsmoke.xml
+            adb shell cat /sdcard/windowsmoke.xml > /tmp/sltv_smoke/bridge.xml
+            grep -qi "SLTV CHANNEL BRIDGE" /tmp/sltv_smoke/bridge.xml
+            echo SMOKE_OK_bridge
             adb logcat -d | grep "FATAL EXCEPTION" | tail -10 > /tmp/sltv_smoke/fatal-exceptions.txt || true
       - uses: actions/upload-artifact@v4
         if: always()
