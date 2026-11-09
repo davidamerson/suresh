@@ -18,7 +18,7 @@ public final class PlaylistStore {
     private static final String PREFS = "srilankatv";
     private static final String CUSTOM_M3U = "custom_m3u";
     private static final String ONLINE_M3U = "cached_remote_m3u";
-    public static final String CATALOG_URL = "https://raw.githubusercontent.com/davidamerson/suresh/sltv-dual-tv-apps-20261109/SriLankaTV/app/src/main/assets/verified_channels.m3u";
+    public static final String CATALOG_URL = "https://raw.githubusercontent.com/davidamerson/suresh/sltv-tv-phone-mouse-20261109/SriLankaTV/app/src/main/assets/verified_channels.m3u";
     private PlaylistStore() {}
 
     public static final class Channel {
