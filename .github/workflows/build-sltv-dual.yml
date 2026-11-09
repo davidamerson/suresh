@@ -1,0 +1,49 @@
+name: Build two SLTV Android TV test APKs
+on:
+  push:
+    branches: [sltv-dual-tv-apps-20261109]
+    paths:
+      - ".github/workflows/build-sltv-dual.yml"
+      - "SriLankaTV/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sltv-dual-tv-apps-20261109
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Build independent and bridge debug APKs
+        working-directory: SriLankaTV
+        run: gradle --no-daemon --stacktrace :app:assembleStandaloneDebug :app:assembleSltvbridgeDebug
+      - name: Validate APK manifests and checksums
+        run: |
+          set -euo pipefail
+          mkdir -p sltv_dual_apks
+          for flavor in standalone sltvbridge; do
+            APK="SriLankaTV/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
+            test -s "$APK"
+            "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -E "package:|launchable-activity" || true
+            sha256sum "$APK"
+            if [ "$flavor" = standalone ]; then
+              cp "$APK" sltv_dual_apks/SLTV_Independent_AndroidTV.apk
+            else
+              cp "$APK" sltv_dual_apks/SLTV_Channel_Bridge_AndroidTV.apk
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SLTV-Two-Android-TV-Apps
+          path: sltv_dual_apks/*.apk
+          if-no-files-found: error
+          retention-days: 14
