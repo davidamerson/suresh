@@ -1,0 +1,86 @@
+name: Smoke-test both Android TV apps
+on:
+  push:
+    branches: [sltv-two-tv-apps-20261109]
+    paths: [".github/workflows/smoke-test-tv-apps.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sltv-two-tv-apps-20261109
+      - name: Download compiled APKs from verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p tvtest
+          gh run download 42604592230 --repo "$GITHUB_REPOSITORY" \
+            --name OpenStreamTV-and-SLTV-Companion-debug-APKs --dir tvtest
+          ls -lh tvtest/independent/build/outputs/apk/debug/*.apk tvtest/companion/build/outputs/apk/debug/*.apk
+      - name: Enable emulator hardware virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install APKs and examine channel-menu accessibility
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 2048M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            set -eu
+            adb install tvtest/independent/build/outputs/apk/debug/independent-debug.apk
+            adb install tvtest/companion/build/outputs/apk/debug/companion-debug.apk
+            adb shell am start -n lk.openstream.tv.independent/.MainActivity
+            sleep 9
+            adb shell uiautomator dump /sdcard/window.xml
+            adb shell cat /sdcard/window.xml > tvtest/independent_ui.xml
+            adb exec-out screencap -p > tvtest/independent_home.png
+            python3 - <<'PY'
+            from pathlib import Path
+            s=Path('tvtest/independent_ui.xml').read_text()
+            print("INDEPENDENT_OPENSTREAM_TITLE", "OPENSTREAM" in s)
+            print("INDEPENDENT_174_CHANNEL_COUNT", "174 channels" in s)
+            print("INDEPENDENT_SHOWS_CATEGORIES", "All channels" in s)
+            assert "OPENSTREAM" in s
+            assert "174 channels" in s
+            PY
+            adb shell am force-stop lk.openstream.tv.independent
+            adb shell am start -n lk.openstream.tv.companion/.MainActivity
+            sleep 8
+            adb shell uiautomator dump /sdcard/window.xml
+            adb shell cat /sdcard/window.xml > tvtest/companion_ui.xml
+            adb exec-out screencap -p > tvtest/companion_home.png
+            python3 - <<'PY'
+            from pathlib import Path
+            s=Path('tvtest/companion_ui.xml').read_text()
+            print("COMPANION_TITLE", "SLTV COMPANION" in s)
+            print("COMPANION_174_CHANNEL_COUNT", "174 channels" in s)
+            assert "SLTV COMPANION" in s
+            assert "174 channels" in s
+            PY
+            adb shell dumpsys package lk.openstream.tv.companion | grep "NavigationService" > tvtest/accessibility_service_status.txt || true
+      - name: Upload smoke-test UI snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenStreamTV-smoke-test-screenshots
+          path: |
+            tvtest/independent_home.png
+            tvtest/companion_home.png
+            tvtest/independent_ui.xml
+            tvtest/companion_ui.xml
+            tvtest/accessibility_service_status.txt
+          retention-days: 14
+          if-no-files-found: warn
