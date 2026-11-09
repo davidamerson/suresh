@@ -1,9 +1,153 @@
 #EXTM3U
-#EXTINF:-1 group-title="Sri Lanka (independently frame-decoded)",Hiru TV
+#EXTINF:-1 tvg-name="&flix" group-title="Movie 🎬",&flix
+https://sltv-app.thundercat.workers.dev/andflix
+#EXTINF:-1 tvg-name="10 Cricket HD" group-title="Sports ⛹️🏏",10 Cricket HD
+https://sltv-app.thundercat.workers.dev/tencricket
+#EXTINF:-1 tvg-name="30A Music" group-title="Music 🎧",30A Music
+https://30a-tv.com/music.m3u8
+#EXTINF:-1 tvg-name="ACC Digital Network" group-title="Sports ⛹️🏏",ACC Digital Network
+https://raycom-accdn-firetv.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="Ace TV" group-title="Sports ⛹️🏏",Ace TV
+https://streams2.sofast.tv/WiseM3U8_30/sofast/cleanhls/master.m3u8
+#EXTINF:-1 tvg-name="Ada Derana" group-title="News 🚨",Ada Derana
+https://str001.peotv.lk/ndrm/live/ada-derana-24/master.m3u8
+#EXTINF:-1 tvg-name="AFV" group-title="Entertainment 😸",AFV
+https://linear-12.frequency.stream/dist/plex/12/hls/master/playlist.m3u8
+#EXTINF:-1 tvg-name="Al jazeera" group-title="News 🚨",Al jazeera
+https://sltv-app.thundercat.workers.dev/aljazeera
+#EXTINF:-1 tvg-name="Amrita" group-title="Tamil / India",Amrita
+https://ddash74r36xqp.cloudfront.net/master.m3u8
+#EXTINF:-1 tvg-name="Animal Planet" group-title="Nature/Travel 🪂🧗",Animal Planet
+https://vodzong.mjunoon.tv/streamtest/Animal-Planet-158-3/playlist.m3u8
+#EXTINF:-1 tvg-name="ART HD" group-title="🇱🇰 Ultra",ART HD
+https://sltv-app.thundercat.workers.dev/arttelevision
+#EXTINF:-1 tvg-name="ART TV²" group-title="🇱🇰 Channels Ultra",ART TV²
+https://sltv-nice-face.thundercat.workers.dev/arttelevision
+#EXTINF:-1 tvg-name="ARTFLIX Movie" group-title="Movie 🎬",ARTFLIX Movie
+https://amogonetworx-artflix-1-nl.samsung.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="Avatar" group-title="Kids 🧚",Avatar
+https://jmp2.uk/plu-600adbdf8c554e00072125c9.m3u8
+#EXTINF:-1 tvg-name="B4U Music" group-title="Music 🎧",B4U Music
+https://cdn-2.pishow.tv/live/415/master.m3u8
+#EXTINF:-1 tvg-name="Baby Shark TV" group-title="Kids 🧚",Baby Shark TV
+https://newidco-babysharktv-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="BabyFirst" group-title="Kids 🧚",BabyFirst
+https://jmp2.uk/plu-5f4fb4cf605ddf000748e16f.m3u8
+#EXTINF:-1 tvg-name="BBC Drama" group-title="Movie 🎬",BBC Drama
+https://amg00793-amg00793c40-rakuten-es-5444.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="BBC world" group-title="News 🚨",BBC world
+https://sltv-app.thundercat.workers.dev/bbcworld
+#EXTINF:-1 tvg-name="beIN SPORTS XTRA" group-title="Sports ⛹️🏏",beIN SPORTS XTRA
+https://bein-beinxtrasports-firetv.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="Bloomberg" group-title="News 🚨",Bloomberg
+https://sltv-app.thundercat.workers.dev/bloomberg
+#EXTINF:-1 tvg-name="Cartoon Network" group-title="Kids 🧚",Cartoon Network
+https://vodzong.mjunoon.tv/streamtest/cartoon-network-87/playlist.m3u8
+#EXTINF:-1 tvg-name="CGTN" group-title="News 🚨",CGTN
+https://sltv-app.thundercat.workers.dev/CGTN
+#EXTINF:-1 tvg-name="Channel C" group-title="🇱🇰 Ultra",Channel C
+https://sltv-app.thundercat.workers.dev/channelc
+#EXTINF:-1 tvg-name="Channel One²" group-title="🇱🇰 Channels Ultra",Channel One²
+https://sltv-nice-face.thundercat.workers.dev/channelone
+#EXTINF:-1 tvg-name="Channel01 HD" group-title="🇱🇰 Ultra",Channel01 HD
+https://sltv-app.thundercat.workers.dev/channelone
+#EXTINF:-1 tvg-name="Charana TV‎" group-title="SL Channels 🇱🇰",Charana TV‎
+https://str001.peotv.lk/ndrm/live/charana/master.m3u8
+#EXTINF:-1 tvg-name="Charge!" group-title="Movie 🎬",Charge!
+https://fast-channels.sinclairstoryline.com/CHARGE/index.m3u8
+#EXTINF:-1 tvg-name="CitiHitz" group-title="🇱🇰 Ultra",CitiHitz
+https://sltv-app.thundercat.workers.dev/citihitz
+#EXTINF:-1 tvg-name="CNBC" group-title="News 🚨",CNBC
+https://sltv-app.thundercat.workers.dev/cnbc
+#EXTINF:-1 tvg-name="CNN" group-title="News 🚨",CNN
+https://sltv-app.thundercat.workers.dev/cnn
+#EXTINF:-1 tvg-name="Colors HD" group-title="Tamil / India",Colors HD
+https://sltv-app.thundercat.workers.dev/colors
+#EXTINF:-1 tvg-name="Cops" group-title="Entertainment 😸",Cops
+https://langleyproductions-cops-2-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="Damsathara HD" group-title="Religious ☸️✝️🕉️🕌",Damsathara HD
+https://sltv-app.thundercat.workers.dev/damsathara
+#EXTINF:-1 tvg-name="Dangal TV" group-title="Tamil / India",Dangal TV
+https://live-dangal.akamaized.net/liveabr/playlist.m3u8
+#EXTINF:-1 tvg-name="Dark Matter TV" group-title="Movie 🎬",Dark Matter TV
+https://tricoast-tv-dark-matter-01-us.ono.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="DD Sports" group-title="Sports ⛹️🏏",DD Sports
+https://cdn-6.pishow.tv/live/13/master.m3u8
+#EXTINF:-1 tvg-name="Dearana HD" group-title="🇱🇰 Ultra",Dearana HD
+https://sltv-app.thundercat.workers.dev/tvderana
+#EXTINF:-1 tvg-name="Derana SD" group-title="SL Channels 🇱🇰",Derana SD
+https://str001.peotv.lk/ndrm/live/derana/master.m3u8
+#EXTINF:-1 tvg-name="Didula HD" group-title="Religious ☸️✝️🕉️🕌",Didula HD
+https://sltv-app.thundercat.workers.dev/tvdidula
+#EXTINF:-1 tvg-name="Dove TV" group-title="Entertainment 😸",Dove TV
+https://linear-896.frequency.stream/dist/xumo/896/hls/master/playlist_640x360.m3u8
+#EXTINF:-1 tvg-name="Euronews" group-title="News 🚨",Euronews
+https://sltv-app.thundercat.workers.dev/euronews
+#EXTINF:-1 tvg-name="Eurosport" group-title="Sports ⛹️🏏",Eurosport
+https://sltv-app.thundercat.workers.dev/eurosport
+#EXTINF:-1 tvg-name="Rupawahini HD" group-title="🇱🇰 Ultra",Rupawahini HD
+https://sltv-app.thundercat.workers.dev/rupavahini
+#EXTINF:-1 tvg-name="Event TV" group-title="SL Channels 🇱🇰",Event TV
+https://str001.peotv.lk/ndrm/live/event-tv/master.m3u8
+#EXTINF:-1 tvg-name="France24" group-title="News 🚨",France24
+https://sltv-app.thundercat.workers.dev/france24
+#EXTINF:-1 tvg-name="Ghost Hunters" group-title="Movie 🎬",Ghost Hunters
+https://jmp2.uk/plu-5f27bbe4779de70007a6d1c1.m3u8
+#EXTINF:-1 tvg-name="Godtv HD" group-title="Religious ☸️✝️🕉️🕌",Godtv HD
+https://sltv-app.thundercat.workers.dev/godtv
+#EXTINF:-1 tvg-name="Haritha HD" group-title="🇱🇰 Ultra",Haritha HD
+https://sltv-app.thundercat.workers.dev/harithatv
+#EXTINF:-1 tvg-name="Haritha‎" group-title="SL Channels 🇱🇰",Haritha‎
+https://str001.peotv.lk/ndrm/live/haritha-tv/master.m3u8
+#EXTINF:-1 tvg-name="HBO HD" group-title="Movie 🎬",HBO HD
+https://sltv-app.thundercat.workers.dev/hbohd
+#EXTINF:-1 tvg-name="Hi Tv" group-title="🇱🇰 Ultra",Hi Tv
+https://sltv-app.thundercat.workers.dev/hitv
+#EXTINF:-1 tvg-name="Hiru HD" group-title="🇱🇰 Ultra",Hiru HD
+https://sltv-app.thundercat.workers.dev/hirutv
+#EXTINF:-1 tvg-name="Hiru" group-title="SL Channels 🇱🇰",Hiru
 https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8
-#EXTINF:-1 group-title="Sri Lanka (independently frame-decoded)",Rupavahini
-https://rpn.bozztv.com/slrclive/slrc/slrclive/index.m3u8
-#EXTINF:-1 group-title="Sri Lanka (independently frame-decoded)",Siyatha TV
-https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8
-#EXTINF:-1 group-title="Sri Lanka (independently frame-decoded)",Shakthi TV
-https://mumbai-edge.smartplaytv.in/ShakthiTV/index.m3u8
+#EXTINF:-1 tvg-name="Hunt Fish TV" group-title="Entertainment 😸",Hunt Fish TV
+https://streams2.sofast.tv/sofastplayout/WiseM3U8_2/master.m3u8
+#EXTINF:-1 tvg-name="IBC பக்தி" group-title="Religious ☸️✝️🕉️🕌",IBC பக்தி
+http://ibc.massstream.net/IBC2/index.m3u8
+#EXTINF:-1 tvg-name="ITN²" group-title="🇱🇰 Channels Ultra",ITN²
+https://sltv-nice-face.thundercat.workers.dev/itn
+#EXTINF:-1 tvg-name="ITN‎" group-title="SL Channels 🇱🇰",ITN‎
+https://str001.peotv.lk/ndrm/live/itn/master.m3u8
+#EXTINF:-1 tvg-name="ITN HD" group-title="🇱🇰 Ultra",ITN HD
+https://sltv-app.thundercat.workers.dev/itn
+#EXTINF:-1 tvg-name="Jaya TV²" group-title="🇱🇰 Channels Ultra",Jaya TV²
+https://sltv-nice-face.thundercat.workers.dev/jayatv
+#EXTINF:-1 tvg-name="Jayatv HD" group-title="Religious ☸️✝️🕉️🕌",Jayatv HD
+https://sltv-app.thundercat.workers.dev/jayatv
+#EXTINF:-1 tvg-name="Jonack" group-title="Tamil / India",Jonack
+https://cdn-6.pishow.tv/live/10006/10006_1.m3u8
+#EXTINF:-1 tvg-name="Kartoon Channel!" group-title="Kids 🧚",Kartoon Channel!
+https://lightning-fnf-samsungaus.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="Latin Zone" group-title="Music 🎧",Latin Zone
+https://cdn.streamingcpanel.com/live/latinzonetvlive.m3u8
+#EXTINF:-1 tvg-name="Lego Channel" group-title="Kids 🧚",Lego Channel
+https://dh18i7whff86v.cloudfront.net/index.m3u8
+#EXTINF:-1 tvg-name="Live Quran TV" group-title="Religious ☸️✝️🕉️🕌",Live Quran TV
+https://live.kwikmotion.com/sharjahtvquranlive/shqurantv.smil/playlist.m3u8
+#EXTINF:-1 tvg-name="Love The Planet" group-title="Nature/Travel 🪂🧗",Love The Planet
+https://amg01821-lovetvchannels-lovetheplanetsp-tivify-tivify-vycsr.amagi.tv/1080p/index.m3u8
+#EXTINF:-1 tvg-name="MovieSphere" group-title="Movie 🎬",MovieSphere
+https://moviesphereuk-samsunguk.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="Nanasa O/L" group-title="Education 📚",Nanasa O/L
+https://sltv-app.thundercat.workers.dev/nenasasinhalaol
+#EXTINF:-1 tvg-name="Tamil A/L" group-title="Education 📚",Tamil A/L
+https://sltv-app.thundercat.workers.dev/nenasatamilal
+#EXTINF:-1 tvg-name="Tamil O/L" group-title="Education 📚",Tamil O/L
+https://sltv-app.thundercat.workers.dev/nenasatamilol
+#EXTINF:-1 tvg-name="Nat Geo HD" group-title="Nature/Travel 🪂🧗",Nat Geo HD
+http://151.80.18.177/National_Geo_HD/index.m3u8
+#EXTINF:-1 tvg-name="Nature Time" group-title="Nature/Travel 🪂🧗",Nature Time
+https://amg00090-amgnaturetimeemea-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-name="Ndtv24" group-title="News 🚨",Ndtv24
+https://sltv-app.thundercat.workers.dev/ndtv
+#EXTINF:-1 tvg-name="Nenasa A/L" group-title="Education 📚",Nenasa A/L
+https://sltv-app.thundercat.workers.dev/nenasasinhalaal
+#EXTINF:-1 tvg-name="Nethra HD" group-title="🇱🇰 Ultra",Nethra HD
+https://sltv-app.thundercat.workers.dev/nethratv
