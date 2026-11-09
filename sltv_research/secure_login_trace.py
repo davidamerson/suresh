@@ -202,6 +202,50 @@ def save_records(stage):
         "manifest_path_count":sum(1 for x in records if ".m3u8" in x["path"].lower() or ".mpd" in x["path"].lower())
     }),flush=True)
 
+
+def inspect_local_cache():
+    # Only examine the current app's channel cache, not account/token/preferences.
+    import xml.etree.ElementTree as ET
+    result=[]
+    rc, listing, _ = shell("adb","shell","ls","-1","/data/user/0/com.sltv.app/shared_prefs",timeout=15)
+    names=[x.strip() for x in listing.splitlines() if x.strip().endswith(".xml")]
+    print("PREF_FILE_COUNT",len(names),flush=True)
+    for fname in names[:35]:
+        rc, raw, _=shell("adb","shell","cat","/data/user/0/com.sltv.app/shared_prefs/"+fname,timeout=20)
+        if rc!=0 or not raw:continue
+        try:root=ET.fromstring(raw)
+        except Exception:continue
+        for node in root:
+            key=node.attrib.get("name","")
+            if not ("sltv_cached_channels" in key or "sltv_cached_categories" in key):continue
+            value=node.text or ""
+            print("CACHE_KEY_FOUND",key,"chars",len(value),flush=True)
+            if value.startswith("json."):value=value[5:]
+            try:obj=json.loads(value)
+            except Exception:
+                print("CACHE_NOT_JSON",flush=True)
+                continue
+            print("CACHE_CONTAINER",type(obj).__name__,len(obj) if hasattr(obj,"__len__") else -1,flush=True)
+            def walk(v,group="",depth=0):
+                if depth>8:return
+                if isinstance(v,list):
+                    for sub in v:walk(sub,group,depth+1)
+                elif isinstance(v,dict):
+                    nm=next((v[k] for k in ("name","channelName","title","channel_name","label") if isinstance(v.get(k),str)),None)
+                    grp=next((v[k] for k in ("category","categoryName","group","groupTitle") if isinstance(v.get(k),str)),group)
+                    streams={k:clean_url(v[k]) for k in ("streamUrl","streamUrlMp4","stream_url","url","stream","link","hlsUrl","dashUrl") if isinstance(v.get(k),str) and v[k].startswith(("http://","https://"))}
+                    if nm and streams:
+                        result.append({"name":nm[:100],"category":grp[:100] if isinstance(grp,str) else "",**streams})
+                    for sub in v.values():
+                        if isinstance(sub,(dict,list)):walk(sub,grp,depth+1)
+            walk(obj)
+    unique={q["name"]:q for q in result}
+    print("CACHE_CHANNEL_COUNT",len(unique),flush=True)
+    with open(os.path.join(OUT,"cached_channel_paths_redacted.json"),"w") as out:
+        json.dump(list(unique.values()),out,ensure_ascii=False,indent=2)
+    for item in list(unique.values())[:100]:
+        print("CACHE_CHANNEL",json.dumps(item,ensure_ascii=False),flush=True)
+
 def main():
     import frida
     with open("/tmp/sltv_credentials.json","r",encoding="utf-8") as f: creds=json.load(f)
@@ -271,6 +315,7 @@ def main():
         save_records("invalid_credentials")
         return
     print("VERIFIED_LOGIN_HOME_SCREEN",flush=True)
+    inspect_local_cache()
     snap("02_home_after_tutorial")
     safe_view()
     # Normal free UI navigation. Never select paid subscription offers.
@@ -311,13 +356,27 @@ def main():
         # Keep the main page open and tap the next channel card instead.
         print("PLAYER_RETURN_TO_GRID",label,flush=True)
     targets=[
-        ("Hiru",["Hiru"]),
+        ("Charana TV",["Charana TV"]),
         ("Derana SD",["Derana SD"]),
+        ("Event TV",["Event TV"]),
+        ("Haritha",["Haritha"]),
+        ("Hiru",["Hiru"]),
         ("ITN",["ITN"]),
         ("Rupawahini",["Rupawahini","Rupavahini"]),
+        ("Shakthi",["Shakthi"]),
         ("Sirasa TV",["Sirasa TV"]),
+        ("Supreme TV",["Supreme TV"]),
         ("Swarnavahini",["Swarnavahini"]),
-        ("Siyatha TV",["Siyatha TV"])
+        ("Vasantham",["Vasantham"]),
+        ("Siyatha TV",["Siyatha TV"]),
+        ("TV1",["TV1","TV 1"]),
+        ("Nethra",["Nethra"]),
+        ("Rangiri",["Rangiri"]),
+        ("Ridee",["Ridee"]),
+        ("Jaya TV",["Jaya TV"]),
+        ("TV Didula",["TV Didula"]),
+        ("ART Television",["ART Television"]),
+        ("Channel One",["Channel One"]),
     ]
     test_results=[]
     for label, variants in targets:
