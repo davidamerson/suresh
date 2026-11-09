@@ -1,0 +1,3 @@
+<resources>
+    <string name="accessibility_description">When you select a channel, this service navigates the original installed SLTV app and clicks that channel using the visible interface. It does not handle login credentials, access tokens, or DRM.</string>
+</resources>
