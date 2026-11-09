@@ -59,68 +59,7 @@ jobs:
           ram-size: 2048M
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: |
-            set -eu
-            mkdir -p smoke-results
-            adb install -r output_apks/SLTV_Independent_TV_Remote_Mouse.apk
-            adb install -r output_apks/SLTV_Channel_Bridge_TV_Remote_Mouse.apk
-            adb install -r output_apks/Sri_Lanka_TV_Android_Phone.apk
-            for flavor in standalone bridge phone; do
-              case "$flavor" in
-                standalone) pkg=com.suresh.sltv.standalone ;;
-                bridge) pkg=com.suresh.sltv.bridge ;;
-                phone) pkg=com.suresh.sltv.phone ;;
-              esac
-              echo "TEST_APP $flavor $pkg"
-              adb shell am force-stop "$pkg" || true
-              adb shell am start -n "$pkg/com.suresh.srilankatv.MainActivity"
-              sleep 6
-              adb exec-out screencap -p > "smoke-results/${flavor}_home.png"
-              adb shell uiautomator dump /sdcard/tvtest.xml >/dev/null
-              adb shell cat /sdcard/tvtest.xml > "smoke-results/${flavor}_home.xml"
-              if [ "$flavor" = phone ]; then
-                adb shell dumpsys input | head -10 || true
-              else
-                adb shell input keyevent 23
-                sleep 3
-                adb shell dumpsys activity activities | grep -q 'PlayerActivity'
-                echo "REMOTE_OK_OPENED_PLAYER $flavor"
-                adb exec-out screencap -p > "smoke-results/${flavor}_remote_player.png"
-                adb shell input keyevent 4
-                sleep 2
-              fi
-              # ADB 'input tap' sends the same Android click pathway as touchscreen
-              # or a USB/Bluetooth mouse on the channel buttons.
-              python3 - "$flavor" <<'PY'
-            import sys,re,subprocess,xml.etree.ElementTree as ET
-            flavor=sys.argv[1]
-            subprocess.run(["adb","shell","uiautomator","dump","/sdcard/tvtest.xml"],stdout=subprocess.DEVNULL,check=True)
-            xml=subprocess.check_output(["adb","shell","cat","/sdcard/tvtest.xml"],text=True)
-            root=ET.fromstring(xml)
-            candidates=[]
-            for node in root.iter("node"):
-                t=node.attrib.get("text","")
-                b=node.attrib.get("bounds","")
-                if re.match(r"^\d+\s+",t):
-                    m=re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",b)
-                    if m:
-                        x=(int(m[1])+int(m[3]))//2
-                        y=(int(m[2])+int(m[4]))//2
-                        candidates.append((x,y,t))
-            assert candidates, f"No visible channel button in {flavor}!"
-            x,y,title=candidates[0]
-            print("POINTER_TAP",flavor,title,x,y,flush=True)
-            subprocess.run(["adb","shell","input","tap",str(x),str(y)],check=True)
-            PY
-              sleep 3
-              adb shell dumpsys activity activities | grep -q 'PlayerActivity'
-              echo "POINTER_TAP_OPENED_PLAYER $flavor"
-              adb exec-out screencap -p > "smoke-results/${flavor}_pointer_player.png"
-              adb shell input keyevent 4
-              sleep 1
-              adb shell am force-stop "$pkg"
-            done
-            echo "ALL_THREE_APPS_SELECTION_SMOKE_PASSED"
+          script: bash scripts/sltv_input_smoke.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
