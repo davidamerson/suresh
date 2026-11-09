@@ -250,6 +250,7 @@ def main():
         tap_exact("Get Started")
         tap_exact("Finish")
     time.sleep(8)
+    snap("02_after_tutorial")
     print("AFTER_TUTORIAL",flush=True)
     safe_view()
     n=safe_view()
@@ -275,6 +276,7 @@ def main():
         else:
             safe_scroll()
     print("PRE_CHANNELS_STATE",flush=True)
+    snap("03_channels_or_plan")
     n=safe_view()
     # Search list, try entering Live TV, then tapping individual channels.
     labels_to_test=["Hiru TV","Sirasa TV","TV Derana","Rupavahini","ITN"]
@@ -290,7 +292,10 @@ def main():
             print("CHANNEL_NOT_PRESENT",channel,flush=True)
             continue
         print("CHANNEL_OPENED",channel,flush=True)
-        time.sleep(14)
+        time.sleep(4)
+        snap("playing_"+channel.replace(" ","_").lower()+"_t4")
+        time.sleep(10)
+        snap("playing_"+channel.replace(" ","_").lower()+"_t14")
         save_records("after_"+channel.replace(" ","_").lower())
         result=safe_view()
         played.append(channel)
@@ -300,6 +305,9 @@ def main():
     print("CHANNEL_ATTEMPTS",json.dumps(played),flush=True)
     print("FINAL_STATE",flush=True)
     safe_view()
+    code, lg, e=shell("adb","logcat","-d","-t","400",timeout=25)
+    filtered=[x[:300] for x in lg.splitlines() if any(t in x for t in ["ExoPlayer","MediaCodec","flutter","Media3","PlayerError"])]
+    with open(os.path.join(OUT,"media_log_excerpt.txt"),"w") as dest: dest.write("\n".join(filtered[-100:]))
     save_records("complete")
 if __name__=="__main__":
     try:main()
