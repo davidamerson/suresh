@@ -32,7 +32,9 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        setRequestedOrientation(BuildConfig.FLAVOR.equals("phone")
+            ? ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                              WindowManager.LayoutParams.FLAG_FULLSCREEN);
         channels = PlaylistStore.getChannels(this);
@@ -89,17 +91,24 @@ public final class MainActivity extends Activity {
     }
 
     private void render() {
+        boolean phone = BuildConfig.FLAVOR.equals("phone");
+        int screenDp = (int)(getResources().getDisplayMetrics().widthPixels
+            / getResources().getDisplayMetrics().density);
+        int sidePadding = phone ? 16 : 38;
+        int availableDp = Math.max(280, screenDp - sidePadding * 2);
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(Color.rgb(11, 19, 32));
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(38), dp(24), dp(38), dp(28));
+        content.setPadding(dp(sidePadding), dp(phone ? 12 : 24), dp(sidePadding), dp(28));
         scroll.addView(content);
         setContentView(scroll);
 
         boolean bridge = BuildConfig.FLAVOR.equals("sltvbridge");
-        content.addView(label(bridge ? "SLTV CHANNEL BRIDGE" : "SRI LANKA TV INDEPENDENT", 30, Color.WHITE, true));
+        content.addView(label(bridge ? "SLTV CHANNEL BRIDGE" :
+            (phone ? "SRI LANKA TV PHONE" : "SRI LANKA TV INDEPENDENT"),
+            phone ? 24 : 30, Color.WHITE, true));
         content.addView(label(bridge
             ? "Live SLTV-hosted URLs • Requires server permission • Original SLTV fallback"
             : "Independent Android TV player • HLS/DASH • Remote control ready", 15,
@@ -112,7 +121,7 @@ public final class MainActivity extends Activity {
 
         if (bridge) {
             Button openOriginal = action("OPEN ORIGINAL SLTV APP");
-            LinearLayout.LayoutParams linkParams = new LinearLayout.LayoutParams(dp(420),dp(70));
+            LinearLayout.LayoutParams linkParams = new LinearLayout.LayoutParams(dp(Math.min(420, availableDp)),dp(70));
             content.addView(openOriginal,linkParams);
             openOriginal.setOnClickListener(v -> {
                 try {
@@ -124,7 +133,7 @@ public final class MainActivity extends Activity {
             content.addView(label("No published SLTV channel deep-links were found. The button opens SLTV, not a selected channel. These hosted endpoints may return 403 in other apps.",14,Color.rgb(255,180,145),false));
         }
         Button sync = action("REFRESH CHANNEL CATALOGUE");
-        content.addView(sync,new LinearLayout.LayoutParams(dp(420),dp(64)));
+        content.addView(sync,new LinearLayout.LayoutParams(dp(Math.min(420,availableDp)),dp(64)));
         sync.setOnClickListener(v -> refreshRemote(true));
         EditText search = new EditText(this);
         search.setSingleLine(true);
@@ -132,10 +141,12 @@ public final class MainActivity extends Activity {
         search.setTextColor(Color.WHITE);
         search.setHintTextColor(Color.LTGRAY);
         search.setHint("Search channels / categories");
-        content.addView(search,new LinearLayout.LayoutParams(dp(640),dp(70)));
+        content.addView(search,new LinearLayout.LayoutParams(dp(Math.min(640,availableDp)),dp(70)));
 
         GridLayout grid = new GridLayout(this);
-        grid.setColumnCount(3);
+        int columns = phone ? (availableDp >= 650 ? 3 : 2) : (availableDp >= 950 ? 4 : 3);
+        grid.setColumnCount(columns);
+        int channelWidthDp = Math.max(110, availableDp / columns - 16);
         grid.setPadding(dp(0), dp(8), dp(0), dp(12));
         Button first = null;
         for (int i = 0; i < channels.size(); i++) {
@@ -143,7 +154,7 @@ public final class MainActivity extends Activity {
             PlaylistStore.Channel channel = channels.get(i);
             Button b = action((i + 1) + "   " + channel.name);
             GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
-            lp.width = dp(225);
+            lp.width = dp(channelWidthDp);
             lp.height = dp(82);
             lp.setMargins(dp(8), dp(8), dp(8), dp(8));
             grid.addView(b, lp);
@@ -182,18 +193,19 @@ public final class MainActivity extends Activity {
         address.setBackground(shape(Color.rgb(27, 38, 58), Color.rgb(90, 111, 148)));
         address.setPadding(dp(18), dp(15), dp(18), dp(15));
         LinearLayout.LayoutParams inputLayout = new LinearLayout.LayoutParams(
-            Math.min(dp(750), getResources().getDisplayMetrics().widthPixels - dp(100)), dp(68));
+            dp(Math.min(750,availableDp)), dp(68));
         inputLayout.topMargin = dp(10);
         content.addView(address, inputLayout);
 
         LinearLayout controls = new LinearLayout(this);
-        controls.setOrientation(LinearLayout.HORIZONTAL);
+        controls.setOrientation(phone ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
         Button importBtn = action("Load M3U URL");
         Button restoreBtn = action("Restore starter list");
-        LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(dp(230), dp(70));
+        LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(
+            dp(phone ? Math.min(265,availableDp) : 230), dp(70));
         p1.setMargins(0, dp(12), dp(20), dp(0));
         controls.addView(importBtn, p1);
-        controls.addView(restoreBtn, new LinearLayout.LayoutParams(dp(265), dp(70)));
+        controls.addView(restoreBtn, new LinearLayout.LayoutParams(dp(Math.min(265,availableDp)), dp(70)));
         content.addView(controls);
 
         importBtn.setOnClickListener(view -> {
@@ -236,8 +248,10 @@ public final class MainActivity extends Activity {
             channels = PlaylistStore.getChannels(this);
             render();
         });
-        content.addView(label("OK: select • D-pad: move • Back: return • During playback: "
-            + "Up/Down change channel", 14, Color.rgb(169, 187, 210), false));
+        content.addView(label(phone
+            ? "Tap a channel to watch. Use the player controls for previous, next and back."
+            : "TV remote: D-pad and OK • Mouse: click a channel • Player: Up/Down or on-screen buttons",
+            14, Color.rgb(169, 187, 210), false));
 
         if (first != null) first.requestFocus();
     }
