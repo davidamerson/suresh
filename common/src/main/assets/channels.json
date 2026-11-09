@@ -1,0 +1,1225 @@
+{
+  "schemaVersion": 1,
+  "observedFrom": "SLTV V1.4.8 Android cache capture 2026-11-09",
+  "caution": "Stream entries are observation only, not proof of redistributable access, compatible DRM, or uninterrupted playback. No third-party authentication is copied.",
+  "channels": [
+    {
+      "id": "ch001",
+      "name": "& TV",
+      "category": "Tamil / India",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch002",
+      "name": "&flix",
+      "category": "Movie 🎬",
+      "url": "https://sltv-app.thundercat.workers.dev/andflix",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch003",
+      "name": "10 Cricket HD",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/tencricket",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch004",
+      "name": "30A Music",
+      "category": "Music 🎧",
+      "url": "https://30a-tv.com/music.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch005",
+      "name": "ACC Digital Network",
+      "category": "Sports ⛹️🏏",
+      "url": "https://raycom-accdn-firetv.amagi.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch006",
+      "name": "Ace TV",
+      "category": "Sports ⛹️🏏",
+      "url": "https://streams2.sofast.tv/WiseM3U8_30/sofast/cleanhls/master.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch007",
+      "name": "Ada Derana",
+      "category": "News 🚨",
+      "url": "https://str001.peotv.lk/ndrm/live/ada-derana-24/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch008",
+      "name": "AFV",
+      "category": "Entertainment 😸",
+      "url": "https://linear-12.frequency.stream/dist/plex/12/hls/master/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch009",
+      "name": "Al jazeera",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/aljazeera",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch010",
+      "name": "Amrita",
+      "category": "Tamil / India",
+      "url": "https://ddash74r36xqp.cloudfront.net/master.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch011",
+      "name": "Anger Management",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch012",
+      "name": "Animal Planet",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "https://vodzong.mjunoon.tv/streamtest/Animal-Planet-158-3/playlist.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch013",
+      "name": "ART HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/arttelevision",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch014",
+      "name": "ART TV²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/arttelevision",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch015",
+      "name": "ARTFLIX Movie",
+      "category": "Movie 🎬",
+      "url": "https://amogonetworx-artflix-1-nl.samsung.wurl.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch016",
+      "name": "Automotion",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch017",
+      "name": "Avatar",
+      "category": "Kids 🧚",
+      "url": "https://jmp2.uk/plu-600adbdf8c554e00072125c9.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch018",
+      "name": "B4U Music",
+      "category": "Music 🎧",
+      "url": "https://cdn-2.pishow.tv/live/415/master.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch019",
+      "name": "Baby Shark TV",
+      "category": "Kids 🧚",
+      "url": "https://newidco-babysharktv-1-eu.rakuten.wurl.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch020",
+      "name": "BabyFirst",
+      "category": "Kids 🧚",
+      "url": "https://jmp2.uk/plu-5f4fb4cf605ddf000748e16f.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch021",
+      "name": "Baywatch",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch022",
+      "name": "BBC Drama",
+      "category": "Movie 🎬",
+      "url": "https://amg00793-amg00793c40-rakuten-es-5444.playouts.now.amagi.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch023",
+      "name": "BBC Earth",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch024",
+      "name": "BBC world",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/bbcworld",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch025",
+      "name": "beIN SPORTS XTRA",
+      "category": "Sports ⛹️🏏",
+      "url": "https://bein-beinxtrasports-firetv.amagi.tv/playlist.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch026",
+      "name": "Bloomberg",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/bloomberg",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch027",
+      "name": "Cartoon Classics",
+      "category": "Kids 🧚",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch028",
+      "name": "Cartoon Network",
+      "category": "Kids 🧚",
+      "url": "https://vodzong.mjunoon.tv/streamtest/cartoon-network-87/playlist.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch029",
+      "name": "CGTN",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/CGTN",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch030",
+      "name": "Channel C",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/channelc",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch031",
+      "name": "Channel One²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/channelone",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch032",
+      "name": "Channel01 HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/channelone",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch033",
+      "name": "Charana TV",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/charana/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch034",
+      "name": "Charge!",
+      "category": "Movie 🎬",
+      "url": "https://fast-channels.sinclairstoryline.com/CHARGE/index.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch035",
+      "name": "China Travel",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch036",
+      "name": "CitiHitz",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/citihitz",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch037",
+      "name": "CNBC",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/cnbc",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch038",
+      "name": "CNN",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/cnn",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch039",
+      "name": "Colors HD",
+      "category": "Tamil / India",
+      "url": "https://sltv-app.thundercat.workers.dev/colors",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch040",
+      "name": "Cops",
+      "category": "Entertainment 😸",
+      "url": "https://langleyproductions-cops-2-eu.rakuten.wurl.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch041",
+      "name": "Damsathara HD",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://sltv-app.thundercat.workers.dev/damsathara",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch042",
+      "name": "Dangal TV",
+      "category": "Tamil / India",
+      "url": "https://live-dangal.akamaized.net/liveabr/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch043",
+      "name": "Danger Vision",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch044",
+      "name": "Dark Matter TV",
+      "category": "Movie 🎬",
+      "url": "https://tricoast-tv-dark-matter-01-us.ono.wurl.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch045",
+      "name": "DD Sports",
+      "category": "Sports ⛹️🏏",
+      "url": "https://cdn-6.pishow.tv/live/13/master.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch046",
+      "name": "Dearana HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/tvderana",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch047",
+      "name": "Derana SD",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/derana/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch048",
+      "name": "Didula HD",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://sltv-app.thundercat.workers.dev/tvdidula",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch049",
+      "name": "Dove TV",
+      "category": "Entertainment 😸",
+      "url": "https://linear-896.frequency.stream/dist/xumo/896/hls/master/playlist_640x360.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch050",
+      "name": "Epic Tv",
+      "category": "Tamil / India",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch051",
+      "name": "Escape TV",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch052",
+      "name": "Euronews",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/euronews",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch053",
+      "name": "Eurosport",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/eurosport",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch054",
+      "name": "Rupawahini HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/rupavahini",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch055",
+      "name": "Event TV",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/event-tv/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch056",
+      "name": "Fail Army",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch057",
+      "name": "FASHION TV",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch058",
+      "name": "Fear Factor",
+      "category": "Movie 🎬",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch059",
+      "name": "FIFA+",
+      "category": "Sports ⛹️🏏",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch060",
+      "name": "Fight TV",
+      "category": "Sports ⛹️🏏",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch061",
+      "name": "France24",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/france24",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch062",
+      "name": "Ghost Hunters",
+      "category": "Movie 🎬",
+      "url": "https://jmp2.uk/plu-5f27bbe4779de70007a6d1c1.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch063",
+      "name": "Godtv HD",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://sltv-app.thundercat.workers.dev/godtv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch064",
+      "name": "Haritha HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/harithatv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch065",
+      "name": "Haritha",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/haritha-tv/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch066",
+      "name": "HBO HD",
+      "category": "Movie 🎬",
+      "url": "https://sltv-app.thundercat.workers.dev/hbohd",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch067",
+      "name": "Heritage+",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch068",
+      "name": "Hi Tv",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/hitv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch069",
+      "name": "Hiru HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/hirutv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch070",
+      "name": "Hiru",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch071",
+      "name": "Hungry",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch072",
+      "name": "Hunt Fish TV",
+      "category": "Entertainment 😸",
+      "url": "https://streams2.sofast.tv/sofastplayout/WiseM3U8_2/master.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch073",
+      "name": "IBC பக்தி",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "http://ibc.massstream.net/IBC2/index.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch074",
+      "name": "ITN²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/itn",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch075",
+      "name": "ITN",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/itn/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch076",
+      "name": "ITN HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/itn",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch077",
+      "name": "Jaya TV²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/jayatv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch078",
+      "name": "Jayatv HD",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://sltv-app.thundercat.workers.dev/jayatv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch079",
+      "name": "Jonack",
+      "category": "Tamil / India",
+      "url": "https://cdn-6.pishow.tv/live/10006/10006_1.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch080",
+      "name": "Just for Laughs",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch081",
+      "name": "Kartoon Channel!",
+      "category": "Kids 🧚",
+      "url": "https://lightning-fnf-samsungaus.amagi.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch082",
+      "name": "Kiddo+",
+      "category": "Kids 🧚",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch083",
+      "name": "Latin Zone",
+      "category": "Music 🎧",
+      "url": "https://cdn.streamingcpanel.com/live/latinzonetvlive.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch084",
+      "name": "Lego Channel",
+      "category": "Kids 🧚",
+      "url": "https://dh18i7whff86v.cloudfront.net/index.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch085",
+      "name": "Live Quran TV",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://live.kwikmotion.com/sharjahtvquranlive/shqurantv.smil/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch086",
+      "name": "LOL TV",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch087",
+      "name": "Love The Planet",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "https://amg01821-lovetvchannels-lovetheplanetsp-tivify-tivify-vycsr.amagi.tv/1080p/index.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch088",
+      "name": "Monster Jam",
+      "category": "Sports ⛹️🏏",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch089",
+      "name": "MovieSphere",
+      "category": "Movie 🎬",
+      "url": "https://moviesphereuk-samsunguk.amagi.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch090",
+      "name": "Mr Bean HD",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch091",
+      "name": "My Zen",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch092",
+      "name": "Nanasa 6-9",
+      "category": "Education 📚",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch093",
+      "name": "Nanasa O/L",
+      "category": "Education 📚",
+      "url": "https://sltv-app.thundercat.workers.dev/nenasasinhalaol",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch094",
+      "name": "Tamil A/L",
+      "category": "Education 📚",
+      "url": "https://sltv-app.thundercat.workers.dev/nenasatamilal",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch095",
+      "name": "Tamil O/L",
+      "category": "Education 📚",
+      "url": "https://sltv-app.thundercat.workers.dev/nenasatamilol",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch096",
+      "name": "Nat Geo HD",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "http://151.80.18.177/National_Geo_HD/index.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch097",
+      "name": "Nature Time",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "https://amg00090-amgnaturetimeemea-rakuten.amagi.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch098",
+      "name": "Ndtv24",
+      "category": "News 🚨",
+      "url": "https://sltv-app.thundercat.workers.dev/ndtv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch099",
+      "name": "Nenasa A/L",
+      "category": "Education 📚",
+      "url": "https://sltv-app.thundercat.workers.dev/nenasasinhalaal",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch100",
+      "name": "Nethra HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/nethratv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch101",
+      "name": "Nethra TV²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/nethratv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch102",
+      "name": "NEW K-POP",
+      "category": "Music 🎧",
+      "url": "https://newidco-newkid-1-eu.xiaomi.wurl.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch103",
+      "name": "Nickelodeon",
+      "category": "Kids 🧚",
+      "url": "http://23.237.104.106/USA_NICKELODEON/index.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch104",
+      "name": "Ninja Warrior",
+      "category": "Sports ⛹️🏏",
+      "url": "https://amg00654-itv-amg00654c27-rakuten-uk-5295.playouts.now.amagi.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch105",
+      "name": "Outdoor America",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "https://linear-600.frequency.stream/dist/xumo/600/hls/master/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch106",
+      "name": "Papare SD",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/paparesd",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch107",
+      "name": "Papare HD",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/paparetv1",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch108",
+      "name": "Paramount+",
+      "category": "Movie 🎬",
+      "url": "https://jmp2.uk/plu-5ff8c708653d080007361b14.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch109",
+      "name": "PBS Kids",
+      "category": "Kids 🧚",
+      "url": "https://2-fss-2.streamhoster.com/pl_140/amlst:200914-1298290/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch110",
+      "name": "Pop",
+      "category": "Kids 🧚",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch111",
+      "name": "Pragna TV HD",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://sltv-app.thundercat.workers.dev/pragna",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch112",
+      "name": "Premier Sports",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/premiersports",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch113",
+      "name": "Rangiri²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/rangiri",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch114",
+      "name": "Rangiri TV HD",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://sltv-app.thundercat.workers.dev/rangiri",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch115",
+      "name": "Redbull TV",
+      "category": "Sports ⛹️🏏",
+      "url": "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master_3360.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch116",
+      "name": "RedeeTV HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/rideetv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch117",
+      "name": "Ridee TV²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/rideetv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch118",
+      "name": "Rupavahini²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/rupavahini",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch119",
+      "name": "Rupawahini",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/rupavahini/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch120",
+      "name": "Safari TV",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "https://j78dp346yq5r-hls-live.5centscdn.com/safari/live.stream/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch121",
+      "name": "Scifi World",
+      "category": "Entertainment 😸",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch122",
+      "name": "Shakthi HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/shakthitv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch123",
+      "name": "Shakthi",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/shakthi/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch124",
+      "name": "Shakthi TV²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/shakthitv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch125",
+      "name": "Shraddha Tv",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://str001.peotv.lk/ndrm/live/shraddha/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch126",
+      "name": "Sirasa HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/sirasatv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch127",
+      "name": "Sirasa TV",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/sirasa/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch128",
+      "name": "Sirasa TV²",
+      "category": "🇱🇰 Channels Ultra",
+      "url": "https://sltv-nice-face.thundercat.workers.dev/sirasatv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch129",
+      "name": "Sirippoli TV",
+      "category": "Tamil / India",
+      "url": "https://segment.yuppcdn.net/240122/siripoli/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch130",
+      "name": "Siyatha HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/siyathatv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch131",
+      "name": "Sony 2 HD",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/sonysports2hd",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch132",
+      "name": "Sony 5 HD",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/sonysports5hd",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch133",
+      "name": "Sony Movies",
+      "category": "Movie 🎬",
+      "url": "https://a-cdn.klowdtv.com/live1/smc_720p/playlist.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch134",
+      "name": "Sony1",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/sonysports1",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch135",
+      "name": "Sony Sports 2",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/sonysports2",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch136",
+      "name": "Space Series",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch137",
+      "name": "Spirit TV",
+      "category": "Music 🎧",
+      "url": "https://cdnlive.myspirit.tv/LS-ATL-43240-2/index.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch138",
+      "name": "Sports First",
+      "category": "Sports ⛹️🏏",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch139",
+      "name": "Star Sports 1",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/starsports1",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch140",
+      "name": "Star Sports 3",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/starsports3",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch141",
+      "name": "Star Sports 2",
+      "category": "Sports ⛹️🏏",
+      "url": "https://sltv-app.thundercat.workers.dev/starsports2",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch142",
+      "name": "Supreem HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/supreme",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch143",
+      "name": "Supreem TV",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/tv-supreme/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch144",
+      "name": "Swarnavahini",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/swarnawahini/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch145",
+      "name": "Swarnawahini HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/swarnavahini",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch146",
+      "name": "The Buddhist Tv",
+      "category": "Religious ☸️✝️🕉️🕌",
+      "url": "https://sltv-app.thundercat.workers.dev/buddhisttv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch147",
+      "name": "The Explorers",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch148",
+      "name": "Tiny Pop",
+      "category": "Kids 🧚",
+      "url": "https://amg01753-narrativeuk-amg01753c1-rakuten-uk-2339.playouts.now.amagi.tv/360p/index.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch149",
+      "name": "TNA TV",
+      "category": "Sports ⛹️🏏",
+      "url": "https://dbrb49pjoymg4.cloudfront.net/10001/99991341/hls/master.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch150",
+      "name": "Trace Urban",
+      "category": "Music 🎧",
+      "url": "https://lightning-traceurban-samsungau.amagi.tv/playlist360p.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch151",
+      "name": "Trace Urban2",
+      "category": "Music 🎧",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch152",
+      "name": "Travel XP",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "https://travelxp-travelxp-1-eu.rakuten.wurl.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch153",
+      "name": "TV1 HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/tv1",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch154",
+      "name": "Vanavil",
+      "category": "Tamil / India",
+      "url": "https://6n3yope4d9ok-hls-live.5centscdn.com/vaanavil/TV.stream/chunks.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch155",
+      "name": "Vasantham",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://str001.peotv.lk/ndrm/live/vasantham/master.m3u8",
+      "access": "provider_restricted"
+    },
+    {
+      "id": "ch156",
+      "name": "Vasanthem HD",
+      "category": "🇱🇰 Ultra",
+      "url": "https://sltv-app.thundercat.workers.dev/vasanthamtv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch157",
+      "name": "Vevo '90s",
+      "category": "Music 🎧",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch158",
+      "name": "Vevo Pop",
+      "category": "Music 🎧",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch159",
+      "name": "Warner Tv",
+      "category": "Movie 🎬",
+      "url": "https://sltv-app.thundercat.workers.dev/warnertv",
+      "access": "sltv_backend"
+    },
+    {
+      "id": "ch160",
+      "name": "Waterbear",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "https://waterbear-waterbear-rakuten.amagi.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch161",
+      "name": "Wild Earth",
+      "category": "Nature/Travel 🪂🧗",
+      "url": "https://wildearth-plex.amagi.tv/masterR1080p.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch162",
+      "name": "Wonder",
+      "category": "Entertainment 😸",
+      "url": "https://lds-wonder-samsungau.amagi.tv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch163",
+      "name": "ZB Cinema",
+      "category": "Tamil / India",
+      "url": "https://server.zillarbarta.com/ZBCINEMA/index.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch164",
+      "name": "CNA News",
+      "category": "News 🚨",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch165",
+      "name": "ABC News (AU)",
+      "category": "News 🚨",
+      "url": "https://c.mjh.nz/abc-news.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch166",
+      "name": "Siyatha TV",
+      "category": "SL Channels 🇱🇰",
+      "url": "https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch167",
+      "name": "Alankar TV",
+      "category": "Tamil / India",
+      "url": "https://livetv.tarangplus.in/alankar-origin/live/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch168",
+      "name": "Popcorn Flix",
+      "category": "Movie 🎬",
+      "url": "https://d1j2u714xk898n.cloudfront.net/scheduler/scheduleMaster/145.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch169",
+      "name": "Kalaignar TV",
+      "category": "Tamil / India",
+      "url": "https://segment.yuppcdn.net/240122/kalaignartv/playlist.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch170",
+      "name": "Outer Vision",
+      "category": "Movie 🎬",
+      "url": "https://streams2.sofast.tv/WiseM3U8_26/sofast/cleanhls/master.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch171",
+      "name": "Sci-Fi World",
+      "category": "Movie 🎬",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch172",
+      "name": "NDTV India",
+      "category": "Tamil / India",
+      "url": "https://ndtvindiaelemarchana.akamaized.net/hls/live/2003679/ndtvindia/master.m3u8",
+      "access": "public_candidate"
+    },
+    {
+      "id": "ch173",
+      "name": "Sony Blacklist",
+      "category": "Movie 🎬",
+      "url": "",
+      "access": "unresolved"
+    },
+    {
+      "id": "ch174",
+      "name": "Bang Bang TV",
+      "category": "Movie 🎬",
+      "url": "",
+      "access": "unresolved"
+    }
+  ]
+}
