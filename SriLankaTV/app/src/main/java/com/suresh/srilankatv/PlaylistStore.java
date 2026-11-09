@@ -11,10 +11,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public final class PlaylistStore {
     private static final String PREFS = "srilankatv";
     private static final String CUSTOM_M3U = "custom_m3u";
+    private static final String ONLINE_M3U = "cached_remote_m3u";
+    public static final String CATALOG_URL = "https://raw.githubusercontent.com/davidamerson/suresh/sltv-dual-tv-apps-20261109/SriLankaTV/app/src/main/assets/verified_channels.m3u";
     private PlaylistStore() {}
 
     public static final class Channel {
@@ -27,14 +31,47 @@ public final class PlaylistStore {
         String custom = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(CUSTOM_M3U, "");
         if (custom != null && !custom.trim().isEmpty()) {
-            List<Channel> parsed = parse(custom);
+            List<Channel> parsed = filterForApp(parse(custom));
+            if (!parsed.isEmpty()) return parsed;
+        }
+        String online = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(ONLINE_M3U, "");
+        if (online != null && !online.trim().isEmpty()) {
+            List<Channel> parsed = filterForApp(parse(online));
             if (!parsed.isEmpty()) return parsed;
         }
         try (InputStream stream = context.getAssets().open("verified_channels.m3u")) {
-            return parse(readAll(stream));
+            return filterForApp(parse(readAll(stream)));
         } catch (IOException e) {
             return Collections.emptyList();
         }
+    }
+
+    private static List<Channel> filterForApp(List<Channel> all) {
+        if (!BuildConfig.FLAVOR.equals("sltvbridge")) return all;
+        List<Channel> selected = new ArrayList<>();
+        for (Channel ch : all) {
+            if (ch.url.startsWith("https://sltv-app.thundercat.workers.dev/")
+                || ch.url.startsWith("https://sltv-nice-face.thundercat.workers.dev/")) {
+                selected.add(ch);
+            }
+        }
+        return selected;
+    }
+
+    public static List<Channel> refresh(Context ctx) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection)new URL(CATALOG_URL).openConnection();
+        conn.setConnectTimeout(12000);
+        conn.setReadTimeout(12000);
+        conn.setRequestProperty("User-Agent", "SriLankaTV/1.0");
+        try {
+            if (conn.getResponseCode() != 200) throw new IOException("HTTP "+conn.getResponseCode());
+            String data = readAll(conn.getInputStream());
+            List<Channel> all = parse(data);
+            if (all.size() < 10) throw new IOException("Catalogue has too few entries");
+            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(ONLINE_M3U,data).apply();
+            return getChannels(ctx);
+        } finally { conn.disconnect(); }
     }
 
     public static boolean usingCustom(Context context) {
