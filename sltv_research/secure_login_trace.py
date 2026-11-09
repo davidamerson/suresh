@@ -307,11 +307,9 @@ def main():
         code,stat,err=shell("adb","shell","dumpsys","media.metrics",timeout=15)
         with open(os.path.join(OUT,"metrics_"+stage+".txt"),"w") as dest:
             dest.write("\n".join([line[:200] for line in stat.splitlines() if any(w in line.lower() for w in ["playback","video","audio","error","underrun","codec"])][:80]))
-        shell("adb","shell","input","keyevent","KEYCODE_BACK")
-        time.sleep(2)
-        if not any(normalize(x["text"])=="sltv" for x in private_ui()):
-            shell("adb","shell","input","keyevent","KEYCODE_BACK")
-            time.sleep(3)
+        # Player is embedded in the SLTV home grid: Back exits the app.
+        # Keep the main page open and tap the next channel card instead.
+        print("PLAYER_RETURN_TO_GRID",label,flush=True)
     targets=[
         ("Hiru",["Hiru"]),
         ("Derana SD",["Derana SD"]),
