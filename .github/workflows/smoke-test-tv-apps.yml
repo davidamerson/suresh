@@ -20,7 +20,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p tvtest
-          gh run download 42604592230 --repo "$GITHUB_REPOSITORY" \
+          gh run download 42606060909 --repo "$GITHUB_REPOSITORY" \
             --name OpenStreamTV-and-SLTV-Companion-debug-APKs --dir tvtest
           ls -lh tvtest/independent/build/outputs/apk/debug/*.apk tvtest/companion/build/outputs/apk/debug/*.apk
       - name: Enable emulator hardware virtualization
@@ -47,6 +47,10 @@ jobs:
           path: |
             tvtest/independent_home.png
             tvtest/companion_home.png
+            tvtest/independent_hiru_player.png
+            tvtest/independent_hiru_player_ui.xml
+            tvtest/companion_missing_sltv.png
+            tvtest/companion_missing_sltv_ui.xml
             tvtest/independent_ui.xml
             tvtest/independent_search.png
             tvtest/independent_search_ui.xml
