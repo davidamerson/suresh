@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SLTV V1.4.8 Android emulator observation. No DRM, TLS or auth bypass."""
+"""SLTV V1.4.8 authenticated Android video playback observation; no DRM bypass."""
 import os, re, sys, json, time, subprocess, urllib.parse, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
