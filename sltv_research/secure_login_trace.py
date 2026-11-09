@@ -238,6 +238,20 @@ def main():
     assert choose_label(["Sign In"],scrolls=1)=="Sign In", "Sign-in submit not found"
     print("LOGIN_SUBMITTED",flush=True)
     time.sleep(16)
+    # Verified account opens a first-run tutorial; dismiss it using its visible Skip control.
+    # This is ordinary UI navigation, not an authentication or DRM bypass.
+    tap_node("English")
+    time.sleep(2)
+    if not (tap_exact("Skip") or tap_exact("මඟහරින්න") or tap_node("මඟහරින්න")):
+        for _ in range(5):
+            if tap_exact("Next") or tap_exact("ඊළඟට →"):
+                time.sleep(1.5)
+            else:break
+        tap_exact("Get Started")
+        tap_exact("Finish")
+    time.sleep(8)
+    print("AFTER_TUTORIAL",flush=True)
+    safe_view()
     n=safe_view()
     if any("verify" in x.get("text","").lower() or "resend email" in x.get("text","").lower() for x in n):
         print("BLOCKER: email verification still requested",flush=True)
