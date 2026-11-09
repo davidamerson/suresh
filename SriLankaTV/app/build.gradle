@@ -11,6 +11,20 @@ android {
         versionCode 1
         versionName '0.1.0'
     }
+    buildFeatures { buildConfig true }
+    flavorDimensions "mode"
+    productFlavors {
+        standalone {
+            dimension "mode"
+            applicationId "com.suresh.sltv.standalone"
+            resValue "string", "app_name", "Sri Lanka TV Independent"
+        }
+        sltvbridge {
+            dimension "mode"
+            applicationId "com.suresh.sltv.bridge"
+            resValue "string", "app_name", "SLTV Channel Bridge"
+        }
+    }
     buildTypes {
         release { minifyEnabled false }
     }
