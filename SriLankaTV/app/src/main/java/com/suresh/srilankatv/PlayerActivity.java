@@ -30,6 +30,8 @@ public final class PlayerActivity extends Activity {
     private TextView status;
     private List<PlaylistStore.Channel> channels;
     private int currentIndex;
+    private boolean currentWorker;
+    private boolean attemptedDash;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +76,18 @@ public final class PlayerActivity extends Activity {
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
             @Override public void onPlayerError(PlaybackException error) {
-                status.setText("Unable to play this source.\n"
+                if (currentWorker && !attemptedDash) {
+                    attemptedDash = true;
+                    status.setText("Retrying as DASH…");
+                    String streamUrl=channels.get(currentIndex).url;
+                    MediaItem fallback = new MediaItem.Builder().setUri(streamUrl)
+                        .setMimeType(MimeTypes.APPLICATION_MPD).build();
+                    player.setMediaItem(fallback);
+                    player.prepare();
+                    player.play();
+                    return;
+                }
+                status.setText("Unable to play this source (network or access restricted).\n"
                     + "Up/Down: next channel   •   Back: channel list");
             }
             @Override public void onPlaybackStateChanged(int state) {
@@ -99,7 +112,10 @@ public final class PlayerActivity extends Activity {
         channelTitle.setText(channel.name + "    (" + (currentIndex + 1)
                 + "/" + channels.size() + ")");
         status.setText("Connecting to channel…");
+        currentWorker = channel.url.contains(".thundercat.workers.dev/");
+        attemptedDash = false;
         MediaItem.Builder builder = new MediaItem.Builder().setUri(channel.url);
+        if (currentWorker) builder.setMimeType(MimeTypes.APPLICATION_M3U8);
         String path = channel.url.toLowerCase(Locale.ROOT).split("\\?")[0];
         if (path.endsWith(".m3u8")) builder.setMimeType(MimeTypes.APPLICATION_M3U8);
         else if (path.endsWith(".mpd")) builder.setMimeType(MimeTypes.APPLICATION_MPD);
