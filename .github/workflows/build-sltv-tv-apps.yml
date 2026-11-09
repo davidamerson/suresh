@@ -2,7 +2,7 @@ name: Build both Android TV applications
 on:
   push:
     branches: [sltv-two-tv-apps-20261109]
-    paths: [".github/workflows/build-sltv-tv-apps.yml"]
+    paths: [".github/workflows/build-sltv-tv-apps.yml", "common/src/main/java/lk/openstream/tv/common/TvMenuActivity.java"]
   workflow_dispatch:
 permissions:
   contents: write
