@@ -1,0 +1,42 @@
+name: Publish SLTV APK downloads
+on:
+  push:
+    branches: [sltv-tv-phone-mouse-20261109]
+    paths: [".github/workflows/publish-sltv-apks.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified 3 APKs from successful build and test
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p release_apks
+          gh run download 42627374805 --repo "$GITHUB_REPOSITORY" --name "SLTV-TV-Remote-Mouse-Phone-3-APKs" --dir release_apks
+          for apk in release_apks/*.apk; do test -s "$apk"; sha256sum "$apk"; done
+          test "$(find release_apks -maxdepth 1 -name '*.apk' | wc -l)" -eq 3
+      - name: Publish three direct-download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="sltv-v0.2-20261109"
+          NOTES="Three Android test apps compiled and installed in Android emulator. TV remote OK and pointer taps open channels. Does not guarantee stream availability; only use authorized streams. Source branch: sltv-tv-phone-mouse-20261109. Verified GitHub Actions build/test: 42627374805."
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" release_apks/*.apk --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" release_apks/*.apk \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "Sri Lanka TV Android TV and Phone - v0.2 test builds" \
+              --notes "$NOTES" \
+              --latest=false
+          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url,assets --jq '{url:.url,assets:[.assets[].name]}'
