@@ -4,7 +4,7 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
     <queries><package android:name="com.sltv.app"/></queries>
     <application android:label="SLTV Companion TV" android:theme="@android:style/Theme.Material.NoActionBar"
-        android:usesCleartextTraffic="false" android:allowBackup="false">
+        android:usesCleartextTraffic="false" android:allowBackup="false" android:icon="@drawable/ic_tv" android:banner="@drawable/ic_tv">
         <activity android:name=".MainActivity" android:screenOrientation="landscape" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
