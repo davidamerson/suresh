@@ -262,53 +262,82 @@ def main():
         print("BLOCKER: invalid sign-in credentials",flush=True)
         save_records("invalid_credentials")
         return
-    # Free/guest access only; never approve a paid plan.
-    for stage in range(3):
-        n=safe_view()
-        labels=[x["text"].strip().lower() for x in n]
-        has_local=any(t in ("hiru tv","sirasa tv","rupavahini","tv derana","itn") for t in labels)
-        if has_local:break
-        selected=choose_label(["Free Plan","Free","Continue for free","Use Free Plan",
-                               "Continue","Skip","Not Now","Live TV","Channels"], scrolls=0)
-        if selected:
-            print("NAVIGATION_CLICK",selected,flush=True)
-            time.sleep(6)
-        else:
-            safe_scroll()
-    print("PRE_CHANNELS_STATE",flush=True)
-    snap("03_channels_or_plan")
-    n=safe_view()
-    # Search list, try entering Live TV, then tapping individual channels.
-    labels_to_test=["Hiru TV","Sirasa TV","TV Derana","Rupavahini","ITN"]
-    played=[]
-    for idx,channel in enumerate(labels_to_test):
-        hit=choose_label([channel],scrolls=2)
-        if not hit:
-            if idx==0:
-                choose_label(["Live TV","Live Channels","Channels","Local"],scrolls=1)
-                time.sleep(5)
-                hit=choose_label([channel],scrolls=2)
-        if not hit:
-            print("CHANNEL_NOT_PRESENT",channel,flush=True)
-            continue
-        print("CHANNEL_OPENED",channel,flush=True)
+    print("VERIFIED_LOGIN_HOME_SCREEN",flush=True)
+    snap("02_home_after_tutorial")
+    safe_view()
+    # Normal free UI navigation. Never select paid subscription offers.
+    def normalize(t):
+        return "".join(ch for ch in t.casefold() if ch.isalnum() or ch.isspace()).strip()
+    def select_channel(names, tries=4):
+        for i in range(tries):
+            nodes=private_ui()
+            for n in nodes:
+                txt=normalize(n.get("text",""))
+                if any(normalize(name) == txt or (len(normalize(name))>=5 and normalize(name) in txt) for name in names):
+                    if press_bounds(n.get("bounds","")):
+                        print("CHANNEL_TAPPED",names[0],flush=True)
+                        return True
+            if i<tries-1:
+                safe_scroll()
+                time.sleep(1.4)
+        return False
+    def reset_to_top():
+        for _ in range(5):
+            shell("adb","shell","input","swipe","500","680","500","1520","340")
+            time.sleep(.4)
+    def after_player(label):
+        safe_view()
+        stage=label.lower().replace(" ","_")
         time.sleep(4)
-        snap("playing_"+channel.replace(" ","_").lower()+"_t4")
+        snap("player_"+stage+"_t4")
         time.sleep(10)
-        snap("playing_"+channel.replace(" ","_").lower()+"_t14")
-        save_records("after_"+channel.replace(" ","_").lower())
-        result=safe_view()
-        played.append(channel)
+        snap("player_"+stage+"_t14")
+        print("PLAYER_FINAL_UI",label,flush=True)
+        safe_view()
+        save_records("player_"+stage)
+        # Save app-level playback metrics and errors without copying potentially secret URL query strings.
+        code,stat,err=shell("adb","shell","dumpsys","media.metrics",timeout=15)
+        with open(os.path.join(OUT,"metrics_"+stage+".txt"),"w") as dest:
+            dest.write("\n".join([line[:200] for line in stat.splitlines() if any(w in line.lower() for w in ["playback","video","audio","error","underrun","codec"])][:80]))
         shell("adb","shell","input","keyevent","KEYCODE_BACK")
         time.sleep(2)
-        if idx==0:print("FIRST_CHANNEL_ATTEMPT_COMPLETE",flush=True)
-    print("CHANNEL_ATTEMPTS",json.dumps(played),flush=True)
-    print("FINAL_STATE",flush=True)
+        if not any(normalize(x["text"])=="sltv" for x in private_ui()):
+            shell("adb","shell","input","keyevent","KEYCODE_BACK")
+            time.sleep(3)
+    targets=[
+        ("Hiru",["Hiru"]),
+        ("Derana SD",["Derana SD"]),
+        ("ITN",["ITN"]),
+        ("Rupawahini",["Rupawahini","Rupavahini"]),
+        ("Sirasa TV",["Sirasa TV"]),
+        ("Swarnavahini",["Swarnavahini"]),
+        ("Siyatha TV",["Siyatha TV"])
+    ]
+    test_results=[]
+    for label, variants in targets:
+        reset_to_top()
+        print("TESTING_CHANNEL",label,flush=True)
+        selected=select_channel(variants,tries=4)
+        if selected:
+            test_results.append({"channel":label,"clicked":True})
+            after_player(label)
+        else:
+            test_results.append({"channel":label,"clicked":False})
+            print("NOT_FOUND",label,flush=True)
+    print("TEST_RESULTS",json.dumps(test_results),flush=True)
+    with open(os.path.join(OUT,"channels_tested.json"),"w") as dest:
+        json.dump(test_results,dest,indent=2)
+    save_records("all_channels_tested")
+    print("FINAL_APP_SCREEN",flush=True)
     safe_view()
-    code, lg, e=shell("adb","logcat","-d","-t","400",timeout=25)
-    filtered=[x[:300] for x in lg.splitlines() if any(t in x for t in ["ExoPlayer","MediaCodec","flutter","Media3","PlayerError"])]
-    with open(os.path.join(OUT,"media_log_excerpt.txt"),"w") as dest: dest.write("\n".join(filtered[-100:]))
-    save_records("complete")
+    code,lg,e=shell("adb","logcat","-d","-t","1500",timeout=25)
+    filtered=[]
+    for line in lg.splitlines():
+        if any(t in line for t in ("ExoPlayerImpl","MediaCodec","Media3","PlayerError","PlaybackException")):
+            # Remove full HTTP(S) URLs and possible access tokens from logs.
+            filtered.append(re.sub(r"https?://\S+","<URL_REDACTED>",line[:280]))
+    with open(os.path.join(OUT,"media_errors_redacted.txt"),"w") as dest:
+        dest.write("\n".join(filtered[-200:]))
 if __name__=="__main__":
     try:main()
     except Exception:
