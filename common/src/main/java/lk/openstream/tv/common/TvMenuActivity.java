@@ -112,7 +112,9 @@ public abstract class TvMenuActivity extends Activity {
                     TextView v=label(getItem(pos),14,pos==categories.indexOf(selected),Color.WHITE);
                     v.setPadding(dp(12),dp(8),dp(7),dp(8));
                     v.setBackground(shape(categories.get(pos).equals(selected)?Color.rgb(29,90,129):PANEL,0));
-                    v.setFocusable(true);v.setOnFocusChangeListener((view,focus)->{
+                    v.setFocusable(true);
+                    v.setOnClickListener(view->{ selected=categories.get(pos); filter(); });
+                    v.setOnFocusChangeListener((view,focus)->{
                         view.setBackground(shape(focus?Color.rgb(40,105,141):
                             categories.get(pos).equals(selected)?Color.rgb(29,90,129):PANEL,
                             focus?ACCENT:0));
@@ -147,6 +149,7 @@ public abstract class TvMenuActivity extends Activity {
             item.setOrientation(LinearLayout.VERTICAL);item.setPadding(dp(12),dp(9),dp(8),dp(7));
             item.setBackground(shape(PANEL,0));
             item.setMinimumHeight(dp(90));item.setFocusable(true);
+            item.setOnClickListener(view->openChannel(ch));
             TextView name=label(ch.name,15,true,Color.WHITE);name.setMaxLines(2);
             item.addView(name,new LinearLayout.LayoutParams(-1,0,1));
             String status=ch.canPlayDirectly()?"▶ STREAM":ch.access.equals("sltv_backend")?"SLTV SERVER":
