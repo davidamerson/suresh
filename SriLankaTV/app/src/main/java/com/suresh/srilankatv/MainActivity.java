@@ -2,6 +2,9 @@ package com.suresh.srilankatv;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
+import android.text.TextWatcher;
+import android.text.Editable;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -34,6 +37,7 @@ public final class MainActivity extends Activity {
                              WindowManager.LayoutParams.FLAG_FULLSCREEN);
         channels = PlaylistStore.getChannels(this);
         render();
+        refreshRemote(false);
     }
 
     private int dp(int value) {
@@ -94,13 +98,41 @@ public final class MainActivity extends Activity {
         scroll.addView(content);
         setContentView(scroll);
 
-        content.addView(label("SRI LANKA TV", 30, Color.WHITE, true));
-        content.addView(label("TV Box • Free public streams • Remote control ready", 15,
+        boolean bridge = BuildConfig.FLAVOR.equals("sltvbridge");
+        content.addView(label(bridge ? "SLTV CHANNEL BRIDGE" : "SRI LANKA TV INDEPENDENT", 30, Color.WHITE, true));
+        content.addView(label(bridge
+            ? "Live SLTV-hosted URLs • Requires server permission • Original SLTV fallback"
+            : "Independent Android TV player • HLS/DASH • Remote control ready", 15,
             Color.rgb(169, 187, 210), false));
         boolean isCustom = PlaylistStore.usingCustom(this);
         content.addView(label(
-            (isCustom ? "Imported list • " : "Playback-tested starter list • ")
+            (isCustom ? "Imported list • " : "Observed sources (not all verified) • ")
             + channels.size() + " channels", 19, Color.rgb(255, 202, 69), true));
+
+
+        if (bridge) {
+            Button openOriginal = action("OPEN ORIGINAL SLTV APP");
+            LinearLayout.LayoutParams linkParams = new LinearLayout.LayoutParams(dp(420),dp(70));
+            content.addView(openOriginal,linkParams);
+            openOriginal.setOnClickListener(v -> {
+                try {
+                    Intent launch = getPackageManager().getLaunchIntentForPackage("com.sltv.app");
+                    if (launch != null) startActivity(launch);
+                    else showMessage("Original SLTV is not installed, or is not visible to Android.",true);
+                } catch(Exception ex) { showMessage("Could not open original SLTV",true); }
+            });
+            content.addView(label("No published SLTV channel deep-links were found. The button opens SLTV, not a selected channel. These hosted endpoints may return 403 in other apps.",14,Color.rgb(255,180,145),false));
+        }
+        Button sync = action("REFRESH CHANNEL CATALOGUE");
+        content.addView(sync,new LinearLayout.LayoutParams(dp(420),dp(64)));
+        sync.setOnClickListener(v -> refreshRemote(true));
+        EditText search = new EditText(this);
+        search.setSingleLine(true);
+        search.setTextSize(17);
+        search.setTextColor(Color.WHITE);
+        search.setHintTextColor(Color.LTGRAY);
+        search.setHint("Search channels / categories");
+        content.addView(search,new LinearLayout.LayoutParams(dp(640),dp(70)));
 
         GridLayout grid = new GridLayout(this);
         grid.setColumnCount(3);
@@ -123,6 +155,17 @@ public final class MainActivity extends Activity {
             if (first == null) first = b;
         }
         content.addView(grid);
+        search.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s,int st,int c,int a){}
+            @Override public void onTextChanged(CharSequence q,int start,int before,int count) {
+                String needle=q.toString().trim().toLowerCase(java.util.Locale.ROOT);
+                for (int j=0;j<channels.size() && j<grid.getChildCount();j++) {
+                    grid.getChildAt(j).setVisibility(channels.get(j).name.toLowerCase(java.util.Locale.ROOT)
+                        .contains(needle)?View.VISIBLE:View.GONE);
+                }
+            }
+            @Override public void afterTextChanged(Editable e){}
+        });
 
         content.addView(label("ADD A PUBLIC M3U PLAYLIST", 19, Color.WHITE, true));
         content.addView(label("Optional: enter a public http/https M3U address to replace the starter channels. "
@@ -198,4 +241,18 @@ public final class MainActivity extends Activity {
 
         if (first != null) first.requestFocus();
     }
+    private void refreshRemote(boolean userRequested) {
+        new Thread(() -> {
+            try {
+                List<PlaylistStore.Channel> updated=PlaylistStore.refresh(this);
+                runOnUiThread(() -> {
+                    channels=updated;
+                    if (userRequested) render();
+                });
+            } catch(Exception ex) {
+                if (userRequested) runOnUiThread(() -> showMessage("Remote catalogue unavailable. Saved channel list retained.",true));
+            }
+        }).start();
+    }
+
 }
