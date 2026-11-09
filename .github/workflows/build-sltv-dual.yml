@@ -7,7 +7,8 @@ on:
       - "SriLankaTV/**"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+  actions: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,6 +24,44 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
+      - name: Restore complete URLs from archived 174-channel cache
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -sS -fL --retry 2 --max-time 90 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/davidamerson/suresh/actions/artifacts/13659739352/zip" \
+            -o /tmp/sltv_observed_cache.zip
+          python3 - <<'PY'
+          import json,zipfile
+          path="SriLankaTV/app/src/main/assets/verified_channels.m3u"
+          with zipfile.ZipFile("/tmp/sltv_observed_cache.zip") as z:
+              src=json.loads(z.read("cached_channel_paths_redacted.json"))
+          output=["#EXTM3U"]
+          for ch in src:
+              v=ch.get("streamUrl") or {}
+              host=v.get("host","")
+              sub=v.get("path","")
+              scheme=v.get("scheme","https")
+              if not host or not sub or "<id>" in sub: continue
+              name=str(ch.get("name","Untitled")).replace(","," ").replace("\r"," ").replace("\n"," ")
+              cat=str(ch.get("category","Other")).replace('"',"'").replace("\r"," ").replace("\n"," ")
+              port=":1936" if host=="tv.hiruhost.com" else ""
+              addr=f"{scheme}://{host}{port}{sub}"
+              output.extend([f'#EXTINF:-1 group-title="{cat}",{name}',addr])
+          open(path,"w",encoding="utf8").write("\n".join(output)+"\n")
+          print("CACHED_CHANNELS",len(src),"EMBEDDED_COMPLETE_URLS",(len(output)-1)//2)
+          assert (len(output)-1)//2 >= 130
+          PY
+          git config user.name "sltv-catalogue-bot"
+          git config user.email "sltv-catalogue-bot@users.noreply.github.com"
+          git add SriLankaTV/app/src/main/assets/verified_channels.m3u
+          if ! git diff --cached --quiet; then
+            git commit -m "Restore full 138 complete observed channel source URLs"
+            git push origin HEAD:sltv-dual-tv-apps-20261109
+          fi
       - name: Build independent and bridge debug APKs
         working-directory: SriLankaTV
         run: gradle --no-daemon --stacktrace :app:assembleStandaloneDebug :app:assembleSltvbridgeDebug
