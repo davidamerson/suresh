@@ -54,7 +54,7 @@ jobs:
             adb exec-out screencap -p > /tmp/sltv_smoke/bridge.png
             adb shell uiautomator dump /sdcard/windowsmoke.xml
             adb shell cat /sdcard/windowsmoke.xml > /tmp/sltv_smoke/bridge.xml
-            grep -qi "SLTV CHANNEL BRIDGE" /tmp/sltv_smoke/bridge.xml
+            grep -qi "OPEN ORIGINAL SLTV APP" /tmp/sltv_smoke/bridge.xml
             echo SMOKE_OK_bridge
             adb logcat -d | grep "FATAL EXCEPTION" | tail -10 > /tmp/sltv_smoke/fatal-exceptions.txt || true
       - uses: actions/upload-artifact@v4
