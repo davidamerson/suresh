@@ -24,10 +24,18 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
-      - name: Install Android platform
+      - name: Verify or install Android SDK platform 35
         run: |
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.0" >/dev/null
+          set -euo pipefail
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          if [ -f "$ANDROID_HOME/platforms/android-35/android.jar" ]; then
+            echo "Android SDK 35 is preinstalled."
+          else
+            SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)
+            if [ -z "$SDKMANAGER" ]; then echo "SDK Manager not found"; exit 1; fi
+            yes | "$SDKMANAGER" --licenses >/dev/null || true
+            "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0"
+          fi
       - name: Recover complete researched 174-channel catalogue
         env:
           GH_TOKEN: ${{ github.token }}
