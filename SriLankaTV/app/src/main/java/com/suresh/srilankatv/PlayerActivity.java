@@ -9,6 +9,8 @@ import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.OptIn;
@@ -36,7 +38,9 @@ public final class PlayerActivity extends Activity {
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        setRequestedOrientation(BuildConfig.FLAVOR.equals("phone")
+            ? ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN |
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().getDecorView().setSystemUiVisibility(
@@ -70,6 +74,33 @@ public final class PlayerActivity extends Activity {
         FrameLayout.LayoutParams statusParams = new FrameLayout.LayoutParams(
                 -1, -2, Gravity.CENTER);
         root.addView(status, statusParams);
+        // Visible on-screen controls work with a mouse on TV and with touch on phones.
+        // TV remotes can also use D-pad Up/Down, OK and Back.
+        LinearLayout buttons = new LinearLayout(this);
+        buttons.setOrientation(LinearLayout.HORIZONTAL);
+        buttons.setGravity(Gravity.CENTER);
+        buttons.setPadding(dp(5), dp(3), dp(5), dp(3));
+        buttons.setBackgroundColor(Color.argb(205, 13, 22, 36));
+        Button previous = controlButton("◀ Prev");
+        Button pause = controlButton("Play/Pause");
+        Button next = controlButton("Next ▶");
+        Button back = controlButton("Back");
+        buttons.addView(previous, new LinearLayout.LayoutParams(0, -1, 1f));
+        buttons.addView(pause, new LinearLayout.LayoutParams(0, -1, 1f));
+        buttons.addView(next, new LinearLayout.LayoutParams(0, -1, 1f));
+        buttons.addView(back, new LinearLayout.LayoutParams(0, -1, 1f));
+        FrameLayout.LayoutParams controlsLayout = new FrameLayout.LayoutParams(
+            -1, dp(68), Gravity.BOTTOM);
+        root.addView(buttons, controlsLayout);
+        previous.setOnClickListener(v -> play(currentIndex - 1));
+        next.setOnClickListener(v -> play(currentIndex + 1));
+        pause.setOnClickListener(v -> {
+            if (player != null) {
+                if (player.isPlaying()) player.pause();
+                else player.play();
+            }
+        });
+        back.setOnClickListener(v -> finish());
         setContentView(root);
 
         player = new ExoPlayer.Builder(this).build();
@@ -99,6 +130,16 @@ public final class PlayerActivity extends Activity {
             }
         });
         play(currentIndex);
+    }
+
+    private Button controlButton(String text) {
+        Button b = new Button(this);
+        b.setText(text);
+        b.setTextSize(BuildConfig.FLAVOR.equals("phone") ? 12 : 15);
+        b.setAllCaps(false);
+        b.setFocusable(true);
+        b.setFocusableInTouchMode(true);
+        return b;
     }
 
     private int dp(int v) {
