@@ -238,20 +238,28 @@ def main():
     assert choose_label(["Sign In"],scrolls=1)=="Sign In", "Sign-in submit not found"
     print("LOGIN_SUBMITTED",flush=True)
     time.sleep(16)
-    # Verified account opens a first-run tutorial; dismiss it using its visible Skip control.
-    # This is ordinary UI navigation, not an authentication or DRM bypass.
-    tap_node("English")
-    time.sleep(2)
-    if not (tap_exact("Skip") or tap_exact("මඟහරින්න") or tap_node("මඟහරින්න")):
-        for _ in range(5):
-            if tap_exact("Next") or tap_exact("ඊළඟට →"):
-                time.sleep(1.5)
-            else:break
-        tap_exact("Get Started")
-        tap_exact("Finish")
-    time.sleep(8)
-    snap("02_after_tutorial")
+    # SLTV onboarding overlays sometimes remain visible after a "Skip" click.
+    # Verify dismissal by observing the channel cards; use only visible close/back UI.
+    for attempt in range(7):
+        nodes=private_ui()
+        labels=[z["text"] for z in nodes]
+        if any("1. SL Channels" in v or "Derana SD" in v or "Charana TV" in v for v in labels):
+            print("ONBOARDING_DISMISSED",attempt,flush=True)
+            break
+        print("ONBOARDING_CHECK",attempt,json.dumps(labels[:9],ensure_ascii=False),flush=True)
+        if any("මඟහරින්න" in v for v in labels):
+            if not tap_node("මඟහරින්න"):
+                shell("adb","shell","input","tap","933","245")
+        elif any("Skip" in v for v in labels):
+            if not tap_exact("Skip"):shell("adb","shell","input","tap","933","245")
+        else:
+            shell("adb","shell","input","keyevent","KEYCODE_BACK")
+        time.sleep(3.5)
+        if attempt==2:
+            snap("02_tutorial_after_three_close_attempts")
+    time.sleep(3)
     print("AFTER_TUTORIAL",flush=True)
+    snap("02_after_tutorial")
     safe_view()
     n=safe_view()
     if any("verify" in x.get("text","").lower() or "resend email" in x.get("text","").lower() for x in n):
