@@ -38,39 +38,7 @@ jobs:
           ram-size: 2048M
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: |
-            set -eu
-            adb install tvtest/independent/build/outputs/apk/debug/independent-debug.apk
-            adb install tvtest/companion/build/outputs/apk/debug/companion-debug.apk
-            adb shell am start -n lk.openstream.tv.independent/.MainActivity
-            sleep 9
-            adb shell uiautomator dump /sdcard/window.xml
-            adb shell cat /sdcard/window.xml > tvtest/independent_ui.xml
-            adb exec-out screencap -p > tvtest/independent_home.png
-            python3 - <<'PY'
-            from pathlib import Path
-            s=Path('tvtest/independent_ui.xml').read_text()
-            print("INDEPENDENT_OPENSTREAM_TITLE", "OPENSTREAM" in s)
-            print("INDEPENDENT_174_CHANNEL_COUNT", "174 channels" in s)
-            print("INDEPENDENT_SHOWS_CATEGORIES", "All channels" in s)
-            assert "OPENSTREAM" in s
-            assert "174 channels" in s
-            PY
-            adb shell am force-stop lk.openstream.tv.independent
-            adb shell am start -n lk.openstream.tv.companion/.MainActivity
-            sleep 8
-            adb shell uiautomator dump /sdcard/window.xml
-            adb shell cat /sdcard/window.xml > tvtest/companion_ui.xml
-            adb exec-out screencap -p > tvtest/companion_home.png
-            python3 - <<'PY'
-            from pathlib import Path
-            s=Path('tvtest/companion_ui.xml').read_text()
-            print("COMPANION_TITLE", "SLTV COMPANION" in s)
-            print("COMPANION_174_CHANNEL_COUNT", "174 channels" in s)
-            assert "SLTV COMPANION" in s
-            assert "174 channels" in s
-            PY
-            adb shell dumpsys package lk.openstream.tv.companion | grep "NavigationService" > tvtest/accessibility_service_status.txt || true
+          script: bash scripts/smoke_tv_apps.sh
       - name: Upload smoke-test UI snapshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -80,6 +48,8 @@ jobs:
             tvtest/independent_home.png
             tvtest/companion_home.png
             tvtest/independent_ui.xml
+            tvtest/independent_search.png
+            tvtest/independent_search_ui.xml
             tvtest/companion_ui.xml
             tvtest/accessibility_service_status.txt
           retention-days: 14
