@@ -40,14 +40,26 @@ def asset_name(c):
     return hashlib.sha256((c["name"]+"\0"+c["url"]).encode("utf-8")).hexdigest()[:24]+".png"
 
 def placeholder(c):
-    out=Image.new("RGBA", SIZE,(27,39,62,255))
+    # A channel-specific typographic tile, never a falsely attributed logo.
+    accent={"Local":(18,199,180),"Sports":(58,164,241),
+            "Kids":(231,179,79),"Movies":(176,128,229),
+            "Entertainment":(244,150,111),"Nature":(89,191,134)}
+    color=accent.get(c.get("group"),(65,183,214))
+    out=Image.new("RGBA",SIZE,(19,35,52,255))
     d=ImageDraw.Draw(out)
-    d.rounded_rectangle((6,6,186,102),radius=16,outline=(96,120,165,255),width=3)
-    d.rounded_rectangle((65,24,127,68),radius=8,outline=(160,193,237,255),width=3)
-    d.line((91,68,91,76),fill=(160,193,237),width=3)
-    d.line((79,77,105,77),fill=(160,193,237),width=3)
-    # No pretend broadcaster logo; plain TV pictogram.
-    d.text((96,89),"TV",font=font(11),anchor="mm",fill=(199,211,231))
+    d.rounded_rectangle((5,5,187,103),radius=15,outline=color+(255,),width=3)
+    d.rounded_rectangle((9,9,183,16),radius=3,fill=color+(255,))
+    name=c["name"]
+    size=23 if len(name)<11 else (18 if len(name)<16 else 15)
+    words=name.split()
+    if len(words)>1 and len(name)>15:
+        midpoint=(len(words)+1)//2
+        wrapped=[" ".join(words[:midpoint])," ".join(words[midpoint:])]
+    else: wrapped=[name]
+    y=57 if len(wrapped)==1 else 43
+    for line in wrapped:
+        d.text((96,y),line,font=font(size),anchor="mm",fill=(242,248,255,255))
+        y+=25
     return out
 
 def get_logo(url):
@@ -95,7 +107,7 @@ def make_icon(c):
 
 def main():
     channels=parse()
-    assert len(channels)>=130, "missing channel catalogue"
+    assert len(channels)==22, "Expected exactly the 22 chosen channels"
     result=[]
     with ThreadPoolExecutor(max_workers=12) as pool:
         futures=[pool.submit(make_icon,c) for c in channels]
@@ -109,10 +121,10 @@ def main():
     counts={}
     for x in result:counts[x["status"]]=counts.get(x["status"],0)+1
     print("PACKAGED_LOGO_ICONS",len(result),"STATUS",json.dumps(counts,sort_keys=True),flush=True)
-    for name in ("Hiru","Hiru HD","Sirasa TV","Sirasa HD","Derana SD","Rupawahini HD","Shakthi"):
+    for name in ("Rupawahini","ITN","Sirasa TV","Derana","Hiru","Shakthi","10 Cricket","Papare SD","Sony1","BBC Earth","Mr Bean"):
         match=next((z for z in result if z["name"]==name),None)
         if match:print("KEY_CHANNEL_ICON",name,match["status"],flush=True)
     assert len(list(ASSETS.glob("*.png")))>=len(result)
-    assert counts.get("logo",0)>=20, "Unexpectedly few logos downloadable; investigate before release"
+    assert counts.get("logo",0)>=10, "Too few real source logos; investigate before release"
 
 if __name__=="__main__":main()
