@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+      - name: Install ffmpeg for real stream decoding
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Inspect provider DRM and decode five video frames per public stream
         run: python3 -u scripts/tv22_probe.py
       - uses: actions/upload-artifact@v4
