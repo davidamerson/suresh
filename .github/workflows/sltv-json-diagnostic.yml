@@ -2,7 +2,7 @@ name: Classify HD server JSON without secrets
 on:
   push:
     branches: [sltv-hd-logo-20261110]
-    paths: [".github/workflows/sltv-json-diagnostic.yml"]
+    paths: [".github/workflows/sltv-json-diagnostic.yml","scripts/sltv_json_diag.py"]
   workflow_dispatch:
 permissions:
   contents: read
