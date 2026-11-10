@@ -1,0 +1,22 @@
+name: Audit 22 TV channels actual stream playback
+on:
+  push:
+    branches: [tv-minimal-22-20261110]
+    paths: [".github/workflows/tv22-stream-audit.yml","scripts/tv22_probe.py","tv22/channel_sources.json"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect provider DRM and decode five video frames per public stream
+        run: python3 -u scripts/tv22_probe.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TV22-Stream-Verification
+          path: tv22_audit/
+          retention-days: 30
