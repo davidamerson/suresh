@@ -3,7 +3,6 @@ on:
   push:
     branches: [sltv-embedded-logos-v04-20261110]
     paths:
-      - ".github/workflows/build-sltv-v04.yml"
       - "SriLankaTV/**"
       - "scripts/sltv_bundle_embedded_icons.py"
       - "scripts/sltv_input_smoke.sh"
@@ -104,8 +103,8 @@ jobs:
           tag='sltv-v0.4-20261110'
           notes='SLTV v0.4: logos and neutral placeholders are packaged inside APKs for offline display, not loaded from external websites. 138 entries, normal Bridge channels, HD DRM diagnostic and normal-stream fallback, TV remote/mouse/touch compatible. DRM is NOT bypassed; authorized Widevine streams require the original provider app or an approved license.'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$tag" output_apks/SLTV_Independent_v03.apk output_apks/SLTV_Bridge_Normal_HD_v03.apk output_apks/SLTV_Android_Phone_v03.apk --clobber --repo "$GITHUB_REPOSITORY"
+            gh release upload "$tag" output_apks/SLTV_Independent_v04_OfflineLogos.apk output_apks/SLTV_Bridge_v04_OfflineLogos.apk output_apks/SLTV_Phone_v04_OfflineLogos.apk --clobber --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "$tag" output_apks/SLTV_Independent_v03.apk output_apks/SLTV_Bridge_Normal_HD_v03.apk output_apks/SLTV_Android_Phone_v03.apk --repo "$GITHUB_REPOSITORY" --target "$(git rev-parse HEAD)" --title 'SLTV v0.4: Offline channel logos, normal TV streams and HD diagnostics' --notes "$notes" --latest=false
+            gh release create "$tag" output_apks/SLTV_Independent_v04_OfflineLogos.apk output_apks/SLTV_Bridge_v04_OfflineLogos.apk output_apks/SLTV_Phone_v04_OfflineLogos.apk --repo "$GITHUB_REPOSITORY" --target "$(git rev-parse HEAD)" --title 'SLTV v0.4: Offline channel logos, normal TV streams and HD diagnostics' --notes "$notes" --latest=false
           fi
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json url,assets --jq '{url:.url,assets:[.assets[].name]}'
