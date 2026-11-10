@@ -1,0 +1,830 @@
+[
+  {
+    "name": "&flix",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "10 Cricket HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "30A Music",
+    "channel_id": "30AMusic.us",
+    "logo": "https://i.imgur.com/gNWg9tl.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "ACC Digital Network",
+    "channel_id": "ACCDigitalNetwork.us",
+    "logo": "https://i.imgur.com/V6Kaqha.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Ace TV",
+    "channel_id": "AceTV.us",
+    "logo": "https://www.acetelevisionnetwork.com/wp-content/uploads/2021/09/ACE_Logo_Medium_White.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Ada Derana",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "AFV",
+    "channel_id": "AFV.us",
+    "logo": "https://i.imgur.com/TOB9vmW.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Al jazeera",
+    "channel_id": "AlJazeera.qa",
+    "logo": "https://dtil.tmsimg.com/assets/s159135_ld_h15_aa.png?lock=720x540",
+    "match_status": "matched"
+  },
+  {
+    "name": "Amrita",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Animal Planet",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "ART HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "ART TV²",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "ARTFLIX Movie",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Avatar",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "B4U Music",
+    "channel_id": "B4UMusic.in",
+    "logo": "https://dtil.tmsimg.com/assets/s158141_ld_h15_aa.png?lock=720x540",
+    "match_status": "matched"
+  },
+  {
+    "name": "Baby Shark TV",
+    "channel_id": "BabySharkTV.us",
+    "logo": "https://i.imgur.com/SbBKr8L.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "BabyFirst",
+    "channel_id": "BabyFirst.us",
+    "logo": "https://static.wikia.nocookie.net/babyfirsttv/images/5/56/BabyFirst_Logo_2019.png/revision/latest?cb=20260612182539",
+    "match_status": "matched"
+  },
+  {
+    "name": "BBC Drama",
+    "channel_id": "BBCDrama.uk",
+    "logo": "https://i.imgur.com/HctHhLL.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "BBC world",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "beIN SPORTS XTRA",
+    "channel_id": "beINSPORTSXTRA.us",
+    "logo": "https://i.ibb.co/HT49GPmB/XTRA-2.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Bloomberg",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Cartoon Network",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "CGTN",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Channel C",
+    "channel_id": "ChannelC.lk",
+    "logo": "https://i.imgur.com/CnFdLaf.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Channel One²",
+    "channel_id": "ChannelOne.lk",
+    "logo": "https://i.imgur.com/CqRSTdL.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Channel01 HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Charana TV‎",
+    "channel_id": "CharanaTV.lk",
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Charge!",
+    "channel_id": "Charge.us",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Charge%21_network_logo.png/960px-Charge%21_network_logo.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "CitiHitz",
+    "channel_id": "CitiHitz.lk",
+    "logo": "https://i.imgur.com/EuYpCRF.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "CNBC",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "CNN",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Colors HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Cops",
+    "channel_id": "Cops.us",
+    "logo": "https://i.imgur.com/J3XO6V2.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Damsathara HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Dangal TV",
+    "channel_id": "DangalTV.in",
+    "logo": "https://dtil.tmsimg.com/assets/s142771_ld_h9_aa.png?lock=720x540",
+    "match_status": "matched"
+  },
+  {
+    "name": "Dark Matter TV",
+    "channel_id": "DarkMatterTV.us",
+    "logo": "https://i.imgur.com/9K8T3ND.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "DD Sports",
+    "channel_id": "DDSports.in",
+    "logo": "https://ltsk-cdn.s3.eu-west-1.amazonaws.com/jumpstart/Temp_Live/cdn/HLS/Channel/transparentImages/DD%20Sports.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Dearana HD",
+    "channel_id": "TVDerana.lk",
+    "logo": "https://i.imgur.com/vToOI2s.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Derana SD",
+    "channel_id": "TVDerana.lk",
+    "logo": "https://i.imgur.com/vToOI2s.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Didula HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Dove TV",
+    "channel_id": "DoveTV.ng",
+    "logo": "https://i.imgur.com/wOlMfCR.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Euronews",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Eurosport",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Rupawahini HD",
+    "channel_id": "Rupavahini.lk",
+    "logo": "https://i.imgur.com/vgHTfR0.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Event TV",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "France24",
+    "channel_id": "France24.fr",
+    "logo": "https://ltsk-cdn.s3.eu-west-1.amazonaws.com/jumpstart/Temp_Live/cdn/HLS/Channel/transparentImages/France%2024.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Ghost Hunters",
+    "channel_id": "GhostHunters.us",
+    "logo": "https://i.imgur.com/KdBr6rG.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Godtv HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Haritha HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Haritha‎",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "HBO HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Hi Tv",
+    "channel_id": "HiTV.lk",
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Hiru HD",
+    "channel_id": "HiruTV.lk",
+    "logo": "https://i.imgur.com/M66UqPB.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Hiru",
+    "channel_id": "HiruTV.lk",
+    "logo": "https://i.imgur.com/M66UqPB.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Hunt Fish TV",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "IBC பக்தி",
+    "channel_id": "IBCTV.jp",
+    "logo": "https://i.imgur.com/uraGabS.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "ITN²",
+    "channel_id": "ITN.lk",
+    "logo": "https://i.imgur.com/NLu3guG.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "ITN‎",
+    "channel_id": "ITN.lk",
+    "logo": "https://i.imgur.com/NLu3guG.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "ITN HD",
+    "channel_id": "ITN.lk",
+    "logo": "https://i.imgur.com/NLu3guG.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Jaya TV²",
+    "channel_id": "JayaTV.lk",
+    "logo": "https://i.imgur.com/J8NA1i9.jpeg",
+    "match_status": "matched"
+  },
+  {
+    "name": "Jayatv HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Jonack",
+    "channel_id": "Jonack.in",
+    "logo": "https://dtil.tmsimg.com/assets/s143238_ld_h15_aa.png?lock=720x540",
+    "match_status": "matched"
+  },
+  {
+    "name": "Kartoon Channel!",
+    "channel_id": "KartoonChannel.us",
+    "logo": "https://i.imgur.com/1luzP3T.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Latin Zone",
+    "channel_id": "LatinZone.us",
+    "logo": "https://i.imgur.com/duEDsne.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Lego Channel",
+    "channel_id": "LegoChannel.us",
+    "logo": "https://i.imgur.com/xePwW13.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Live Quran TV",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Love The Planet",
+    "channel_id": "LoveThePlanet.es",
+    "logo": "https://i.imgur.com/RBcD49X.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "MovieSphere",
+    "channel_id": "MovieSphere.us",
+    "logo": "https://i.imgur.com/0sfk3yp.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Nanasa O/L",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Tamil A/L",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Tamil O/L",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Nat Geo HD",
+    "channel_id": "NationalGeographic.uk",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Natgeologo.svg/960px-Natgeologo.svg.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Nature Time",
+    "channel_id": "NatureTime.ca",
+    "logo": "https://naturetimetv.com/wp-content/uploads/2023/05/NatureTime_white_Primary.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Ndtv24",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Nenasa A/L",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Nethra HD",
+    "channel_id": "NethraTV.lk",
+    "logo": "https://i.imgur.com/vSrIN1U.jpg",
+    "match_status": "matched"
+  },
+  {
+    "name": "Nethra TV²",
+    "channel_id": "NethraTV.lk",
+    "logo": "https://i.imgur.com/vSrIN1U.jpg",
+    "match_status": "matched"
+  },
+  {
+    "name": "NEW K-POP",
+    "channel_id": "NEWKPOP.us",
+    "logo": "https://i.imgur.com/B7ILXMc.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Nickelodeon",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Ninja Warrior",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Outdoor America",
+    "channel_id": "OutdoorAmerica.us",
+    "logo": "https://i.imgur.com/UKfimFD.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Papare SD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Papare HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Paramount+",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "PBS Kids",
+    "channel_id": "PBSKids.us",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/PBS_Kids_logo_%282022%29.svg/960px-PBS_Kids_logo_%282022%29.svg.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Pragna TV HD",
+    "channel_id": "PragnaTV.lk",
+    "logo": "https://i.imgur.com/j2hoLX0.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Premier Sports",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Rangiri²",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Rangiri TV HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Redbull TV",
+    "channel_id": "RedBullTV.at",
+    "logo": "https://images.pluto.tv/channels/5e7cb84a172a0f0007da69e4/colorLogoPNG.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "RedeeTV HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Ridee TV²",
+    "channel_id": "RideeTV.lk",
+    "logo": "https://i.imgur.com/HZLITjX.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Rupavahini²",
+    "channel_id": "Rupavahini.lk",
+    "logo": "https://i.imgur.com/vgHTfR0.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Rupawahini‎",
+    "channel_id": "Rupavahini.lk",
+    "logo": "https://i.imgur.com/vgHTfR0.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Safari TV",
+    "channel_id": "SafariTV.in",
+    "logo": "https://ltsk-cdn.s3.eu-west-1.amazonaws.com/jumpstart/Temp_Live/cdn/HLS/Channel/transparentImages/Safari%20TV.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Shakthi HD",
+    "channel_id": "ShakthiTV.lk",
+    "logo": "https://i.imgur.com/RX6IwK8.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Shakthi",
+    "channel_id": "ShakthiTV.lk",
+    "logo": "https://i.imgur.com/RX6IwK8.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Shakthi TV²",
+    "channel_id": "ShakthiTV.lk",
+    "logo": "https://i.imgur.com/RX6IwK8.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Shraddha Tv",
+    "channel_id": "ShraddhaTV.lk",
+    "logo": "https://i.imgur.com/sZ3fEMi.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Sirasa HD",
+    "channel_id": "SirasaTV.lk",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Sirasa_TV_Logo.png/500px-Sirasa_TV_Logo.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Sirasa TV",
+    "channel_id": "SirasaTV.lk",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Sirasa_TV_Logo.png/500px-Sirasa_TV_Logo.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Sirasa TV²",
+    "channel_id": "SirasaTV.lk",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Sirasa_TV_Logo.png/500px-Sirasa_TV_Logo.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Sirippoli TV",
+    "channel_id": "SirippoliTV.in",
+    "logo": "https://dvdh7g0f0hwck.cloudfront.net/assets/images/channel/Sirippoli_Transparent_5030045f-bd94-4795-a443-7c7184079219.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Siyatha HD",
+    "channel_id": "SiyathaTV.lk",
+    "logo": "https://i.imgur.com/9Zc8G7i.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Sony 2 HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Sony 5 HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Sony Movies",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Sony1",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Sony Sports 2",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Spirit TV",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Star Sports 1",
+    "channel_id": "StarSports1.in",
+    "logo": "https://dtil.tmsimg.com/assets/s143835_ld_h15_aa.png?lock=720x540",
+    "match_status": "matched"
+  },
+  {
+    "name": "Star Sports 3",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Star Sports 2",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Supreem HD",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Supreem TV",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Swarnavahini",
+    "channel_id": "Swarnavahini.lk",
+    "logo": "https://i.imgur.com/0hnpeq9.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Swarnawahini HD",
+    "channel_id": "Swarnavahini.lk",
+    "logo": "https://i.imgur.com/0hnpeq9.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "The Buddhist Tv",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Tiny Pop",
+    "channel_id": "TinyPop.uk",
+    "logo": "https://i.imgur.com/zCTf71x.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "TNA TV",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Trace Urban",
+    "channel_id": "TraceUrban.fr",
+    "logo": "https://i.imgur.com/DLIbUMx.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Travel XP",
+    "channel_id": "Travelxp.in",
+    "logo": "https://i.imgur.com/8KQirah.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "TV1 HD",
+    "channel_id": "TV1.lk",
+    "logo": "https://i.imgur.com/QShk1BV.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Vanavil",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Vasantham",
+    "channel_id": "VasanthamTV.lk",
+    "logo": "https://upload.wikimedia.org/wikipedia/en/1/18/Vasanthamtv_channel.jpg",
+    "match_status": "matched"
+  },
+  {
+    "name": "Vasanthem HD",
+    "channel_id": "VasanthamTV.lk",
+    "logo": "https://upload.wikimedia.org/wikipedia/en/1/18/Vasanthamtv_channel.jpg",
+    "match_status": "matched"
+  },
+  {
+    "name": "Warner Tv",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Waterbear",
+    "channel_id": "WaterBear.ch",
+    "logo": "https://framerusercontent.com/images/41VQQ7F0fYlp1MX1N4Ixog5QnPI.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Wild Earth",
+    "channel_id": "WildEarth.za",
+    "logo": "https://i.imgur.com/Vhv5gjN.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Wonder",
+    "channel_id": "Wonder.uk",
+    "logo": "https://i.imgur.com/LquGNbh.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "ZB Cinema",
+    "channel_id": "ZBCinema.in",
+    "logo": "https://i.imgur.com/kUg6WSk.jpeg",
+    "match_status": "matched"
+  },
+  {
+    "name": "ABC News (AU)",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "Siyatha TV",
+    "channel_id": "SiyathaTV.lk",
+    "logo": "https://i.imgur.com/9Zc8G7i.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Alankar TV",
+    "channel_id": "AlankarTV.in",
+    "logo": "https://dtil.tmsimg.com/assets/s142630_ld_h15_aa.png?lock=720x540",
+    "match_status": "matched"
+  },
+  {
+    "name": "Popcorn Flix",
+    "channel_id": "Popcornflix.us",
+    "logo": "https://i.imgur.com/TT9HEfB.png",
+    "match_status": "matched"
+  },
+  {
+    "name": "Kalaignar TV",
+    "channel_id": "KalaignarTV.in",
+    "logo": "https://dtil.tmsimg.com/assets/s143249_ld_h15_aa.png?lock=720x540",
+    "match_status": "matched"
+  },
+  {
+    "name": "Outer Vision",
+    "channel_id": null,
+    "logo": "",
+    "match_status": "unmatched"
+  },
+  {
+    "name": "NDTV India",
+    "channel_id": "NDTVIndia.in",
+    "logo": "https://dtil.tmsimg.com/assets/s157588_ld_h15_aa.png?lock=720x540",
+    "match_status": "matched"
+  }
+]

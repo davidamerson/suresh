@@ -3,17 +3,17 @@
 https://sltv-app.thundercat.workers.dev/andflix
 #EXTINF:-1 group-title="Sports ⛹️🏏",10 Cricket HD
 https://sltv-app.thundercat.workers.dev/tencricket
-#EXTINF:-1 group-title="Music 🎧",30A Music
+#EXTINF:-1 tvg-logo="https://i.imgur.com/gNWg9tl.png" group-title="Music 🎧",30A Music
 https://30a-tv.com/music.m3u8
-#EXTINF:-1 group-title="Sports ⛹️🏏",ACC Digital Network
+#EXTINF:-1 tvg-logo="https://i.imgur.com/V6Kaqha.png" group-title="Sports ⛹️🏏",ACC Digital Network
 https://raycom-accdn-firetv.amagi.tv/playlist.m3u8
-#EXTINF:-1 group-title="Sports ⛹️🏏",Ace TV
+#EXTINF:-1 tvg-logo="https://www.acetelevisionnetwork.com/wp-content/uploads/2021/09/ACE_Logo_Medium_White.png" group-title="Sports ⛹️🏏",Ace TV
 https://streams2.sofast.tv/WiseM3U8_30/sofast/cleanhls/master.m3u8
 #EXTINF:-1 group-title="News 🚨",Ada Derana
 https://str001.peotv.lk/ndrm/live/ada-derana-24/master.m3u8
-#EXTINF:-1 group-title="Entertainment 😸",AFV
+#EXTINF:-1 tvg-logo="https://i.imgur.com/TOB9vmW.png" group-title="Entertainment 😸",AFV
 https://linear-12.frequency.stream/dist/plex/12/hls/master/playlist.m3u8
-#EXTINF:-1 group-title="News 🚨",Al jazeera
+#EXTINF:-1 tvg-logo="https://dtil.tmsimg.com/assets/s159135_ld_h15_aa.png?lock=720x540" group-title="News 🚨",Al jazeera
 https://sltv-app.thundercat.workers.dev/aljazeera
 #EXTINF:-1 group-title="Tamil / India",Amrita
 https://ddash74r36xqp.cloudfront.net/master.m3u8
@@ -27,17 +27,17 @@ https://sltv-nice-face.thundercat.workers.dev/arttelevision
 https://amogonetworx-artflix-1-nl.samsung.wurl.tv/playlist.m3u8
 #EXTINF:-1 group-title="Kids 🧚",Avatar
 https://jmp2.uk/plu-600adbdf8c554e00072125c9.m3u8
-#EXTINF:-1 group-title="Music 🎧",B4U Music
+#EXTINF:-1 tvg-logo="https://dtil.tmsimg.com/assets/s158141_ld_h15_aa.png?lock=720x540" group-title="Music 🎧",B4U Music
 https://cdn-2.pishow.tv/live/415/master.m3u8
-#EXTINF:-1 group-title="Kids 🧚",Baby Shark TV
+#EXTINF:-1 tvg-logo="https://i.imgur.com/SbBKr8L.png" group-title="Kids 🧚",Baby Shark TV
 https://newidco-babysharktv-1-eu.rakuten.wurl.tv/playlist.m3u8
-#EXTINF:-1 group-title="Kids 🧚",BabyFirst
+#EXTINF:-1 tvg-logo="https://static.wikia.nocookie.net/babyfirsttv/images/5/56/BabyFirst_Logo_2019.png/revision/latest?cb=20260612182539" group-title="Kids 🧚",BabyFirst
 https://jmp2.uk/plu-5f4fb4cf605ddf000748e16f.m3u8
-#EXTINF:-1 group-title="Movie 🎬",BBC Drama
+#EXTINF:-1 tvg-logo="https://i.imgur.com/HctHhLL.png" group-title="Movie 🎬",BBC Drama
 https://amg00793-amg00793c40-rakuten-es-5444.playouts.now.amagi.tv/playlist.m3u8
 #EXTINF:-1 group-title="News 🚨",BBC world
 https://sltv-app.thundercat.workers.dev/bbcworld
-#EXTINF:-1 group-title="Sports ⛹️🏏",beIN SPORTS XTRA
+#EXTINF:-1 tvg-logo="https://i.ibb.co/HT49GPmB/XTRA-2.png" group-title="Sports ⛹️🏏",beIN SPORTS XTRA
 https://bein-beinxtrasports-firetv.amagi.tv/playlist.m3u8
 #EXTINF:-1 group-title="News 🚨",Bloomberg
 https://sltv-app.thundercat.workers.dev/bloomberg
@@ -45,17 +45,17 @@ https://sltv-app.thundercat.workers.dev/bloomberg
 https://vodzong.mjunoon.tv/streamtest/cartoon-network-87/playlist.m3u8
 #EXTINF:-1 group-title="News 🚨",CGTN
 https://sltv-app.thundercat.workers.dev/CGTN
-#EXTINF:-1 group-title="🇱🇰 Ultra",Channel C
+#EXTINF:-1 tvg-logo="https://i.imgur.com/CnFdLaf.png" group-title="🇱🇰 Ultra",Channel C
 https://sltv-app.thundercat.workers.dev/channelc
-#EXTINF:-1 group-title="🇱🇰 Channels Ultra",Channel One²
+#EXTINF:-1 tvg-logo="https://i.imgur.com/CqRSTdL.png" group-title="🇱🇰 Channels Ultra",Channel One²
 https://sltv-nice-face.thundercat.workers.dev/channelone
 #EXTINF:-1 group-title="🇱🇰 Ultra",Channel01 HD
 https://sltv-app.thundercat.workers.dev/channelone
 #EXTINF:-1 group-title="SL Channels 🇱🇰",Charana TV‎
 https://str001.peotv.lk/ndrm/live/charana/master.m3u8
-#EXTINF:-1 group-title="Movie 🎬",Charge!
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Charge%21_network_logo.png/960px-Charge%21_network_logo.png" group-title="Movie 🎬",Charge!
 https://fast-channels.sinclairstoryline.com/CHARGE/index.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",CitiHitz
+#EXTINF:-1 tvg-logo="https://i.imgur.com/EuYpCRF.png" group-title="🇱🇰 Ultra",CitiHitz
 https://sltv-app.thundercat.workers.dev/citihitz
 #EXTINF:-1 group-title="News 🚨",CNBC
 https://sltv-app.thundercat.workers.dev/cnbc
@@ -63,35 +63,35 @@ https://sltv-app.thundercat.workers.dev/cnbc
 https://sltv-app.thundercat.workers.dev/cnn
 #EXTINF:-1 group-title="Tamil / India",Colors HD
 https://sltv-app.thundercat.workers.dev/colors
-#EXTINF:-1 group-title="Entertainment 😸",Cops
+#EXTINF:-1 tvg-logo="https://i.imgur.com/J3XO6V2.png" group-title="Entertainment 😸",Cops
 https://langleyproductions-cops-2-eu.rakuten.wurl.tv/playlist.m3u8
 #EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",Damsathara HD
 https://sltv-app.thundercat.workers.dev/damsathara
-#EXTINF:-1 group-title="Tamil / India",Dangal TV
+#EXTINF:-1 tvg-logo="https://dtil.tmsimg.com/assets/s142771_ld_h9_aa.png?lock=720x540" group-title="Tamil / India",Dangal TV
 https://live-dangal.akamaized.net/liveabr/playlist.m3u8
-#EXTINF:-1 group-title="Movie 🎬",Dark Matter TV
+#EXTINF:-1 tvg-logo="https://i.imgur.com/9K8T3ND.png" group-title="Movie 🎬",Dark Matter TV
 https://tricoast-tv-dark-matter-01-us.ono.wurl.tv/playlist.m3u8
-#EXTINF:-1 group-title="Sports ⛹️🏏",DD Sports
+#EXTINF:-1 tvg-logo="https://ltsk-cdn.s3.eu-west-1.amazonaws.com/jumpstart/Temp_Live/cdn/HLS/Channel/transparentImages/DD%20Sports.png" group-title="Sports ⛹️🏏",DD Sports
 https://cdn-6.pishow.tv/live/13/master.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",Dearana HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vToOI2s.png" group-title="🇱🇰 Ultra",Dearana HD
 https://sltv-app.thundercat.workers.dev/tvderana
-#EXTINF:-1 group-title="SL Channels 🇱🇰",Derana SD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vToOI2s.png" group-title="SL Channels 🇱🇰",Derana SD
 https://str001.peotv.lk/ndrm/live/derana/master.m3u8
 #EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",Didula HD
 https://sltv-app.thundercat.workers.dev/tvdidula
-#EXTINF:-1 group-title="Entertainment 😸",Dove TV
+#EXTINF:-1 tvg-logo="https://i.imgur.com/wOlMfCR.png" group-title="Entertainment 😸",Dove TV
 https://linear-896.frequency.stream/dist/xumo/896/hls/master/playlist_640x360.m3u8
 #EXTINF:-1 group-title="News 🚨",Euronews
 https://sltv-app.thundercat.workers.dev/euronews
 #EXTINF:-1 group-title="Sports ⛹️🏏",Eurosport
 https://sltv-app.thundercat.workers.dev/eurosport
-#EXTINF:-1 group-title="🇱🇰 Ultra",Rupawahini HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vgHTfR0.png" group-title="🇱🇰 Ultra",Rupawahini HD
 https://sltv-app.thundercat.workers.dev/rupavahini
 #EXTINF:-1 group-title="SL Channels 🇱🇰",Event TV
 https://str001.peotv.lk/ndrm/live/event-tv/master.m3u8
-#EXTINF:-1 group-title="News 🚨",France24
+#EXTINF:-1 tvg-logo="https://ltsk-cdn.s3.eu-west-1.amazonaws.com/jumpstart/Temp_Live/cdn/HLS/Channel/transparentImages/France%2024.png" group-title="News 🚨",France24
 https://sltv-app.thundercat.workers.dev/france24
-#EXTINF:-1 group-title="Movie 🎬",Ghost Hunters
+#EXTINF:-1 tvg-logo="https://i.imgur.com/KdBr6rG.png" group-title="Movie 🎬",Ghost Hunters
 https://jmp2.uk/plu-5f27bbe4779de70007a6d1c1.m3u8
 #EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",Godtv HD
 https://sltv-app.thundercat.workers.dev/godtv
@@ -103,37 +103,37 @@ https://str001.peotv.lk/ndrm/live/haritha-tv/master.m3u8
 https://sltv-app.thundercat.workers.dev/hbohd
 #EXTINF:-1 group-title="🇱🇰 Ultra",Hi Tv
 https://sltv-app.thundercat.workers.dev/hitv
-#EXTINF:-1 group-title="🇱🇰 Ultra",Hiru HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/M66UqPB.png" group-title="🇱🇰 Ultra",Hiru HD
 https://sltv-app.thundercat.workers.dev/hirutv
-#EXTINF:-1 group-title="SL Channels 🇱🇰",Hiru
+#EXTINF:-1 tvg-logo="https://i.imgur.com/M66UqPB.png" group-title="SL Channels 🇱🇰",Hiru
 https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8
 #EXTINF:-1 group-title="Entertainment 😸",Hunt Fish TV
 https://streams2.sofast.tv/sofastplayout/WiseM3U8_2/master.m3u8
-#EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",IBC பக்தி
+#EXTINF:-1 tvg-logo="https://i.imgur.com/uraGabS.png" group-title="Religious ☸️✝️🕉️🕌",IBC பக்தி
 http://ibc.massstream.net/IBC2/index.m3u8
-#EXTINF:-1 group-title="🇱🇰 Channels Ultra",ITN²
+#EXTINF:-1 tvg-logo="https://i.imgur.com/NLu3guG.png" group-title="🇱🇰 Channels Ultra",ITN²
 https://sltv-nice-face.thundercat.workers.dev/itn
-#EXTINF:-1 group-title="SL Channels 🇱🇰",ITN‎
+#EXTINF:-1 tvg-logo="https://i.imgur.com/NLu3guG.png" group-title="SL Channels 🇱🇰",ITN‎
 https://str001.peotv.lk/ndrm/live/itn/master.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",ITN HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/NLu3guG.png" group-title="🇱🇰 Ultra",ITN HD
 https://sltv-app.thundercat.workers.dev/itn
-#EXTINF:-1 group-title="🇱🇰 Channels Ultra",Jaya TV²
+#EXTINF:-1 tvg-logo="https://i.imgur.com/J8NA1i9.jpeg" group-title="🇱🇰 Channels Ultra",Jaya TV²
 https://sltv-nice-face.thundercat.workers.dev/jayatv
 #EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",Jayatv HD
 https://sltv-app.thundercat.workers.dev/jayatv
-#EXTINF:-1 group-title="Tamil / India",Jonack
+#EXTINF:-1 tvg-logo="https://dtil.tmsimg.com/assets/s143238_ld_h15_aa.png?lock=720x540" group-title="Tamil / India",Jonack
 https://cdn-6.pishow.tv/live/10006/10006_1.m3u8
-#EXTINF:-1 group-title="Kids 🧚",Kartoon Channel!
+#EXTINF:-1 tvg-logo="https://i.imgur.com/1luzP3T.png" group-title="Kids 🧚",Kartoon Channel!
 https://lightning-fnf-samsungaus.amagi.tv/playlist.m3u8
-#EXTINF:-1 group-title="Music 🎧",Latin Zone
+#EXTINF:-1 tvg-logo="https://i.imgur.com/duEDsne.png" group-title="Music 🎧",Latin Zone
 https://cdn.streamingcpanel.com/live/latinzonetvlive.m3u8
-#EXTINF:-1 group-title="Kids 🧚",Lego Channel
+#EXTINF:-1 tvg-logo="https://i.imgur.com/xePwW13.png" group-title="Kids 🧚",Lego Channel
 https://dh18i7whff86v.cloudfront.net/index.m3u8
 #EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",Live Quran TV
 https://live.kwikmotion.com/sharjahtvquranlive/shqurantv.smil/playlist.m3u8
-#EXTINF:-1 group-title="Nature/Travel 🪂🧗",Love The Planet
+#EXTINF:-1 tvg-logo="https://i.imgur.com/RBcD49X.png" group-title="Nature/Travel 🪂🧗",Love The Planet
 https://amg01821-lovetvchannels-lovetheplanetsp-tivify-tivify-vycsr.amagi.tv/1080p/index.m3u8
-#EXTINF:-1 group-title="Movie 🎬",MovieSphere
+#EXTINF:-1 tvg-logo="https://i.imgur.com/0sfk3yp.png" group-title="Movie 🎬",MovieSphere
 https://moviesphereuk-samsunguk.amagi.tv/playlist.m3u8
 #EXTINF:-1 group-title="Education 📚",Nanasa O/L
 https://sltv-app.thundercat.workers.dev/nenasasinhalaol
@@ -141,25 +141,25 @@ https://sltv-app.thundercat.workers.dev/nenasasinhalaol
 https://sltv-app.thundercat.workers.dev/nenasatamilal
 #EXTINF:-1 group-title="Education 📚",Tamil O/L
 https://sltv-app.thundercat.workers.dev/nenasatamilol
-#EXTINF:-1 group-title="Nature/Travel 🪂🧗",Nat Geo HD
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Natgeologo.svg/960px-Natgeologo.svg.png" group-title="Nature/Travel 🪂🧗",Nat Geo HD
 http://151.80.18.177/National_Geo_HD/index.m3u8
-#EXTINF:-1 group-title="Nature/Travel 🪂🧗",Nature Time
+#EXTINF:-1 tvg-logo="https://naturetimetv.com/wp-content/uploads/2023/05/NatureTime_white_Primary.png" group-title="Nature/Travel 🪂🧗",Nature Time
 https://amg00090-amgnaturetimeemea-rakuten.amagi.tv/playlist.m3u8
 #EXTINF:-1 group-title="News 🚨",Ndtv24
 https://sltv-app.thundercat.workers.dev/ndtv
 #EXTINF:-1 group-title="Education 📚",Nenasa A/L
 https://sltv-app.thundercat.workers.dev/nenasasinhalaal
-#EXTINF:-1 group-title="🇱🇰 Ultra",Nethra HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vSrIN1U.jpg" group-title="🇱🇰 Ultra",Nethra HD
 https://sltv-app.thundercat.workers.dev/nethratv
-#EXTINF:-1 group-title="🇱🇰 Channels Ultra",Nethra TV²
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vSrIN1U.jpg" group-title="🇱🇰 Channels Ultra",Nethra TV²
 https://sltv-nice-face.thundercat.workers.dev/nethratv
-#EXTINF:-1 group-title="Music 🎧",NEW K-POP
+#EXTINF:-1 tvg-logo="https://i.imgur.com/B7ILXMc.png" group-title="Music 🎧",NEW K-POP
 https://newidco-newkid-1-eu.xiaomi.wurl.tv/playlist.m3u8
 #EXTINF:-1 group-title="Kids 🧚",Nickelodeon
 http://23.237.104.106/USA_NICKELODEON/index.m3u8
 #EXTINF:-1 group-title="Sports ⛹️🏏",Ninja Warrior
 https://amg00654-itv-amg00654c27-rakuten-uk-5295.playouts.now.amagi.tv/playlist.m3u8
-#EXTINF:-1 group-title="Nature/Travel 🪂🧗",Outdoor America
+#EXTINF:-1 tvg-logo="https://i.imgur.com/UKfimFD.png" group-title="Nature/Travel 🪂🧗",Outdoor America
 https://linear-600.frequency.stream/dist/xumo/600/hls/master/playlist.m3u8
 #EXTINF:-1 group-title="Sports ⛹️🏏",Papare SD
 https://sltv-app.thundercat.workers.dev/paparesd
@@ -167,9 +167,9 @@ https://sltv-app.thundercat.workers.dev/paparesd
 https://sltv-app.thundercat.workers.dev/paparetv1
 #EXTINF:-1 group-title="Movie 🎬",Paramount+
 https://jmp2.uk/plu-5ff8c708653d080007361b14.m3u8
-#EXTINF:-1 group-title="Kids 🧚",PBS Kids
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/PBS_Kids_logo_%282022%29.svg/960px-PBS_Kids_logo_%282022%29.svg.png" group-title="Kids 🧚",PBS Kids
 https://2-fss-2.streamhoster.com/pl_140/amlst:200914-1298290/playlist.m3u8
-#EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",Pragna TV HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/j2hoLX0.png" group-title="Religious ☸️✝️🕉️🕌",Pragna TV HD
 https://sltv-app.thundercat.workers.dev/pragna
 #EXTINF:-1 group-title="Sports ⛹️🏏",Premier Sports
 https://sltv-app.thundercat.workers.dev/premiersports
@@ -177,35 +177,35 @@ https://sltv-app.thundercat.workers.dev/premiersports
 https://sltv-nice-face.thundercat.workers.dev/rangiri
 #EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",Rangiri TV HD
 https://sltv-app.thundercat.workers.dev/rangiri
-#EXTINF:-1 group-title="Sports ⛹️🏏",Redbull TV
+#EXTINF:-1 tvg-logo="https://images.pluto.tv/channels/5e7cb84a172a0f0007da69e4/colorLogoPNG.png" group-title="Sports ⛹️🏏",Redbull TV
 https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master_3360.m3u8
 #EXTINF:-1 group-title="🇱🇰 Ultra",RedeeTV HD
 https://sltv-app.thundercat.workers.dev/rideetv
-#EXTINF:-1 group-title="🇱🇰 Channels Ultra",Ridee TV²
+#EXTINF:-1 tvg-logo="https://i.imgur.com/HZLITjX.png" group-title="🇱🇰 Channels Ultra",Ridee TV²
 https://sltv-nice-face.thundercat.workers.dev/rideetv
-#EXTINF:-1 group-title="🇱🇰 Channels Ultra",Rupavahini²
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vgHTfR0.png" group-title="🇱🇰 Channels Ultra",Rupavahini²
 https://sltv-nice-face.thundercat.workers.dev/rupavahini
-#EXTINF:-1 group-title="SL Channels 🇱🇰",Rupawahini‎
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vgHTfR0.png" group-title="SL Channels 🇱🇰",Rupawahini‎
 https://str001.peotv.lk/ndrm/live/rupavahini/master.m3u8
-#EXTINF:-1 group-title="Nature/Travel 🪂🧗",Safari TV
+#EXTINF:-1 tvg-logo="https://ltsk-cdn.s3.eu-west-1.amazonaws.com/jumpstart/Temp_Live/cdn/HLS/Channel/transparentImages/Safari%20TV.png" group-title="Nature/Travel 🪂🧗",Safari TV
 https://j78dp346yq5r-hls-live.5centscdn.com/safari/live.stream/playlist.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",Shakthi HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/RX6IwK8.png" group-title="🇱🇰 Ultra",Shakthi HD
 https://sltv-app.thundercat.workers.dev/shakthitv
-#EXTINF:-1 group-title="SL Channels 🇱🇰",Shakthi
+#EXTINF:-1 tvg-logo="https://i.imgur.com/RX6IwK8.png" group-title="SL Channels 🇱🇰",Shakthi
 https://str001.peotv.lk/ndrm/live/shakthi/master.m3u8
-#EXTINF:-1 group-title="🇱🇰 Channels Ultra",Shakthi TV²
+#EXTINF:-1 tvg-logo="https://i.imgur.com/RX6IwK8.png" group-title="🇱🇰 Channels Ultra",Shakthi TV²
 https://sltv-nice-face.thundercat.workers.dev/shakthitv
-#EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",Shraddha Tv
+#EXTINF:-1 tvg-logo="https://i.imgur.com/sZ3fEMi.png" group-title="Religious ☸️✝️🕉️🕌",Shraddha Tv
 https://str001.peotv.lk/ndrm/live/shraddha/master.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",Sirasa HD
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Sirasa_TV_Logo.png/500px-Sirasa_TV_Logo.png" group-title="🇱🇰 Ultra",Sirasa HD
 https://sltv-app.thundercat.workers.dev/sirasatv
-#EXTINF:-1 group-title="SL Channels 🇱🇰",Sirasa TV
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Sirasa_TV_Logo.png/500px-Sirasa_TV_Logo.png" group-title="SL Channels 🇱🇰",Sirasa TV
 https://str001.peotv.lk/ndrm/live/sirasa/master.m3u8
-#EXTINF:-1 group-title="🇱🇰 Channels Ultra",Sirasa TV²
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Sirasa_TV_Logo.png/500px-Sirasa_TV_Logo.png" group-title="🇱🇰 Channels Ultra",Sirasa TV²
 https://sltv-nice-face.thundercat.workers.dev/sirasatv
-#EXTINF:-1 group-title="Tamil / India",Sirippoli TV
+#EXTINF:-1 tvg-logo="https://dvdh7g0f0hwck.cloudfront.net/assets/images/channel/Sirippoli_Transparent_5030045f-bd94-4795-a443-7c7184079219.png" group-title="Tamil / India",Sirippoli TV
 https://segment.yuppcdn.net/240122/siripoli/playlist.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",Siyatha HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/9Zc8G7i.png" group-title="🇱🇰 Ultra",Siyatha HD
 https://sltv-app.thundercat.workers.dev/siyathatv
 #EXTINF:-1 group-title="Sports ⛹️🏏",Sony 2 HD
 https://sltv-app.thundercat.workers.dev/sonysports2hd
@@ -219,7 +219,7 @@ https://sltv-app.thundercat.workers.dev/sonysports1
 https://sltv-app.thundercat.workers.dev/sonysports2
 #EXTINF:-1 group-title="Music 🎧",Spirit TV
 https://cdnlive.myspirit.tv/LS-ATL-43240-2/index.m3u8
-#EXTINF:-1 group-title="Sports ⛹️🏏",Star Sports 1
+#EXTINF:-1 tvg-logo="https://dtil.tmsimg.com/assets/s143835_ld_h15_aa.png?lock=720x540" group-title="Sports ⛹️🏏",Star Sports 1
 https://sltv-app.thundercat.workers.dev/starsports1
 #EXTINF:-1 group-title="Sports ⛹️🏏",Star Sports 3
 https://sltv-app.thundercat.workers.dev/starsports3
@@ -229,49 +229,49 @@ https://sltv-app.thundercat.workers.dev/starsports2
 https://sltv-app.thundercat.workers.dev/supreme
 #EXTINF:-1 group-title="SL Channels 🇱🇰",Supreem TV
 https://str001.peotv.lk/ndrm/live/tv-supreme/master.m3u8
-#EXTINF:-1 group-title="SL Channels 🇱🇰",Swarnavahini
+#EXTINF:-1 tvg-logo="https://i.imgur.com/0hnpeq9.png" group-title="SL Channels 🇱🇰",Swarnavahini
 https://str001.peotv.lk/ndrm/live/swarnawahini/master.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",Swarnawahini HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/0hnpeq9.png" group-title="🇱🇰 Ultra",Swarnawahini HD
 https://sltv-app.thundercat.workers.dev/swarnavahini
 #EXTINF:-1 group-title="Religious ☸️✝️🕉️🕌",The Buddhist Tv
 https://sltv-app.thundercat.workers.dev/buddhisttv
-#EXTINF:-1 group-title="Kids 🧚",Tiny Pop
+#EXTINF:-1 tvg-logo="https://i.imgur.com/zCTf71x.png" group-title="Kids 🧚",Tiny Pop
 https://amg01753-narrativeuk-amg01753c1-rakuten-uk-2339.playouts.now.amagi.tv/360p/index.m3u8
 #EXTINF:-1 group-title="Sports ⛹️🏏",TNA TV
 https://dbrb49pjoymg4.cloudfront.net/10001/99991341/hls/master.m3u8
-#EXTINF:-1 group-title="Music 🎧",Trace Urban
+#EXTINF:-1 tvg-logo="https://i.imgur.com/DLIbUMx.png" group-title="Music 🎧",Trace Urban
 https://lightning-traceurban-samsungau.amagi.tv/playlist360p.m3u8
-#EXTINF:-1 group-title="Nature/Travel 🪂🧗",Travel XP
+#EXTINF:-1 tvg-logo="https://i.imgur.com/8KQirah.png" group-title="Nature/Travel 🪂🧗",Travel XP
 https://travelxp-travelxp-1-eu.rakuten.wurl.tv/playlist.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",TV1 HD
+#EXTINF:-1 tvg-logo="https://i.imgur.com/QShk1BV.png" group-title="🇱🇰 Ultra",TV1 HD
 https://sltv-app.thundercat.workers.dev/tv1
 #EXTINF:-1 group-title="Tamil / India",Vanavil
 https://6n3yope4d9ok-hls-live.5centscdn.com/vaanavil/TV.stream/chunks.m3u8
-#EXTINF:-1 group-title="SL Channels 🇱🇰",Vasantham
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/en/1/18/Vasanthamtv_channel.jpg" group-title="SL Channels 🇱🇰",Vasantham
 https://str001.peotv.lk/ndrm/live/vasantham/master.m3u8
-#EXTINF:-1 group-title="🇱🇰 Ultra",Vasanthem HD
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/en/1/18/Vasanthamtv_channel.jpg" group-title="🇱🇰 Ultra",Vasanthem HD
 https://sltv-app.thundercat.workers.dev/vasanthamtv
 #EXTINF:-1 group-title="Movie 🎬",Warner Tv
 https://sltv-app.thundercat.workers.dev/warnertv
-#EXTINF:-1 group-title="Nature/Travel 🪂🧗",Waterbear
+#EXTINF:-1 tvg-logo="https://framerusercontent.com/images/41VQQ7F0fYlp1MX1N4Ixog5QnPI.png" group-title="Nature/Travel 🪂🧗",Waterbear
 https://waterbear-waterbear-rakuten.amagi.tv/playlist.m3u8
-#EXTINF:-1 group-title="Nature/Travel 🪂🧗",Wild Earth
+#EXTINF:-1 tvg-logo="https://i.imgur.com/Vhv5gjN.png" group-title="Nature/Travel 🪂🧗",Wild Earth
 https://wildearth-plex.amagi.tv/masterR1080p.m3u8
-#EXTINF:-1 group-title="Entertainment 😸",Wonder
+#EXTINF:-1 tvg-logo="https://i.imgur.com/LquGNbh.png" group-title="Entertainment 😸",Wonder
 https://lds-wonder-samsungau.amagi.tv/playlist.m3u8
-#EXTINF:-1 group-title="Tamil / India",ZB Cinema
+#EXTINF:-1 tvg-logo="https://i.imgur.com/kUg6WSk.jpeg" group-title="Tamil / India",ZB Cinema
 https://server.zillarbarta.com/ZBCINEMA/index.m3u8
 #EXTINF:-1 group-title="News 🚨",ABC News (AU)
 https://c.mjh.nz/abc-news.m3u8
-#EXTINF:-1 group-title="SL Channels 🇱🇰",Siyatha TV
+#EXTINF:-1 tvg-logo="https://i.imgur.com/9Zc8G7i.png" group-title="SL Channels 🇱🇰",Siyatha TV
 https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8
-#EXTINF:-1 group-title="Tamil / India",Alankar TV
+#EXTINF:-1 tvg-logo="https://dtil.tmsimg.com/assets/s142630_ld_h15_aa.png?lock=720x540" group-title="Tamil / India",Alankar TV
 https://livetv.tarangplus.in/alankar-origin/live/playlist.m3u8
-#EXTINF:-1 group-title="Movie 🎬",Popcorn Flix
+#EXTINF:-1 tvg-logo="https://i.imgur.com/TT9HEfB.png" group-title="Movie 🎬",Popcorn Flix
 https://d1j2u714xk898n.cloudfront.net/scheduler/scheduleMaster/145.m3u8
-#EXTINF:-1 group-title="Tamil / India",Kalaignar TV
+#EXTINF:-1 tvg-logo="https://dtil.tmsimg.com/assets/s143249_ld_h15_aa.png?lock=720x540" group-title="Tamil / India",Kalaignar TV
 https://segment.yuppcdn.net/240122/kalaignartv/playlist.m3u8
 #EXTINF:-1 group-title="Movie 🎬",Outer Vision
 https://streams2.sofast.tv/WiseM3U8_26/sofast/cleanhls/master.m3u8
-#EXTINF:-1 group-title="Tamil / India",NDTV India
+#EXTINF:-1 tvg-logo="https://dtil.tmsimg.com/assets/s157588_ld_h15_aa.png?lock=720x540" group-title="Tamil / India",NDTV India
 https://ndtvindiaelemarchana.akamaized.net/hls/live/2003679/ndtvindia/master.m3u8
