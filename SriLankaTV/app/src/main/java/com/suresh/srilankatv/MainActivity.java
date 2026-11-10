@@ -2,292 +2,156 @@ package com.suresh.srilankatv;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
-import android.text.TextWatcher;
-import android.text.Editable;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.text.InputType;
+import android.provider.Settings;
+import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 
+/** Minimal Google TV channel home, designed for Xiaomi TV Box S 3rd Gen. */
 public final class MainActivity extends Activity {
-    private LinearLayout content;
+    private static final int BG=0xFF07101E;
+    private static final int CARD=0xFF152439;
+    private static final int FOCUS=0xFF39D8D0;
     private List<PlaylistStore.Channel> channels;
+    private Button firstChannel;
 
-    @Override public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRequestedOrientation(BuildConfig.FLAVOR.equals("phone")
-            ? ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        channels = PlaylistStore.getChannels(this);
-        render();
-        refreshRemote(false);
+    private int dp(float size) {return (int)(getResources().getDisplayMetrics().density*size+0.5f);}
+
+    private GradientDrawable panel(boolean focused) {
+        GradientDrawable background=new GradientDrawable();
+        background.setColor(focused ? 0xFF21435A : CARD);
+        background.setCornerRadius(dp(17));
+        background.setStroke(dp(focused?3:1.2f),focused?FOCUS:0xFF28445C);
+        return background;
     }
 
-    private int dp(int value) {
-        return (int)(value * getResources().getDisplayMetrics().density + 0.5f);
-    }
-
-    private GradientDrawable shape(int background, int border) {
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(background);
-        drawable.setCornerRadius(dp(11));
-        drawable.setStroke(dp(2), border);
-        return drawable;
-    }
-
-    private TextView label(String text, int sp, int color, boolean bold) {
-        TextView v = new TextView(this);
-        v.setText(text);
+    private TextView text(String s,float sp,int color,boolean bold) {
+        TextView v=new TextView(this);
+        v.setText(s);
         v.setTextSize(sp);
         v.setTextColor(color);
-        if (bold) v.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        v.setPadding(0, dp(7), 0, dp(7));
+        v.setGravity(Gravity.CENTER_VERTICAL);
+        if (bold) v.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
         return v;
     }
 
-    private Button action(String name) {
-        Button b = new Button(this);
-        b.setText(name);
-        b.setTextSize(17);
-        b.setAllCaps(false);
-        b.setTextColor(Color.WHITE);
-        b.setMinHeight(dp(66));
-        b.setBackground(shape(Color.rgb(26, 37, 56), Color.rgb(59, 83, 124)));
-        b.setFocusable(true);
-        b.setFocusableInTouchMode(true);
-        b.setOnFocusChangeListener((view, focused) -> {
-            b.setBackground(shape(
-                focused ? Color.rgb(48, 80, 130) : Color.rgb(26, 37, 56),
-                focused ? Color.rgb(255, 202, 69) : Color.rgb(59, 83, 124)));
-            b.setScaleX(focused ? 1.05f : 1f);
-            b.setScaleY(focused ? 1.05f : 1f);
-        });
-        return b;
+    private void immersive() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().getDecorView().setSystemUiVisibility(5894 | 1024 | 512);
     }
 
-    private void showMessage(String message, boolean error) {
-        TextView feedback = label(message, 16,
-            error ? Color.rgb(255, 165, 160) : Color.rgb(170, 224, 177), false);
-        content.addView(feedback);
+    @Override public void onCreate(Bundle state) {
+        super.onCreate(state);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        immersive();
+        channels=PlaylistStore.getChannels(this);
+        draw();
     }
 
-    private void render() {
-        boolean phone = BuildConfig.FLAVOR.equals("phone");
-        int screenDp = (int)(getResources().getDisplayMetrics().widthPixels
-            / getResources().getDisplayMetrics().density);
-        int sidePadding = phone ? 16 : 38;
-        int availableDp = Math.max(280, screenDp - sidePadding * 2);
-        ScrollView scroll = new ScrollView(this);
-        scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.rgb(11, 19, 32));
-        content = new LinearLayout(this);
+    @Override public void onResume() {
+        super.onResume();
+        immersive();
+    }
+
+    private void draw() {
+        int screenDp=(int)(getResources().getDisplayMetrics().widthPixels/
+            getResources().getDisplayMetrics().density);
+        int cols=screenDp>=1050?5:screenDp>=730?4:screenDp>=490?3:2;
+        int side=screenDp>=900?40:20;
+        int cell=(screenDp-2*side-16)/cols;
+        int cardWidth=cell-14;
+        ScrollView scroller=new ScrollView(this);
+        scroller.setClipToPadding(false);
+        scroller.setFillViewport(true);
+        scroller.setBackgroundColor(BG);
+        scroller.setVerticalScrollBarEnabled(false);
+        LinearLayout content=new LinearLayout(this);
+        content.setPadding(dp(side),dp(14),dp(side),dp(25));
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(sidePadding), dp(phone ? 12 : 24), dp(sidePadding), dp(28));
-        scroll.addView(content);
-        setContentView(scroll);
+        scroller.addView(content);
+        setContentView(scroller);
 
-        boolean bridge = BuildConfig.FLAVOR.equals("sltvbridge");
-        content.addView(label(bridge ? "SLTV CHANNEL BRIDGE · v0.4" :
-            (phone ? "SRI LANKA TV PHONE · v0.4" : "SRI LANKA TV INDEPENDENT · v0.4"),
-            phone ? 24 : 30, Color.WHITE, true));
-        content.addView(label(bridge
-            ? "Normal channels + HD routes • HD may require official Widevine access"
-            : "Independent Android TV player • HLS/DASH • Remote control ready", 15,
-            Color.rgb(169, 187, 210), false));
-        boolean isCustom = PlaylistStore.usingCustom(this);
-        content.addView(label(
-            (isCustom ? "Imported list • " : "Observed sources (not all verified) • ")
-            + channels.size() + " channels • offline icons built in", 19, Color.rgb(255, 202, 69), true));
+        LinearLayout header=new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        content.addView(header,new LinearLayout.LayoutParams(-1,dp(65)));
+        TextView brand=text("TV",42,Color.WHITE,true);
+        header.addView(brand,new LinearLayout.LayoutParams(0,-1,1));
+        TextView hint=text("22 CHANNELS    •    SELECT WITH OK",14,0xFF849BB2,true);
+        header.addView(hint);
+        Button settings=new Button(this);
+        settings.setText("⚙");
+        settings.setTextSize(21);
+        settings.setTextColor(0xFFB2C9DC);
+        settings.setAllCaps(false);
+        settings.setBackground(panel(false));
+        LinearLayout.LayoutParams gearParams=new LinearLayout.LayoutParams(dp(58),dp(51));
+        gearParams.leftMargin=dp(18);
+        header.addView(settings,gearParams);
+        settings.setOnClickListener(v->startActivity(new Intent(this,ShortcutHelpActivity.class)));
+        settings.setOnFocusChangeListener((v,hasFocus)->settings.setBackground(panel(hasFocus)));
 
+        TextView sub=text("Live TV    /    Your channels",16,0xFF93AFC5,false);
+        LinearLayout.LayoutParams subParams=new LinearLayout.LayoutParams(-1,dp(43));
+        content.addView(sub,subParams);
 
-        if (bridge) {
-            Button openOriginal = action("OPEN ORIGINAL SLTV APP");
-            LinearLayout.LayoutParams linkParams = new LinearLayout.LayoutParams(dp(Math.min(420, availableDp)),dp(70));
-            content.addView(openOriginal,linkParams);
-            openOriginal.setOnClickListener(v -> {
-                try {
-                    Intent launch = getPackageManager().getLaunchIntentForPackage("com.sltv.app");
-                    if (launch != null) startActivity(launch);
-                    else showMessage("Original SLTV is not installed, or is not visible to Android.",true);
-                } catch(Exception ex) { showMessage("Could not open original SLTV",true); }
-            });
-            content.addView(label("Normal channels are available below. HD channels may be Widevine-protected; this app cannot share the original SLTV login or decrypt protected broadcasts.",14,Color.rgb(255,180,145),false));
-        }
-        Button sync = action("REFRESH CHANNEL CATALOGUE");
-        content.addView(sync,new LinearLayout.LayoutParams(dp(Math.min(420,availableDp)),dp(64)));
-        sync.setOnClickListener(v -> refreshRemote(true));
-        EditText search = new EditText(this);
-        search.setSingleLine(true);
-        search.setTextSize(17);
-        search.setTextColor(Color.WHITE);
-        search.setHintTextColor(Color.LTGRAY);
-        search.setHint("Search channels / categories");
-        content.addView(search,new LinearLayout.LayoutParams(dp(Math.min(640,availableDp)),dp(70)));
-
-        GridLayout grid = new GridLayout(this);
-        int columns = phone ? (availableDp >= 650 ? 3 : 2) : (availableDp >= 950 ? 4 : 3);
-        grid.setColumnCount(columns);
-        int channelWidthDp = Math.max(110, availableDp / columns - 16);
-        grid.setPadding(dp(0), dp(8), dp(0), dp(12));
-        Button first = null;
-        for (int i = 0; i < channels.size(); i++) {
-            final int index = i;
-            PlaylistStore.Channel channel = channels.get(i);
-            Button b = action((i + 1) + "  " + channel.name);
-            b.setTextSize(phone ? 14 : 15);
-            b.setPadding(dp(8), dp(4), dp(8), dp(4));
-            // Load the channel-specific logo or neutral TV placeholder directly
-            // from the APK. No network access is needed for icons.
-            if (!LogoLoader.attach(this, b, channel)) {
-                b.setText("▣  " + (i + 1) + "  " + channel.name);
-            }
-            GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
-            lp.width = dp(channelWidthDp);
-            lp.height = dp(phone ? 133 : 124);
-            lp.setMargins(dp(8), dp(8), dp(8), dp(8));
-            grid.addView(b, lp);
-            b.setOnClickListener(view -> {
-                Intent intent = new Intent(this, PlayerActivity.class);
-                intent.putExtra("channel_index", index);
-                startActivity(intent);
-            });
-            if (first == null) first = b;
-        }
+        GridLayout grid=new GridLayout(this);
+        grid.setColumnCount(cols);
+        grid.setUseDefaultMargins(false);
+        grid.setPadding(0,0,0,dp(20));
         content.addView(grid);
-        search.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s,int st,int c,int a){}
-            @Override public void onTextChanged(CharSequence q,int start,int before,int count) {
-                String needle=q.toString().trim().toLowerCase(java.util.Locale.ROOT);
-                for (int j=0;j<channels.size() && j<grid.getChildCount();j++) {
-                    grid.getChildAt(j).setVisibility(channels.get(j).name.toLowerCase(java.util.Locale.ROOT)
-                        .contains(needle)?View.VISIBLE:View.GONE);
-                }
-            }
-            @Override public void afterTextChanged(Editable e){}
-        });
+        firstChannel=null;
+        for (int i=0;i<channels.size();i++) {
+            final int channelIndex=i;
+            PlaylistStore.Channel ch=channels.get(i);
 
-        content.addView(label("ADD A PUBLIC M3U PLAYLIST", 19, Color.WHITE, true));
-        content.addView(label("Optional: enter a public http/https M3U address to replace the starter channels. "
-            + "No paid accounts, DRM bypass or subscription credentials.", 14,
-            Color.rgb(175, 187, 205), false));
-
-        EditText address = new EditText(this);
-        address.setSingleLine(true);
-        address.setTextColor(Color.WHITE);
-        address.setHintTextColor(Color.rgb(164, 173, 193));
-        address.setTextSize(16);
-        address.setHint("https://example.com/my-public-channels.m3u");
-        address.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-        address.setBackground(shape(Color.rgb(27, 38, 58), Color.rgb(90, 111, 148)));
-        address.setPadding(dp(18), dp(15), dp(18), dp(15));
-        LinearLayout.LayoutParams inputLayout = new LinearLayout.LayoutParams(
-            dp(Math.min(750,availableDp)), dp(68));
-        inputLayout.topMargin = dp(10);
-        content.addView(address, inputLayout);
-
-        LinearLayout controls = new LinearLayout(this);
-        controls.setOrientation(phone ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
-        Button importBtn = action("Load M3U URL");
-        Button restoreBtn = action("Restore starter list");
-        LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(
-            dp(phone ? Math.min(265,availableDp) : 230), dp(70));
-        p1.setMargins(0, dp(12), dp(20), dp(0));
-        controls.addView(importBtn, p1);
-        controls.addView(restoreBtn, new LinearLayout.LayoutParams(dp(Math.min(265,availableDp)), dp(70)));
-        content.addView(controls);
-
-        importBtn.setOnClickListener(view -> {
-            String url = address.getText().toString().trim();
-            if (!url.startsWith("https://") && !url.startsWith("http://")) {
-                showMessage("Please enter a public http:// or https:// playlist URL.", true);
-                return;
-            }
-            importBtn.setEnabled(false);
-            new Thread(() -> {
-                try {
-                    HttpURLConnection connection =
-                        (HttpURLConnection)new URL(url).openConnection();
-                    connection.setConnectTimeout(12000);
-                    connection.setReadTimeout(12000);
-                    connection.setRequestProperty("User-Agent", "SriLankaTV/0.1");
-                    String text;
-                    try {
-                        text = PlaylistStore.readAll(connection.getInputStream());
-                    } finally {
-                        connection.disconnect();
-                    }
-                    List<PlaylistStore.Channel> parsed = PlaylistStore.parse(text);
-                    if (parsed.isEmpty()) throw new IOException("No channel URLs in M3U");
-                    runOnUiThread(() -> {
-                        PlaylistStore.saveCustom(this, text);
-                        channels = parsed;
-                        render();
-                    });
-                } catch (Exception ex) {
-                    runOnUiThread(() -> {
-                        importBtn.setEnabled(true);
-                        showMessage("Playlist unavailable: " + ex.getMessage(), true);
-                    });
-                }
-            }).start();
-        });
-        restoreBtn.setOnClickListener(view -> {
-            PlaylistStore.clearCustom(this);
-            channels = PlaylistStore.getChannels(this);
-            render();
-        });
-        content.addView(label(phone
-            ? "Tap a channel to watch. Use the player controls for previous, next and back."
-            : "TV remote: D-pad and OK • Mouse: click a channel • Player: Up/Down or on-screen buttons",
-            14, Color.rgb(169, 187, 210), false));
-
-        if (first != null) first.requestFocus();
-    }
-    private boolean sameChannels(List<PlaylistStore.Channel> left,
-                                 List<PlaylistStore.Channel> right) {
-        if (left == null || right == null || left.size() != right.size()) return false;
-        for (int i=0; i<left.size(); i++) {
-            PlaylistStore.Channel a=left.get(i), b=right.get(i);
-            if (!a.name.equals(b.name) || !a.url.equals(b.url)
-                || !a.logoUrl.equals(b.logoUrl)) return false;
+            // A single card is one focusable/clickable button for D-pad, mouse or touch.
+            Button card=new Button(this);
+            card.setAllCaps(false);
+            card.setText(String.format(java.util.Locale.ROOT,"%02d   %s",i+1,ch.name));
+            card.setTextSize(screenDp<750?14:16);
+            card.setTextColor(0xFFF1F7FF);
+            card.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            card.setGravity(Gravity.CENTER);
+            card.setPadding(dp(10),dp(12),dp(10),dp(12));
+            card.setBackground(panel(false));
+            card.setFocusable(true);
+            card.setFocusableInTouchMode(true);
+            card.setStateListAnimator(null);
+            card.setSingleLine(false);
+            card.setMaxLines(2);
+            LogoLoader.attach(this,card,ch);
+            card.setOnFocusChangeListener((v,focused)->{
+                v.setBackground(panel(focused));
+                v.setScaleX(focused?1.025f:1f);
+                v.setScaleY(focused?1.025f:1f);
+                v.setElevation(dp(focused?10:1));
+            });
+            card.setOnClickListener(v->{
+                Intent player=new Intent(MainActivity.this,PlayerActivity.class);
+                player.putExtra("channel_index",channelIndex);
+                startActivity(player);
+            });
+            GridLayout.LayoutParams p=new GridLayout.LayoutParams();
+            p.width=dp(cardWidth);
+            p.height=dp(screenDp>=800?160:146);
+            p.setMargins(dp(7),dp(7),dp(7),dp(7));
+            grid.addView(card,p);
+            if(firstChannel==null)firstChannel=card;
         }
-        return true;
+        if(firstChannel!=null)firstChannel.requestFocus();
     }
-
-    private void refreshRemote(boolean userRequested) {
-        new Thread(() -> {
-            try {
-                List<PlaylistStore.Channel> updated=PlaylistStore.refresh(this);
-                runOnUiThread(() -> {
-                    boolean changed = !sameChannels(channels, updated);
-                    channels=updated;
-                    // Avoid destroying the screen in the middle of a channel click
-                    // when an automatic refresh returns the same catalogue.
-                    if (userRequested || changed) render();
-                });
-            } catch(Exception ex) {
-                if (userRequested) runOnUiThread(() -> showMessage("Remote catalogue unavailable. Saved channel list retained.",true));
-            }
-        }).start();
-    }
-
 }
