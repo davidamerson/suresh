@@ -90,6 +90,12 @@ def make_icon(c):
     for candidate in alternatives:
         try:
             original=get_logo(candidate)
+            if c["name"]=="10 Cricket" and "OEcDJ5T" in candidate:
+                # Promotional TEN Network montage: isolate the TEN CRICKET mark
+                # in the bottom-left cell rather than showing other channels.
+                width,height=original.size
+                original=original.crop((int(width*0.02),int(height*0.72),
+                                        int(width*0.54),int(height*0.87)))
             # Logos are shown on a light, deliberately neutral mat so both
             # black and white broadcaster marks can remain legible.
             out=Image.new("RGBA",SIZE,(237,241,249,255))
