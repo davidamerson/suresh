@@ -259,14 +259,27 @@ public final class MainActivity extends Activity {
 
         if (first != null) first.requestFocus();
     }
+    private boolean sameChannels(List<PlaylistStore.Channel> left,
+                                 List<PlaylistStore.Channel> right) {
+        if (left == null || right == null || left.size() != right.size()) return false;
+        for (int i=0; i<left.size(); i++) {
+            PlaylistStore.Channel a=left.get(i), b=right.get(i);
+            if (!a.name.equals(b.name) || !a.url.equals(b.url)
+                || !a.logoUrl.equals(b.logoUrl)) return false;
+        }
+        return true;
+    }
+
     private void refreshRemote(boolean userRequested) {
         new Thread(() -> {
             try {
                 List<PlaylistStore.Channel> updated=PlaylistStore.refresh(this);
                 runOnUiThread(() -> {
+                    boolean changed = !sameChannels(channels, updated);
                     channels=updated;
-                    // Also repaint the catalogue and new logos after an automatic refresh.
-                    render();
+                    // Avoid destroying the screen in the middle of a channel click
+                    // when an automatic refresh returns the same catalogue.
+                    if (userRequested || changed) render();
                 });
             } catch(Exception ex) {
                 if (userRequested) runOnUiThread(() -> showMessage("Remote catalogue unavailable. Saved channel list retained.",true));
