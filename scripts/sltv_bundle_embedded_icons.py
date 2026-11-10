@@ -67,9 +67,17 @@ def get_logo(url):
 def make_icon(c):
     out=placeholder(c)
     status="placeholder"
+    # The source logo for Sirasa TV in the reference database currently
+    # returns an HTTP error. Wikimedia Commons hosts the identical
+    # Sri Lankan broadcaster logo; do not substitute a foreign Sirasa.
+    alternatives=[]
     if c["logo"]:
+        alternatives.append(c["logo"])
+    if c["name"] in ("Sirasa TV","Sirasa HD","Sirasa TV²"):
+        alternatives.append("https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Sirasa_TV_Logo.png/500px-Sirasa_TV_Logo.png")
+    for candidate in alternatives:
         try:
-            original=get_logo(c["logo"])
+            original=get_logo(candidate)
             # Logos are shown on a light, deliberately neutral mat so both
             # black and white broadcaster marks can remain legible.
             out=Image.new("RGBA",SIZE,(237,241,249,255))
@@ -80,6 +88,7 @@ def make_icon(c):
             y=(SIZE[1]-fitted.height)//2
             out.alpha_composite(fitted,(x,y))
             status="logo"
+            break
         except Exception as exc:
             status="logo_download_failed_"+type(exc).__name__
     return (c, out.convert("RGB"),status)
