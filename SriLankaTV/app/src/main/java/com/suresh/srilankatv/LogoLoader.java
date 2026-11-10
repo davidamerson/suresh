@@ -29,7 +29,7 @@ public final class LogoLoader {
     private static String path(String name,String url) {
         try {
             MessageDigest digest=MessageDigest.getInstance("SHA-256");
-            byte[] data=digest.digest((name+"\u0000"+url).getBytes(StandardCharsets.UTF_8));
+            byte[] data=digest.digest((name+String.valueOf((char)0)+url).getBytes(StandardCharsets.UTF_8));
             StringBuilder key=new StringBuilder();
             for (int i=0;i<12;i++) {
                 key.append(Character.forDigit((data[i]>>>4)&15,16));
