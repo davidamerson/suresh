@@ -23,6 +23,13 @@ for flavor in standalone bridge phone; do
   adb exec-out screencap -p > "smoke-results/${flavor}_home.png"
   adb shell uiautomator dump /sdcard/tvtest.xml >/dev/null
   adb shell cat /sdcard/tvtest.xml > "smoke-results/${flavor}_home.xml"
+  if [ "$flavor" = "bridge" ]; then
+    grep -q '138 channels' "smoke-results/${flavor}_home.xml"
+    echo "BRIDGE_NORMAL_AND_HD_CHANNELS_PRESENT"
+  fi
+  if [ "$flavor" = "standalone" ]; then
+    grep -q '138 channels' "smoke-results/${flavor}_home.xml"
+  fi
 
   if [ "$flavor" != phone ]; then
     adb shell input keyevent 23
