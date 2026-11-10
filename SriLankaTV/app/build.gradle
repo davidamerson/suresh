@@ -1,35 +1,17 @@
-plugins {
-    id 'com.android.application'
-}
+plugins { id 'com.android.application' }
 android {
     namespace 'com.suresh.srilankatv'
     compileSdk 35
     defaultConfig {
-        applicationId 'com.suresh.srilankatv'
-        minSdk 23
+        applicationId 'com.suresh.tv'
+        minSdk 26
         targetSdk 32
-        versionCode 4
-        versionName '0.4.0'
+        versionCode 1
+        versionName '1.0.0'
+        resValue 'string', 'app_name', 'TV'
+        resValue 'string', 'prime_shortcut_description', 'Optional Prime remote button shortcut. It only observes the Prime key press to open TV.'
     }
     buildFeatures { buildConfig true }
-    flavorDimensions "mode"
-    productFlavors {
-        standalone {
-            dimension "mode"
-            applicationId "com.suresh.sltv.standalone"
-            resValue "string", "app_name", "Sri Lanka TV Independent"
-        }
-        phone {
-            dimension "mode"
-            applicationId "com.suresh.sltv.phone"
-            resValue "string", "app_name", "Sri Lanka TV Phone"
-        }
-        sltvbridge {
-            dimension "mode"
-            applicationId "com.suresh.sltv.bridge"
-            resValue "string", "app_name", "SLTV Channel Bridge"
-        }
-    }
     buildTypes {
         release { minifyEnabled false }
     }
