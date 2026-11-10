@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -111,6 +112,7 @@ public final class PlayerActivity extends Activity {
     private void tune(int wanted) {
         if(channels==null || channels.isEmpty())return;
         index=(wanted+channels.size())%channels.size();
+        Log.i("TV_CHANNEL","SELECT "+(index+1)+" "+channels.get(index).name);
         final PlaylistStore.Channel channel=channels.get(index);
         final int thisSerial=++serial;
         exoPlayer.stop();
