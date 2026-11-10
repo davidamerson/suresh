@@ -18,13 +18,20 @@ public final class PlaylistStore {
     private static final String PREFS = "srilankatv";
     private static final String CUSTOM_M3U = "custom_m3u";
     private static final String ONLINE_M3U = "cached_remote_m3u";
-    public static final String CATALOG_URL = "https://raw.githubusercontent.com/davidamerson/suresh/sltv-tv-phone-mouse-20261109/SriLankaTV/app/src/main/assets/verified_channels.m3u";
+    public static final String CATALOG_URL = "https://raw.githubusercontent.com/davidamerson/suresh/sltv-hd-logo-20261110/SriLankaTV/app/src/main/assets/verified_channels.m3u";
     private PlaylistStore() {}
 
     public static final class Channel {
         public final String name;
         public final String url;
-        public Channel(String name, String url) { this.name = name; this.url = url; }
+        public final String category;
+        public final String logoUrl;
+        public Channel(String name, String url, String category, String logoUrl) {
+            this.name = name;
+            this.url = url;
+            this.category = category;
+            this.logoUrl = logoUrl;
+        }
     }
 
     public static List<Channel> getChannels(Context context) {
@@ -48,15 +55,9 @@ public final class PlaylistStore {
     }
 
     private static List<Channel> filterForApp(List<Channel> all) {
-        if (!BuildConfig.FLAVOR.equals("sltvbridge")) return all;
-        List<Channel> selected = new ArrayList<>();
-        for (Channel ch : all) {
-            if (ch.url.startsWith("https://sltv-app.thundercat.workers.dev/")
-                || ch.url.startsWith("https://sltv-nice-face.thundercat.workers.dev/")) {
-                selected.add(ch);
-            }
-        }
-        return selected;
+        // The Bridge previously excluded *all* ordinary direct streams, leaving
+        // only SLTV-controlled worker routes. Show normal and HD together.
+        return all;
     }
 
     public static List<Channel> refresh(Context ctx) throws IOException {
@@ -92,6 +93,8 @@ public final class PlaylistStore {
     public static List<Channel> parse(String playlist) {
         List<Channel> items = new ArrayList<>();
         String title = "";
+        String category = "";
+        String logoUrl = "";
         try (BufferedReader reader = new BufferedReader(new StringReader(playlist))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -99,15 +102,28 @@ public final class PlaylistStore {
                 if (line.startsWith("#EXTINF:")) {
                     int comma = line.lastIndexOf(',');
                     title = comma >= 0 ? line.substring(comma + 1).trim() : "";
+                    category = attribute(line, "group-title");
+                    logoUrl = attribute(line, "tvg-logo");
                 } else if (line.startsWith("https://") || line.startsWith("http://")) {
                     if (items.size() >= 1000) break;
                     if (title.isEmpty()) title = "Channel " + (items.size() + 1);
-                    items.add(new Channel(title, line));
+                    items.add(new Channel(title, line, category, logoUrl));
                     title = "";
+                    category = "";
+                    logoUrl = "";
                 }
             }
         } catch (IOException ignored) {}
         return items;
+    }
+
+    private static String attribute(String line, String key) {
+        String start = key + "=\"";
+        int first = line.indexOf(start);
+        if (first < 0) return "";
+        first += start.length();
+        int last = line.indexOf('"', first);
+        return last < 0 ? "" : line.substring(first, last);
     }
 
     public static String readAll(InputStream input) throws IOException {
