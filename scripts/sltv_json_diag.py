@@ -22,6 +22,8 @@ for name,url in samples:
         try:
             parsed=json.loads(payload)
             print("JSON_SCHEMA",name,json.dumps(describe(parsed),ensure_ascii=False))
+            data=parsed.get("data") or {}
+            print("HD_FLAGS",name,json.dumps({"status":parsed.get("status"),"drm":data.get("drm"),"type":data.get("type"),"blocked":(data.get("current") or {}).get("blocked"),"has_url":bool(data.get("url"))},ensure_ascii=False))
         except Exception as e:
             print("NOT_JSON",name,type(e).__name__)
     except urllib.error.HTTPError as e:
