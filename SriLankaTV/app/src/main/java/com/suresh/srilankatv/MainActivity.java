@@ -106,8 +106,8 @@ public final class MainActivity extends Activity {
         setContentView(scroll);
 
         boolean bridge = BuildConfig.FLAVOR.equals("sltvbridge");
-        content.addView(label(bridge ? "SLTV CHANNEL BRIDGE" :
-            (phone ? "SRI LANKA TV PHONE" : "SRI LANKA TV INDEPENDENT"),
+        content.addView(label(bridge ? "SLTV CHANNEL BRIDGE · v0.4" :
+            (phone ? "SRI LANKA TV PHONE · v0.4" : "SRI LANKA TV INDEPENDENT · v0.4"),
             phone ? 24 : 30, Color.WHITE, true));
         content.addView(label(bridge
             ? "Normal channels + HD routes • HD may require official Widevine access"
@@ -116,7 +116,7 @@ public final class MainActivity extends Activity {
         boolean isCustom = PlaylistStore.usingCustom(this);
         content.addView(label(
             (isCustom ? "Imported list • " : "Observed sources (not all verified) • ")
-            + channels.size() + " channels", 19, Color.rgb(255, 202, 69), true));
+            + channels.size() + " channels • offline icons built in", 19, Color.rgb(255, 202, 69), true));
 
 
         if (bridge) {
@@ -152,14 +152,17 @@ public final class MainActivity extends Activity {
         for (int i = 0; i < channels.size(); i++) {
             final int index = i;
             PlaylistStore.Channel channel = channels.get(i);
-            Button b = action((channel.logoUrl.isEmpty() ? "▣  " : "") + (i + 1) + "  " + channel.name);
+            Button b = action((i + 1) + "  " + channel.name);
             b.setTextSize(phone ? 14 : 15);
-            b.setPadding(dp(8), dp(3), dp(6), dp(3));
-            // The icon is tied to this channel's exact name in the M3U entry.
-            LogoLoader.attach(this, b, channel.logoUrl);
+            b.setPadding(dp(8), dp(4), dp(8), dp(4));
+            // Load the channel-specific logo or neutral TV placeholder directly
+            // from the APK. No network access is needed for icons.
+            if (!LogoLoader.attach(this, b, channel)) {
+                b.setText("▣  " + (i + 1) + "  " + channel.name);
+            }
             GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
             lp.width = dp(channelWidthDp);
-            lp.height = dp(82);
+            lp.height = dp(phone ? 133 : 124);
             lp.setMargins(dp(8), dp(8), dp(8), dp(8));
             grid.addView(b, lp);
             b.setOnClickListener(view -> {
