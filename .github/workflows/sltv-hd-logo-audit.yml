@@ -1,0 +1,23 @@
+name: Diagnose SLTV normal vs HD and inventory channel logos
+on:
+  push:
+    branches: [sltv-hd-logo-20261110]
+    paths: [".github/workflows/sltv-hd-logo-audit.yml","scripts/sltv_audit_public.py"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check public stream response types and public channel logos
+        run: python3 -u scripts/sltv_audit_public.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SLTV-HD-Logo-Public-Audit
+          path: sltv_audit/
+          retention-days: 14
+          if-no-files-found: warn
