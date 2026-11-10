@@ -1,319 +1,174 @@
 package com.suresh.srilankatv;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.Window;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.view.View;
-import org.json.JSONObject;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
-
-import androidx.annotation.OptIn;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
-import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
+import androidx.media3.ui.AspectRatioFrameLayout;
 
 import java.util.List;
 import java.util.Locale;
 
+/** Immersive, no playback buttons. Up=previous, down=next, Back=channel grid. */
 public final class PlayerActivity extends Activity {
-    private ExoPlayer player;
-    private PlayerView playerView;
-    private TextView channelTitle;
-    private TextView status;
     private List<PlaylistStore.Channel> channels;
-    private int currentIndex;
-    private boolean currentWorker;
-    private boolean attemptedDash;
-    private Button normalFallbackButton;
-    private Button openOfficialButton;
-    private int normalFallbackIndex = -1;
-    private int requestedChannel = 0;
+    private ExoPlayer exoPlayer;
+    private PlayerView view;
+    private TextView overlay;
+    private TextView message;
+    private int index;
+    private int serial=0;
+    private final Handler main=new Handler(Looper.getMainLooper());
+    private Runnable hideOverlay;
 
-    @Override public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setRequestedOrientation(BuildConfig.FLAVOR.equals("phone")
-            ? ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN |
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    private int dp(float v){return (int)(v*getResources().getDisplayMetrics().density+.5f);}
+
+    private void immersive(){
         getWindow().getDecorView().setSystemUiVisibility(
-            4 | 1024 | 4096 | 2);
-        channels = PlaylistStore.getChannels(this);
-        if (channels.isEmpty()) { finish(); return; }
-        currentIndex = Math.max(0, Math.min(
-            getIntent().getIntExtra("channel_index", 0), channels.size() - 1));
+            View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+    }
 
-        FrameLayout root = new FrameLayout(this);
+    @Override public void onCreate(Bundle state) {
+        super.onCreate(state);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+            WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        immersive();
+        channels=PlaylistStore.getChannels(this);
+        if(channels.size()!=22){finish();return;}
+        FrameLayout root=new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
-        playerView = new PlayerView(this);
-        playerView.setUseController(false);
-        playerView.setFocusable(true);
-        root.addView(playerView, new FrameLayout.LayoutParams(-1, -1));
+        view=new PlayerView(this);
+        view.setUseController(false);
+        view.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+        view.setFocusable(false);
+        root.addView(view,new FrameLayout.LayoutParams(-1,-1));
 
-        channelTitle = new TextView(this);
-        channelTitle.setTextSize(23);
-        channelTitle.setTextColor(Color.WHITE);
-        channelTitle.setShadowLayer(3f, 1f, 2f, Color.BLACK);
-        channelTitle.setPadding(dp(24), dp(12), dp(24), dp(12));
-        FrameLayout.LayoutParams titleParams = new FrameLayout.LayoutParams(-2, -2,
-                Gravity.TOP | Gravity.LEFT);
-        root.addView(channelTitle, titleParams);
+        overlay=new TextView(this);
+        overlay.setTextSize(21);
+        overlay.setTextColor(Color.WHITE);
+        overlay.setTypeface(null,1);
+        overlay.setPadding(dp(20),dp(11),dp(20),dp(11));
+        overlay.setBackgroundColor(0xB9091A29);
+        FrameLayout.LayoutParams titleP=new FrameLayout.LayoutParams(-2,-2,
+            Gravity.TOP|Gravity.LEFT);
+        titleP.setMargins(dp(24),dp(20),0,0);
+        root.addView(overlay,titleP);
 
-        status = new TextView(this);
-        status.setTextColor(Color.WHITE);
-        status.setTextSize(17);
-        status.setPadding(dp(20), dp(14), dp(20), dp(14));
-        status.setGravity(Gravity.CENTER);
-        FrameLayout.LayoutParams statusParams = new FrameLayout.LayoutParams(
-                -1, -2, Gravity.CENTER);
-        root.addView(status, statusParams);
-        normalFallbackButton = controlButton("Try normal stream (not HD)");
-        normalFallbackButton.setVisibility(View.GONE);
-        FrameLayout.LayoutParams normalParams = new FrameLayout.LayoutParams(
-            dp(250), dp(56), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        normalParams.bottomMargin = dp(76);
-        root.addView(normalFallbackButton, normalParams);
-        normalFallbackButton.setOnClickListener(v -> {
-            if (normalFallbackIndex >= 0) play(normalFallbackIndex);
-        });
-        openOfficialButton = controlButton("Open original SLTV app");
-        openOfficialButton.setVisibility(View.GONE);
-        FrameLayout.LayoutParams officialParams = new FrameLayout.LayoutParams(
-            dp(250), dp(54), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        officialParams.bottomMargin = dp(137);
-        root.addView(openOfficialButton, officialParams);
-        openOfficialButton.setOnClickListener(v -> {
-            Intent original = getPackageManager().getLaunchIntentForPackage("com.sltv.app");
-            if (original != null) startActivity(original);
-            else status.setText("Original SLTV app is not installed on this device.");
-        });
-        // Visible on-screen controls work with a mouse on TV and with touch on phones.
-        // TV remotes can also use D-pad Up/Down, OK and Back.
-        LinearLayout buttons = new LinearLayout(this);
-        buttons.setOrientation(LinearLayout.HORIZONTAL);
-        buttons.setGravity(Gravity.CENTER);
-        buttons.setPadding(dp(5), dp(3), dp(5), dp(3));
-        buttons.setBackgroundColor(Color.argb(205, 13, 22, 36));
-        Button previous = controlButton("◀ Prev");
-        Button pause = controlButton("Play/Pause");
-        Button next = controlButton("Next ▶");
-        Button back = controlButton("Back");
-        buttons.addView(previous, new LinearLayout.LayoutParams(0, -1, 1f));
-        buttons.addView(pause, new LinearLayout.LayoutParams(0, -1, 1f));
-        buttons.addView(next, new LinearLayout.LayoutParams(0, -1, 1f));
-        buttons.addView(back, new LinearLayout.LayoutParams(0, -1, 1f));
-        FrameLayout.LayoutParams controlsLayout = new FrameLayout.LayoutParams(
-            -1, dp(68), Gravity.BOTTOM);
-        root.addView(buttons, controlsLayout);
-        previous.setOnClickListener(v -> play(currentIndex - 1));
-        next.setOnClickListener(v -> play(currentIndex + 1));
-        pause.setOnClickListener(v -> {
-            if (player != null) {
-                if (player.isPlaying()) player.pause();
-                else player.play();
-            }
-        });
-        back.setOnClickListener(v -> finish());
+        message=new TextView(this);
+        message.setTextSize(21);
+        message.setTextColor(0xFFE7F0F8);
+        message.setGravity(Gravity.CENTER);
+        message.setPadding(dp(35),dp(23),dp(35),dp(23));
+        message.setBackgroundColor(0xBD091624);
+        message.setVisibility(View.GONE);
+        FrameLayout.LayoutParams messageP=new FrameLayout.LayoutParams(dp(650),-2,
+            Gravity.CENTER);
+        root.addView(message,messageP);
         setContentView(root);
 
-        player = new ExoPlayer.Builder(this).build();
-        playerView.setPlayer(player);
-        player.addListener(new Player.Listener() {
-            @Override public void onPlayerError(PlaybackException error) {
-                // No blind DASH retry: the SLTV worker path typically returns
-                // JSON metadata, which is neither an HLS nor a DASH manifest.
-                status.setText("Playback failed: " + error.getErrorCodeName() + "\n"
-                    + "This source may be unavailable or require provider authorization.\n"
-                    + "Try a normal channel or return to the channel list.");
+        exoPlayer=new ExoPlayer.Builder(this).build();
+        view.setPlayer(exoPlayer);
+        exoPlayer.addListener(new Player.Listener(){
+            @Override public void onPlayerError(PlaybackException e){
+                message.setText("This stream could not be played.\n"
+                    + "Check the connection or stream availability.\n"
+                    + "UP / DOWN: change channel   •   BACK: channel list");
+                message.setVisibility(View.VISIBLE);
             }
-            @Override public void onPlaybackStateChanged(int state) {
-                if (state == Player.STATE_READY) {
-                    status.setText("");
-                } else if (state == Player.STATE_BUFFERING) {
-                    status.setText("Connecting to channel…");
-                }
+            @Override public void onPlaybackStateChanged(int state){
+                if(state==Player.STATE_READY) message.setVisibility(View.GONE);
             }
         });
-        play(currentIndex);
+        index=Math.max(0,Math.min(21,getIntent().getIntExtra("channel_index",0)));
+        tune(index);
     }
 
-    private Button controlButton(String text) {
-        Button b = new Button(this);
-        b.setText(text);
-        b.setTextSize(BuildConfig.FLAVOR.equals("phone") ? 12 : 15);
-        b.setAllCaps(false);
-        b.setFocusable(true);
-        b.setFocusableInTouchMode(true);
-        return b;
+    private void showTemporaryTitle(String title) {
+        overlay.setVisibility(View.VISIBLE);
+        overlay.setText(title);
+        if(hideOverlay!=null)main.removeCallbacks(hideOverlay);
+        hideOverlay=()->overlay.setVisibility(View.GONE);
+        main.postDelayed(hideOverlay,1900);
     }
 
-    private int dp(int v) {
-        return (int)(v * getResources().getDisplayMetrics().density + .5f);
-    }
-
-    private static String nameKey(String name) {
-        String n = name.toLowerCase(Locale.ROOT)
-            .replace("\u200e", "").replace("\u200f", "").replace("²", "")
-            .replaceAll("\\b(hd|sd|ultra|tv)\\b", "")
-            .replaceAll("[^a-z0-9]", "");
-        return n.replace("dearana", "derana")
-                .replace("rupawahini", "rupavahini")
-                .replace("swarnawahini", "swarnavahini");
-    }
-
-    private int findNormal(int selected) {
-        String wanted = nameKey(channels.get(selected).name);
-        if (wanted.isEmpty()) return -1;
-        for (int i = 0; i < channels.size(); i++) {
-            if (i == selected) continue;
-            PlaylistStore.Channel c = channels.get(i);
-            if (c.url.contains(".thundercat.workers.dev/")) continue;
-            if (nameKey(c.name).equals(wanted)) return i;
-        }
-        return -1;
-    }
-
-    private void directPlay(String address, String mimeType) {
-        MediaItem.Builder builder = new MediaItem.Builder().setUri(address);
-        if (mimeType != null) builder.setMimeType(mimeType);
-        player.setMediaItem(builder.build());
-        player.prepare();
-        player.play();
-    }
-
-    private void inspectWorker(String address, int requestId) {
-        new Thread(() -> {
-            HttpURLConnection conn = null;
-            String outcome = null;
-            String playableMime = null;
-            try {
-                conn = (HttpURLConnection)new URL(address).openConnection();
-                conn.setConnectTimeout(7500);
-                conn.setReadTimeout(7500);
-                conn.setRequestProperty("Accept",
-                    "application/json,application/vnd.apple.mpegurl,application/dash+xml,*/*");
-                int statusCode=conn.getResponseCode();
-                if (statusCode != 200 && statusCode != 206) {
-                    outcome="SLTV server returned HTTP " + statusCode + ".\n"
-                        + "Try a normal channel or use the original app.";
-                } else {
-                    String contentType=String.valueOf(conn.getContentType()).toLowerCase(Locale.ROOT);
-                    if (contentType.contains("json")) {
-                        // Read only public channel metadata. Do not save or reuse private
-                        // licence proxies, signed URLs, access tokens or subscriber details.
-                        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-                        try (InputStream stream=conn.getInputStream()) {
-                            byte[] chunk=new byte[4096]; int read;
-                            while ((read=stream.read(chunk))>0 && buf.size()<15000) {
-                                buf.write(chunk,0,Math.min(read,15000-buf.size()));
-                            }
-                        }
-                        JSONObject root=new JSONObject(buf.toString("UTF-8"));
-                        JSONObject data=root.optJSONObject("data");
-                        JSONObject drm=data==null?null:data.optJSONObject("drm");
-                        if (drm!=null && (drm.optBoolean("widevine")
-                            || drm.optBoolean("verimatrix") || drm.optBoolean("fairplay"))) {
-                            outcome="This HD stream requires authorized DRM playback.\n"
-                                + "SLTV's JSON response is not a video playlist.\n"
-                                + "Try the normal stream below, or use the original SLTV app for authorized HD.";
-                        } else {
-                            outcome="This SLTV route supplies JSON metadata, not a direct video playlist.\n"
-                                + "Try the normal stream or use the original SLTV app.";
-                        }
-                    } else if (contentType.contains("mpegurl")) {
-                        playableMime=MimeTypes.APPLICATION_M3U8;
-                    } else if (contentType.contains("dash+xml")) {
-                        playableMime=MimeTypes.APPLICATION_MPD;
-                    } else {
-                        outcome="This SLTV route did not return a supported public HLS/DASH playlist.\n"
-                            + "Try a normal channel.";
-                    }
-                }
-            } catch (Exception e) {
-                outcome="Could not read this SLTV route (" + e.getClass().getSimpleName()
-                    + "). Try a normal channel.";
-            } finally {
-                if (conn != null) conn.disconnect();
-            }
-            final String result=outcome;
-            final String mime=playableMime;
-            runOnUiThread(() -> {
-                if (requestedChannel != requestId || isFinishing()) return;
-                if (mime!=null) directPlay(address,mime);
-                else status.setText(result);
-            });
-        },"sltv-public-metadata-check").start();
-    }
-
-    private void play(int index) {
-        if (channels == null || channels.isEmpty()) return;
-        requestedChannel++;
-        int requestId=requestedChannel;
-        currentIndex=(index % channels.size() + channels.size()) % channels.size();
-        PlaylistStore.Channel channel=channels.get(currentIndex);
-        channelTitle.setText(channel.name + "    (" + (currentIndex + 1)
-                + "/" + channels.size() + ")");
-        status.setText("Connecting to channel…");
-        player.stop();
-        player.clearMediaItems();
-        currentWorker=channel.url.contains(".thundercat.workers.dev/");
-        normalFallbackIndex=currentWorker ? findNormal(currentIndex) : -1;
-        normalFallbackButton.setVisibility(normalFallbackIndex < 0 ? View.GONE : View.VISIBLE);
-        openOfficialButton.setVisibility(currentWorker ? View.VISIBLE : View.GONE);
-        if (currentWorker) {
-            inspectWorker(channel.url,requestId);
+    private void tune(int wanted) {
+        if(channels==null || channels.isEmpty())return;
+        index=(wanted+channels.size())%channels.size();
+        final PlaylistStore.Channel channel=channels.get(index);
+        final int thisSerial=++serial;
+        exoPlayer.stop();
+        exoPlayer.clearMediaItems();
+        message.setVisibility(View.GONE);
+        showTemporaryTitle(String.format(Locale.ROOT,"%02d  %s",index+1,channel.name));
+        if(channel.url.contains(".thundercat.workers.dev/")){
+            // This endpoint advertises Widevine licensing. Never treat the
+            // JSON response as an HLS or DASH video manifest.
+            message.setText(channel.name+"\n\n"
+                +"The SLTV source uses protected playback requiring a provider licence.\n"
+                +"Use the authorized original SLTV application for this channel.\n\n"
+                +"UP / DOWN: change channel    •    BACK: channel list");
+            message.setVisibility(View.VISIBLE);
             return;
         }
-        String path=channel.url.toLowerCase(Locale.ROOT).split("\\?")[0];
-        String mime=path.endsWith(".m3u8") ? MimeTypes.APPLICATION_M3U8
-            : (path.endsWith(".mpd") ? MimeTypes.APPLICATION_MPD : null);
-        directPlay(channel.url,mime);
+        MediaItem.Builder item=new MediaItem.Builder().setUri(channel.url);
+        String p=channel.url.toLowerCase(Locale.ROOT).split("\\?")[0];
+        if(p.endsWith(".m3u8"))item.setMimeType(MimeTypes.APPLICATION_M3U8);
+        if(p.endsWith(".mpd"))item.setMimeType(MimeTypes.APPLICATION_MPD);
+        exoPlayer.setMediaItem(item.build());
+        exoPlayer.prepare();
+        exoPlayer.play();
     }
 
-    @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-            play(currentIndex + 1); return true;
+    @Override public boolean onKeyDown(int code,KeyEvent event) {
+        switch(code) {
+          case KeyEvent.KEYCODE_DPAD_UP:
+          case KeyEvent.KEYCODE_CHANNEL_UP:
+              tune(index-1);return true;
+          case KeyEvent.KEYCODE_DPAD_DOWN:
+          case KeyEvent.KEYCODE_CHANNEL_DOWN:
+              tune(index+1);return true;
+          case KeyEvent.KEYCODE_BACK:
+              finish();return true;
+          case KeyEvent.KEYCODE_DPAD_CENTER:
+          case KeyEvent.KEYCODE_ENTER:
+          case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+              if(exoPlayer!=null && exoPlayer.getMediaItemCount()>0){
+                  if(exoPlayer.isPlaying())exoPlayer.pause();
+                  else exoPlayer.play();
+              }
+              return true;
         }
-        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            play(currentIndex - 1); return true;
-        }
-        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER
-                || keyCode == KeyEvent.KEYCODE_ENTER
-                || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
-            if (player != null) {
-                if (player.isPlaying()) player.pause(); else player.play();
-                return true;
-            }
-        }
-        return super.onKeyDown(keyCode, event);
+        return super.onKeyDown(code,event);
     }
 
-    @Override protected void onStop() {
-        super.onStop();
-        if (player != null) player.pause();
+    @Override public void onBackPressed() { finish(); }
+
+    @Override public void onWindowFocusChanged(boolean focus){
+        super.onWindowFocusChanged(focus);
+        if(focus)immersive();
     }
 
     @Override protected void onDestroy() {
-        if (playerView != null) playerView.setPlayer(null);
-        if (player != null) player.release();
+        if(hideOverlay!=null)main.removeCallbacks(hideOverlay);
+        if(view!=null)view.setPlayer(null);
+        if(exoPlayer!=null)exoPlayer.release();
         super.onDestroy();
     }
 }
