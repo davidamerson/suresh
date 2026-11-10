@@ -1,0 +1,45 @@
+name: Publish SLTV v0.4 APKs to GitHub Releases
+on:
+  push:
+    branches: [sltv-embedded-logos-v04-20261110]
+    paths: [".github/workflows/publish-sltv-v04.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve tested v0.4 APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh run download 42777314693 --repo "$GITHUB_REPOSITORY" --name SLTV-v04-Offline-Channel-Logos-APKs --dir dist
+          for file in dist/*v04*.apk; do sha256sum "$file"; done
+          test "$(find dist -maxdepth 1 -name '*v04*.apk' | wc -l)" -eq 3
+          python3 - <<'PY'
+          import glob,zipfile
+          for name in glob.glob('dist/*v04*.apk'):
+              with zipfile.ZipFile(name) as z:
+                  icons=[n for n in z.namelist() if n.startswith('assets/logos/') and n.endswith('.png')]
+                  assert len(icons)==138,(name,len(icons))
+                  print('VERIFIED_PACKAGE_ICONS',name,len(icons),flush=True)
+          PY
+      - name: Create public GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag='sltv-v0.4-20261110'
+          notes='Sri Lanka TV v0.4. All 138 channel icons are embedded in the APK (73 actual public logos and placeholders for unavailable logos). Supports TV remote, mouse, phone. HD DRM streams require authorized licensing. No DRM bypass. Verified via GitHub Actions run 42777314693.'
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/*v04*.apk --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$tag" dist/*v04*.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "SLTV v0.4 Offline Logos for TV and Phone" --notes "$notes" --latest=false
+          fi
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json url,assets --jq '{url:.url,assets:[.assets[].name]}'
