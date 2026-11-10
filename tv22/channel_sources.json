@@ -1,0 +1,178 @@
+[
+  {
+    "number": 1,
+    "label": "Rupawahini",
+    "original_name": "Rupawahini‎",
+    "url": "https://str001.peotv.lk/ndrm/live/rupavahini/master.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/vgHTfR0.png"
+  },
+  {
+    "number": 2,
+    "label": "ITN",
+    "original_name": "ITN‎",
+    "url": "https://str001.peotv.lk/ndrm/live/itn/master.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/NLu3guG.png"
+  },
+  {
+    "number": 3,
+    "label": "Sirasa TV",
+    "original_name": "Sirasa TV",
+    "url": "https://str001.peotv.lk/ndrm/live/sirasa/master.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Sirasa_TV_Logo.png/500px-Sirasa_TV_Logo.png"
+  },
+  {
+    "number": 4,
+    "label": "Derana",
+    "original_name": "Derana SD",
+    "url": "https://str001.peotv.lk/ndrm/live/derana/master.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/vToOI2s.png"
+  },
+  {
+    "number": 5,
+    "label": "Hiru",
+    "original_name": "Hiru",
+    "url": "https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/M66UqPB.png"
+  },
+  {
+    "number": 6,
+    "label": "Swarnavahini",
+    "original_name": "Swarnavahini",
+    "url": "https://str001.peotv.lk/ndrm/live/swarnawahini/master.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/0hnpeq9.png"
+  },
+  {
+    "number": 7,
+    "label": "Siyatha TV",
+    "original_name": "Siyatha TV",
+    "url": "https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/9Zc8G7i.png"
+  },
+  {
+    "number": 8,
+    "label": "Shakthi",
+    "original_name": "Shakthi",
+    "url": "https://str001.peotv.lk/ndrm/live/shakthi/master.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/RX6IwK8.png"
+  },
+  {
+    "number": 9,
+    "label": "10 Cricket",
+    "original_name": "10 Cricket HD",
+    "url": "https://sltv-app.thundercat.workers.dev/tencricket",
+    "source_type": "provider",
+    "logo_url": ""
+  },
+  {
+    "number": 10,
+    "label": "Papare SD",
+    "original_name": "Papare SD",
+    "url": "https://sltv-app.thundercat.workers.dev/paparesd",
+    "source_type": "provider",
+    "logo_url": ""
+  },
+  {
+    "number": 11,
+    "label": "Papare HD",
+    "original_name": "Papare HD",
+    "url": "https://sltv-app.thundercat.workers.dev/paparetv1",
+    "source_type": "provider",
+    "logo_url": ""
+  },
+  {
+    "number": 12,
+    "label": "Sony1",
+    "original_name": "Sony1",
+    "url": "https://sltv-app.thundercat.workers.dev/sonysports1",
+    "source_type": "provider",
+    "logo_url": "https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_SONY_SPORTS_TEN_1/images/LOGO_HD/image.png"
+  },
+  {
+    "number": 13,
+    "label": "Sony Sport",
+    "original_name": "Sony Sports 2",
+    "url": "https://sltv-app.thundercat.workers.dev/sonysports2",
+    "source_type": "provider",
+    "logo_url": "https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_SONY_SPORTS_TEN_2/images/LOGO_HD/image.png"
+  },
+  {
+    "number": 14,
+    "label": "Star Sport 1",
+    "original_name": "Star Sports 1",
+    "url": "https://sltv-app.thundercat.workers.dev/starsports1",
+    "source_type": "provider",
+    "logo_url": "https://dtil.tmsimg.com/assets/s143835_ld_h15_aa.png?lock=720x540"
+  },
+  {
+    "number": 15,
+    "label": "Star Sport 2 HD",
+    "original_name": "Star Sports 2",
+    "url": "https://sltv-app.thundercat.workers.dev/starsports2",
+    "source_type": "provider",
+    "logo_url": ""
+  },
+  {
+    "number": 16,
+    "label": "Star Sport 3",
+    "original_name": "Star Sports 3",
+    "url": "https://sltv-app.thundercat.workers.dev/starsports3",
+    "source_type": "provider",
+    "logo_url": ""
+  },
+  {
+    "number": 17,
+    "label": "Mr Bean",
+    "original_name": "Mr Bean HD",
+    "url": "https://amg00627-amg00627c40-rakuten-uk-5725.playouts.now.amagi.tv/playlist/amg00627-banijayfast-mrbeanpopupcc-rakutenuk/playlist.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://d2yv6y0n3qsl5c.cloudfront.net/MBEANP/MrBeanLiveAction-LG_LOGO_800x200.png"
+  },
+  {
+    "number": 18,
+    "label": "Baby Shark",
+    "original_name": "Baby Shark TV",
+    "url": "https://newidco-babysharktv-1-eu.rakuten.wurl.tv/playlist.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/SbBKr8L.png"
+  },
+  {
+    "number": 19,
+    "label": "Lego Channel",
+    "original_name": "Lego Channel",
+    "url": "https://dh18i7whff86v.cloudfront.net/index.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://i.imgur.com/xePwW13.png"
+  },
+  {
+    "number": 20,
+    "label": "BBC Earth",
+    "original_name": "BBC Earth",
+    "url": "https://amg00793-bbcstudios-amg00793c3-lg-us-2528.playouts.now.amagi.tv/playlist/amg00793-bbcstudios-bbcearta-lgus/playlist.m3u8",
+    "source_type": "direct",
+    "logo_url": "https://upload.wikimedia.org/wikipedia/en/4/44/BBC_Earth_logo.png"
+  },
+  {
+    "number": 21,
+    "label": "&flix",
+    "original_name": "&flix",
+    "url": "https://sltv-app.thundercat.workers.dev/andflix",
+    "source_type": "provider",
+    "logo_url": ""
+  },
+  {
+    "number": 22,
+    "label": "Warner TV",
+    "original_name": "Warner Tv",
+    "url": "https://sltv-app.thundercat.workers.dev/warnertv",
+    "source_type": "provider",
+    "logo_url": ""
+  }
+]
