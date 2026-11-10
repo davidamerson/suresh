@@ -127,7 +127,7 @@ public final class PlayerActivity extends Activity {
             @Override public void onPlayerError(PlaybackException error) {
                 // No blind DASH retry: the SLTV worker path typically returns
                 // JSON metadata, which is neither an HLS nor a DASH manifest.
-                status.setText("Playback failed: " + error.errorCodeName + "\n"
+                status.setText("Playback failed: " + error.getErrorCodeName() + "\n"
                     + "This source may be unavailable or require provider authorization.\n"
                     + "Try a normal channel or return to the channel list.");
             }
