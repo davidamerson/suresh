@@ -1,0 +1,111 @@
+name: Build SLTV v0.4 embedded channel logos
+on:
+  push:
+    branches: [sltv-embedded-logos-v04-20261110]
+    paths:
+      - ".github/workflows/build-sltv-v04.yml"
+      - "SriLankaTV/**"
+      - "scripts/sltv_bundle_embedded_icons.py"
+      - "scripts/sltv_input_smoke.sh"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 32
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Build offline channel logos and placeholders
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10.0,<12'
+          python3 -u scripts/sltv_bundle_embedded_icons.py
+          count=$(find SriLankaTV/app/src/main/assets/logos -type f -name '*.png' | wc -l)
+          echo "Bundled channel icons: $count"
+          test "$count" -ge 130
+      - name: Save offline icon audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: SLTV-v04-icon-bundle-report
+          path: logo_bundle_report.json
+          retention-days: 30
+
+      - name: Build all three flavors
+        working-directory: SriLankaTV
+        run: gradle --no-daemon --stacktrace :app:assembleStandaloneDebug :app:assembleSltvbridgeDebug :app:assemblePhoneDebug
+      - name: Check package identities and save the three APKs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output_apks
+          cp SriLankaTV/app/build/outputs/apk/standalone/debug/app-standalone-debug.apk output_apks/SLTV_Independent_TV_Remote_Mouse.apk
+          cp SriLankaTV/app/build/outputs/apk/sltvbridge/debug/app-sltvbridge-debug.apk output_apks/SLTV_Channel_Bridge_TV_Remote_Mouse.apk
+          cp SriLankaTV/app/build/outputs/apk/phone/debug/app-phone-debug.apk output_apks/Sri_Lanka_TV_Android_Phone.apk
+          cp output_apks/SLTV_Independent_TV_Remote_Mouse.apk output_apks/SLTV_Independent_v04_OfflineLogos.apk
+          cp output_apks/SLTV_Channel_Bridge_TV_Remote_Mouse.apk output_apks/SLTV_Bridge_v04_OfflineLogos.apk
+          cp output_apks/Sri_Lanka_TV_Android_Phone.apk output_apks/SLTV_Phone_v04_OfflineLogos.apk
+          python3 - <<'PY'
+          import zipfile,glob
+          for name in glob.glob('output_apks/*v04*.apk'):
+              with zipfile.ZipFile(name) as z:
+                  images=[n for n in z.namelist() if n.startswith('assets/logos/') and n.endswith('.png')]
+                  print('APK_EMBEDDED_CHANNEL_IMAGES',name,len(images),flush=True)
+                  assert len(images)>=130
+          PY
+          for file in output_apks/*.apk; do
+            test -s "$file"
+            echo "APK $file"
+            "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$file" | grep -E "^package:|^launchable-activity:" || true
+            sha256sum "$file"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SLTV-v04-Offline-Channel-Logos-APKs
+          path: output_apks/*.apk
+          retention-days: 30
+          if-no-files-found: error
+      - name: Enable emulator KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and exercise D-pad and touch/mouse selection
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 2048M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash scripts/sltv_input_smoke.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SLTV-v04-Icon-Screen-Remote-Test-Evidence
+          path: smoke-results/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Publish direct APK downloads in GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag='sltv-v0.4-20261110'
+          notes='SLTV v0.4: logos and neutral placeholders are packaged inside APKs for offline display, not loaded from external websites. 138 entries, normal Bridge channels, HD DRM diagnostic and normal-stream fallback, TV remote/mouse/touch compatible. DRM is NOT bypassed; authorized Widevine streams require the original provider app or an approved license.'
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" output_apks/SLTV_Independent_v03.apk output_apks/SLTV_Bridge_Normal_HD_v03.apk output_apks/SLTV_Android_Phone_v03.apk --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$tag" output_apks/SLTV_Independent_v03.apk output_apks/SLTV_Bridge_Normal_HD_v03.apk output_apks/SLTV_Android_Phone_v03.apk --repo "$GITHUB_REPOSITORY" --target "$(git rev-parse HEAD)" --title 'SLTV v0.4: Offline channel logos, normal TV streams and HD diagnostics' --notes "$notes" --latest=false
+          fi
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json url,assets --jq '{url:.url,assets:[.assets[].name]}'
