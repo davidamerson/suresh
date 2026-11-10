@@ -1,0 +1,97 @@
+name: Build and test TV 22-channel Xiaomi Google TV app
+on:
+  push:
+    branches: [tv-minimal-22-20261110]
+    paths:
+      - ".github/workflows/build-tv22.yml"
+      - "SriLankaTV/**"
+      - "scripts/tv22_remote_smoke.sh"
+      - "scripts/sltv_bundle_embedded_icons.py"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-test-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Generate bundled channel-specific icons
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<12'
+          python3 -u scripts/sltv_bundle_embedded_icons.py
+          test "$(find SriLankaTV/app/src/main/assets/logos -name '*.png' | wc -l)" -eq 22
+      - name: Build TV Android APK
+        working-directory: SriLankaTV
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+      - name: Validate package name, channel count, and offline icon count
+        run: |
+          set -euo pipefail
+          mkdir -p output_apks
+          cp SriLankaTV/app/build/outputs/apk/debug/app-debug.apk output_apks/TV.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging output_apks/TV.apk | tee tv22_badging.txt
+          grep -q "package: name='com.suresh.tv'" tv22_badging.txt
+          grep -q "application-label:'TV'" tv22_badging.txt
+          python3 - <<'PY'
+          import zipfile, re
+          with zipfile.ZipFile('output_apks/TV.apk') as z:
+              icons=[p for p in z.namelist() if p.startswith('assets/logos/') and p.endswith('.png')]
+              assert len(icons)==22,(len(icons),icons)
+              m3u=z.read('assets/verified_channels.m3u').decode('utf8')
+              assert len(re.findall(r'^#EXTINF:',m3u,re.M))==22
+              print('TV_PACKAGE_VERIFIED: exactly 22 ordered channels and 22 offline channel images')
+          PY
+          sha256sum output_apks/TV.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TV-22-APK
+          path: |
+            output_apks/TV.apk
+            logo_bundle_report.json
+            tv22_badging.txt
+          retention-days: 30
+          if-no-files-found: error
+      - name: Enable Android emulator KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verify remote D-pad, fullscreen, Back, mouse and service
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 2048M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash scripts/tv22_remote_smoke.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TV-22-Emulator-Tests
+          path: tv22_smoke/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish direct GitHub APK link
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag='tv-22-v1-20261110'
+          notes='TV app with 22 channels in exact requested order, full screen no controls, Up previous / Down next / Back home, embedded logos, custom launcher icon and optional Prime shortcut. DRM-protected sources require broadcaster authorization and may not play in this independent app. Build and emulator tests in Actions run '$GITHUB_RUN_ID'.'
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+             gh release upload "$tag" output_apks/TV.apk --clobber --repo "$GITHUB_REPOSITORY"
+          else
+             gh release create "$tag" output_apks/TV.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'TV - 22 channel Google TV app' --notes "$notes" --latest=false
+          fi
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json url,assets --jq '{url:.url,assets:[.assets[].name]}'
