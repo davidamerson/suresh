@@ -1,16 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <queries><package android:name="com.sltv.app"/></queries>
     <uses-feature android:name="android.software.leanback" android:required="false"/>
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
     <application
         android:label="@string/app_name"
-        android:icon="@android:drawable/ic_media_play"
-        android:banner="@drawable/tv_banner"
+        android:icon="@drawable/tv_app_icon"
+        android:banner="@drawable/tv_banner_new"
         android:theme="@android:style/Theme.Material.NoActionBar"
-        android:usesCleartextTraffic="true">
-        <activity android:name=".PlayerActivity" android:exported="false"/>
+        android:usesCleartextTraffic="false">
+        <activity android:name=".PlayerActivity" android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"/>
+        <activity android:name=".ShortcutHelpActivity" android:exported="false"/>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -18,5 +19,16 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
             </intent-filter>
         </activity>
+        <service android:name=".PrimeButtonAccessibilityService"
+            android:label="TV Prime button shortcut"
+            android:description="@string/prime_shortcut_description"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice"
+                android:resource="@xml/tv_key_service"/>
+        </service>
     </application>
 </manifest>
