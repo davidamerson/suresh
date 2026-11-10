@@ -15,7 +15,7 @@ https://str001.peotv.lk/ndrm/live/swarnawahini/master.m3u8
 https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8
 #EXTINF:-1 tvg-id="8" group-title="Local" tvg-logo="https://i.imgur.com/RX6IwK8.png",Shakthi
 https://str001.peotv.lk/ndrm/live/shakthi/master.m3u8
-#EXTINF:-1 tvg-id="9" tvg-logo="https://commons.wikimedia.org/wiki/Special:FilePath/Ten_Cricket.png" group-title="Sports",10 Cricket
+#EXTINF:-1 tvg-id="9" tvg-logo="https://i.imgur.com/OEcDJ5T.png" group-title="Sports",10 Cricket
 https://sltv-app.thundercat.workers.dev/tencricket
 #EXTINF:-1 tvg-id="10" tvg-logo="https://i1.sndcdn.com/avatars-000150354014-mp0iaz-t1080x1080.jpg" group-title="Sports",Papare SD
 https://sltv-app.thundercat.workers.dev/paparesd
@@ -37,9 +37,9 @@ https://amg00627-amg00627c40-rakuten-uk-5725.playouts.now.amagi.tv/playlist/amg0
 https://newidco-babysharktv-1-eu.rakuten.wurl.tv/playlist.m3u8
 #EXTINF:-1 tvg-id="19" group-title="Kids" tvg-logo="https://i.imgur.com/xePwW13.png",Lego Channel
 https://dh18i7whff86v.cloudfront.net/index.m3u8
-#EXTINF:-1 tvg-id="20" group-title="Nature" tvg-logo="https://upload.wikimedia.org/wikipedia/en/4/44/BBC_Earth_logo.png",BBC Earth
+#EXTINF:-1 tvg-id="20" tvg-logo="https://ocdn.eu/ptv2-images/logo-migrated/bbc-earth-hd.jpg" group-title="Nature",BBC Earth
 https://amg00793-bbcstudios-amg00793c3-lg-us-2528.playouts.now.amagi.tv/playlist/amg00793-bbcstudios-bbcearta-lgus/playlist.m3u8
-#EXTINF:-1 tvg-id="21" tvg-logo="https://commons.wikimedia.org/wiki/Special:FilePath/And_flix_logo_2025.jpg" group-title="Movies",&flix
+#EXTINF:-1 tvg-id="21" tvg-logo="https://dtil.tmsimg.com/assets/GNLZZGG0022J67W.png" group-title="Movies",&flix
 https://sltv-app.thundercat.workers.dev/andflix
-#EXTINF:-1 tvg-id="22" group-title="Movies",Warner TV
+#EXTINF:-1 tvg-id="22" tvg-logo="https://mytv.com.vn/upload/channel/165.png" group-title="Movies",Warner TV
 https://sltv-app.thundercat.workers.dev/warnertv
