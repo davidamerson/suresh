@@ -12,6 +12,12 @@ import android.widget.FrameLayout;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.view.View;
+import org.json.JSONObject;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 
 import androidx.annotation.OptIn;
 import androidx.media3.common.MediaItem;
@@ -34,6 +40,9 @@ public final class PlayerActivity extends Activity {
     private int currentIndex;
     private boolean currentWorker;
     private boolean attemptedDash;
+    private Button normalFallbackButton;
+    private int normalFallbackIndex = -1;
+    private int requestedChannel = 0;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +83,15 @@ public final class PlayerActivity extends Activity {
         FrameLayout.LayoutParams statusParams = new FrameLayout.LayoutParams(
                 -1, -2, Gravity.CENTER);
         root.addView(status, statusParams);
+        normalFallbackButton = controlButton("Try normal stream (not HD)");
+        normalFallbackButton.setVisibility(View.GONE);
+        FrameLayout.LayoutParams normalParams = new FrameLayout.LayoutParams(
+            dp(250), dp(56), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        normalParams.bottomMargin = dp(76);
+        root.addView(normalFallbackButton, normalParams);
+        normalFallbackButton.setOnClickListener(v -> {
+            if (normalFallbackIndex >= 0) play(normalFallbackIndex);
+        });
         // Visible on-screen controls work with a mouse on TV and with touch on phones.
         // TV remotes can also use D-pad Up/Down, OK and Back.
         LinearLayout buttons = new LinearLayout(this);
@@ -107,19 +125,11 @@ public final class PlayerActivity extends Activity {
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
             @Override public void onPlayerError(PlaybackException error) {
-                if (currentWorker && !attemptedDash) {
-                    attemptedDash = true;
-                    status.setText("Retrying as DASH…");
-                    String streamUrl=channels.get(currentIndex).url;
-                    MediaItem fallback = new MediaItem.Builder().setUri(streamUrl)
-                        .setMimeType(MimeTypes.APPLICATION_MPD).build();
-                    player.setMediaItem(fallback);
-                    player.prepare();
-                    player.play();
-                    return;
-                }
-                status.setText("Unable to play this source (network or access restricted).\n"
-                    + "Up/Down: next channel   •   Back: channel list");
+                // No blind DASH retry: the SLTV worker path typically returns
+                // JSON metadata, which is neither an HLS nor a DASH manifest.
+                status.setText("Playback failed: " + error.errorCodeName + "\n"
+                    + "This source may be unavailable or require provider authorization.\n"
+                    + "Try a normal channel or return to the channel list.");
             }
             @Override public void onPlaybackStateChanged(int state) {
                 if (state == Player.STATE_READY) {
@@ -146,23 +156,122 @@ public final class PlayerActivity extends Activity {
         return (int)(v * getResources().getDisplayMetrics().density + .5f);
     }
 
-    private void play(int index) {
-        if (channels == null || channels.isEmpty()) return;
-        currentIndex = (index % channels.size() + channels.size()) % channels.size();
-        PlaylistStore.Channel channel = channels.get(currentIndex);
-        channelTitle.setText(channel.name + "    (" + (currentIndex + 1)
-                + "/" + channels.size() + ")");
-        status.setText("Connecting to channel…");
-        currentWorker = channel.url.contains(".thundercat.workers.dev/");
-        attemptedDash = false;
-        MediaItem.Builder builder = new MediaItem.Builder().setUri(channel.url);
-        if (currentWorker) builder.setMimeType(MimeTypes.APPLICATION_M3U8);
-        String path = channel.url.toLowerCase(Locale.ROOT).split("\\?")[0];
-        if (path.endsWith(".m3u8")) builder.setMimeType(MimeTypes.APPLICATION_M3U8);
-        else if (path.endsWith(".mpd")) builder.setMimeType(MimeTypes.APPLICATION_MPD);
+    private static String nameKey(String name) {
+        String n = name.toLowerCase(Locale.ROOT)
+            .replace("\u200e", "").replace("\u200f", "").replace("²", "")
+            .replaceAll("\\b(hd|sd|ultra|tv)\\b", "")
+            .replaceAll("[^a-z0-9]", "");
+        return n.replace("dearana", "derana")
+                .replace("rupawahini", "rupavahini")
+                .replace("swarnawahini", "swarnavahini");
+    }
+
+    private int findNormal(int selected) {
+        String wanted = nameKey(channels.get(selected).name);
+        if (wanted.isEmpty()) return -1;
+        for (int i = 0; i < channels.size(); i++) {
+            if (i == selected) continue;
+            PlaylistStore.Channel c = channels.get(i);
+            if (c.url.contains(".thundercat.workers.dev/")) continue;
+            if (nameKey(c.name).equals(wanted)) return i;
+        }
+        return -1;
+    }
+
+    private void directPlay(String address, String mimeType) {
+        MediaItem.Builder builder = new MediaItem.Builder().setUri(address);
+        if (mimeType != null) builder.setMimeType(mimeType);
         player.setMediaItem(builder.build());
         player.prepare();
         player.play();
+    }
+
+    private void inspectWorker(String address, int requestId) {
+        new Thread(() -> {
+            HttpURLConnection conn = null;
+            String outcome = null;
+            String playableMime = null;
+            try {
+                conn = (HttpURLConnection)new URL(address).openConnection();
+                conn.setConnectTimeout(7500);
+                conn.setReadTimeout(7500);
+                conn.setRequestProperty("Accept",
+                    "application/json,application/vnd.apple.mpegurl,application/dash+xml,*/*");
+                int statusCode=conn.getResponseCode();
+                if (statusCode != 200 && statusCode != 206) {
+                    outcome="SLTV server returned HTTP " + statusCode + ".\n"
+                        + "Try a normal channel or use the original app.";
+                } else {
+                    String contentType=String.valueOf(conn.getContentType()).toLowerCase(Locale.ROOT);
+                    if (contentType.contains("json")) {
+                        // Read only public channel metadata. Do not save or reuse private
+                        // licence proxies, signed URLs, access tokens or subscriber details.
+                        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+                        try (InputStream stream=conn.getInputStream()) {
+                            byte[] chunk=new byte[4096]; int read;
+                            while ((read=stream.read(chunk))>0 && buf.size()<15000) {
+                                buf.write(chunk,0,Math.min(read,15000-buf.size()));
+                            }
+                        }
+                        JSONObject root=new JSONObject(buf.toString("UTF-8"));
+                        JSONObject data=root.optJSONObject("data");
+                        JSONObject drm=data==null?null:data.optJSONObject("drm");
+                        if (drm!=null && (drm.optBoolean("widevine")
+                            || drm.optBoolean("verimatrix") || drm.optBoolean("fairplay"))) {
+                            outcome="This HD stream requires authorized DRM playback.\n"
+                                + "SLTV's JSON response is not a video playlist.\n"
+                                + "Try the normal stream below, or use the original SLTV app for authorized HD.";
+                        } else {
+                            outcome="This SLTV route supplies JSON metadata, not a direct video playlist.\n"
+                                + "Try the normal stream or use the original SLTV app.";
+                        }
+                    } else if (contentType.contains("mpegurl")) {
+                        playableMime=MimeTypes.APPLICATION_M3U8;
+                    } else if (contentType.contains("dash+xml")) {
+                        playableMime=MimeTypes.APPLICATION_MPD;
+                    } else {
+                        outcome="This SLTV route did not return a supported public HLS/DASH playlist.\n"
+                            + "Try a normal channel.";
+                    }
+                }
+            } catch (Exception e) {
+                outcome="Could not read this SLTV route (" + e.getClass().getSimpleName()
+                    + "). Try a normal channel.";
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+            final String result=outcome;
+            final String mime=playableMime;
+            runOnUiThread(() -> {
+                if (requestedChannel != requestId || isFinishing()) return;
+                if (mime!=null) directPlay(address,mime);
+                else status.setText(result);
+            });
+        },"sltv-public-metadata-check").start();
+    }
+
+    private void play(int index) {
+        if (channels == null || channels.isEmpty()) return;
+        requestedChannel++;
+        int requestId=requestedChannel;
+        currentIndex=(index % channels.size() + channels.size()) % channels.size();
+        PlaylistStore.Channel channel=channels.get(currentIndex);
+        channelTitle.setText(channel.name + "    (" + (currentIndex + 1)
+                + "/" + channels.size() + ")");
+        status.setText("Connecting to channel…");
+        player.stop();
+        player.clearMediaItems();
+        currentWorker=channel.url.contains(".thundercat.workers.dev/");
+        normalFallbackIndex=currentWorker ? findNormal(currentIndex) : -1;
+        normalFallbackButton.setVisibility(normalFallbackIndex < 0 ? View.GONE : View.VISIBLE);
+        if (currentWorker) {
+            inspectWorker(channel.url,requestId);
+            return;
+        }
+        String path=channel.url.toLowerCase(Locale.ROOT).split("\\?")[0];
+        String mime=path.endsWith(".m3u8") ? MimeTypes.APPLICATION_M3U8
+            : (path.endsWith(".mpd") ? MimeTypes.APPLICATION_MPD : null);
+        directPlay(channel.url,mime);
     }
 
     @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
