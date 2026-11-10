@@ -110,7 +110,7 @@ public final class MainActivity extends Activity {
             (phone ? "SRI LANKA TV PHONE" : "SRI LANKA TV INDEPENDENT"),
             phone ? 24 : 30, Color.WHITE, true));
         content.addView(label(bridge
-            ? "Live SLTV-hosted URLs • Requires server permission • Original SLTV fallback"
+            ? "Normal channels + HD routes • HD may require official Widevine access"
             : "Independent Android TV player • HLS/DASH • Remote control ready", 15,
             Color.rgb(169, 187, 210), false));
         boolean isCustom = PlaylistStore.usingCustom(this);
@@ -130,7 +130,7 @@ public final class MainActivity extends Activity {
                     else showMessage("Original SLTV is not installed, or is not visible to Android.",true);
                 } catch(Exception ex) { showMessage("Could not open original SLTV",true); }
             });
-            content.addView(label("No published SLTV channel deep-links were found. The button opens SLTV, not a selected channel. These hosted endpoints may return 403 in other apps.",14,Color.rgb(255,180,145),false));
+            content.addView(label("Normal channels are available below. HD channels may be Widevine-protected; this app cannot share the original SLTV login or decrypt protected broadcasts.",14,Color.rgb(255,180,145),false));
         }
         Button sync = action("REFRESH CHANNEL CATALOGUE");
         content.addView(sync,new LinearLayout.LayoutParams(dp(Math.min(420,availableDp)),dp(64)));
@@ -152,7 +152,11 @@ public final class MainActivity extends Activity {
         for (int i = 0; i < channels.size(); i++) {
             final int index = i;
             PlaylistStore.Channel channel = channels.get(i);
-            Button b = action((i + 1) + "   " + channel.name);
+            Button b = action((channel.logoUrl.isEmpty() ? "▣  " : "") + (i + 1) + "  " + channel.name);
+            b.setTextSize(phone ? 14 : 15);
+            b.setPadding(dp(8), dp(3), dp(6), dp(3));
+            // The icon is tied to this channel's exact name in the M3U entry.
+            LogoLoader.attach(this, b, channel.logoUrl);
             GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
             lp.width = dp(channelWidthDp);
             lp.height = dp(82);
@@ -261,7 +265,8 @@ public final class MainActivity extends Activity {
                 List<PlaylistStore.Channel> updated=PlaylistStore.refresh(this);
                 runOnUiThread(() -> {
                     channels=updated;
-                    if (userRequested) render();
+                    // Also repaint the catalogue and new logos after an automatic refresh.
+                    render();
                 });
             } catch(Exception ex) {
                 if (userRequested) runOnUiThread(() -> showMessage("Remote catalogue unavailable. Saved channel list retained.",true));
