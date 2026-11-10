@@ -1,6 +1,7 @@
 package com.suresh.srilankatv;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -41,6 +42,7 @@ public final class PlayerActivity extends Activity {
     private boolean currentWorker;
     private boolean attemptedDash;
     private Button normalFallbackButton;
+    private Button openOfficialButton;
     private int normalFallbackIndex = -1;
     private int requestedChannel = 0;
 
@@ -91,6 +93,17 @@ public final class PlayerActivity extends Activity {
         root.addView(normalFallbackButton, normalParams);
         normalFallbackButton.setOnClickListener(v -> {
             if (normalFallbackIndex >= 0) play(normalFallbackIndex);
+        });
+        openOfficialButton = controlButton("Open original SLTV app");
+        openOfficialButton.setVisibility(View.GONE);
+        FrameLayout.LayoutParams officialParams = new FrameLayout.LayoutParams(
+            dp(250), dp(54), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        officialParams.bottomMargin = dp(137);
+        root.addView(openOfficialButton, officialParams);
+        openOfficialButton.setOnClickListener(v -> {
+            Intent original = getPackageManager().getLaunchIntentForPackage("com.sltv.app");
+            if (original != null) startActivity(original);
+            else status.setText("Original SLTV app is not installed on this device.");
         });
         // Visible on-screen controls work with a mouse on TV and with touch on phones.
         // TV remotes can also use D-pad Up/Down, OK and Back.
@@ -264,6 +277,7 @@ public final class PlayerActivity extends Activity {
         currentWorker=channel.url.contains(".thundercat.workers.dev/");
         normalFallbackIndex=currentWorker ? findNormal(currentIndex) : -1;
         normalFallbackButton.setVisibility(normalFallbackIndex < 0 ? View.GONE : View.VISIBLE);
+        openOfficialButton.setVisibility(currentWorker ? View.VISIBLE : View.GONE);
         if (currentWorker) {
             inspectWorker(channel.url,requestId);
             return;
