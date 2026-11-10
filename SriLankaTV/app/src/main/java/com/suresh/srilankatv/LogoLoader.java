@@ -9,83 +9,62 @@ import android.util.LruCache;
 import android.view.Gravity;
 import android.widget.Button;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
 
 /**
- * Displays correctly matched channel logos from public logo metadata.
- * Unmatched entries keep a neutral TV placeholder instead of a guessed logo.
- * Downloads are performed off the UI thread and cached in memory.
+ * All channel icons are bundled locally with the APK. There are no
+ * asynchronous logo HTTP requests or network-dependent UI updates.
+ * Exact channel name and source address select the correct bundled image.
  */
 public final class LogoLoader {
     private LogoLoader() {}
-    private static final ExecutorService IO = Executors.newFixedThreadPool(4);
-    private static final LruCache<String, Bitmap> CACHE = new LruCache<String,Bitmap>(8192) {
+    private static final LruCache<String,Bitmap> CACHE = new LruCache<String,Bitmap>(16*1024) {
         @Override protected int sizeOf(String key, Bitmap value) {
             return Math.max(1,value.getByteCount()/1024);
         }
     };
 
-    private static void apply(Activity activity, Button button, String url, Bitmap image) {
-        if (activity.isFinishing() || image == null || !url.equals(button.getTag())) return;
-        int side = (int)(activity.getResources().getDisplayMetrics().density * 44 + 0.5f);
-        BitmapDrawable drawable = new BitmapDrawable(activity.getResources(), image);
-        drawable.setBounds(0,0,side,side);
-        button.setCompoundDrawablePadding((int)(5 * activity.getResources().getDisplayMetrics().density));
-        button.setCompoundDrawables(drawable,null,null,null);
-        button.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+    private static String path(String name,String url) {
+        try {
+            MessageDigest digest=MessageDigest.getInstance("SHA-256");
+            byte[] data=digest.digest((name+"\u0000"+url).getBytes(StandardCharsets.UTF_8));
+            StringBuilder key=new StringBuilder();
+            for (int i=0;i<12;i++) {
+                key.append(Character.forDigit((data[i]>>>4)&15,16));
+                key.append(Character.forDigit(data[i]&15,16));
+            }
+            return "logos/"+key+".png";
+        } catch (Exception e) {
+            return "";
+        }
     }
 
-    public static void attach(Activity activity, Button button, String url) {
-        if (url == null || !url.startsWith("https://")) return;
-        button.setTag(url);
-        Bitmap cached;
-        synchronized (CACHE) { cached = CACHE.get(url); }
-        if (cached != null) {
-            apply(activity,button,url,cached);
-            return;
-        }
-        IO.execute(() -> {
-            HttpURLConnection connection = null;
-            try {
-                connection = (HttpURLConnection) new URL(url).openConnection();
-                connection.setConnectTimeout(6000);
-                connection.setReadTimeout(8000);
-                connection.setRequestProperty("Accept", "image/png,image/jpeg,image/webp,image/*");
-                if (connection.getResponseCode() != 200) return;
-                String type = connection.getContentType();
-                if (type == null || !type.toLowerCase().startsWith("image/")) return;
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                try (InputStream input = connection.getInputStream()) {
-                    byte[] buffer = new byte[8192];
-                    int n;
-                    while ((n=input.read(buffer)) > 0) {
-                        if (bytes.size()+n > 800_000) return;
-                        bytes.write(buffer,0,n);
-                    }
-                }
-                byte[] data = bytes.toByteArray();
-                BitmapFactory.Options opts = new BitmapFactory.Options();
-                opts.inJustDecodeBounds = true;
-                BitmapFactory.decodeByteArray(data,0,data.length,opts);
-                if (opts.outWidth <= 0 || opts.outHeight <= 0) return;
-                int scale = 1;
-                while (Math.max(opts.outWidth/scale,opts.outHeight/scale)>300) scale*=2;
-                opts.inJustDecodeBounds = false;
-                opts.inSampleSize = scale;
-                Bitmap img=BitmapFactory.decodeByteArray(data,0,data.length,opts);
-                if (img == null) return;
-                synchronized (CACHE) { CACHE.put(url,img); }
-                activity.runOnUiThread(() -> apply(activity,button,url,img));
+    public static boolean attach(Activity activity, Button button,
+                                 PlaylistStore.Channel channel) {
+        String file=path(channel.name,channel.url);
+        if (file.isEmpty()) return false;
+        Bitmap image=CACHE.get(file);
+        if (image==null) {
+            try (InputStream stream=activity.getAssets().open(file)) {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inPreferredConfig=Bitmap.Config.RGB_565;
+                image=BitmapFactory.decodeStream(stream,null,options);
+                if (image!=null) CACHE.put(file,image);
             } catch (Exception ignored) {
-                // A failed logo is cosmetic; never prevent channel selection.
-            } finally {
-                if (connection != null) connection.disconnect();
+                return false;
             }
-        });
+        }
+        if (image==null) return false;
+        BitmapDrawable drawable=new BitmapDrawable(activity.getResources(),image);
+        float density=activity.getResources().getDisplayMetrics().density;
+        int imageW=(int)(96*density+0.5f);
+        int imageH=(int)(54*density+0.5f);
+        drawable.setBounds(0,0,imageW,imageH);
+        button.setCompoundDrawables(null,drawable,null,null);
+        button.setCompoundDrawablePadding((int)(5*density));
+        button.setGravity(Gravity.CENTER);
+        return true;
     }
 }
