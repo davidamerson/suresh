@@ -1,0 +1,67 @@
+name: XAUUSD TP6 SL3 User Correct MSS Signal Direction 2020-2026
+on:
+  push:
+    branches: [xauusd-group-signal-direction-correct-20261111]
+    paths:
+      - 'group_recovery/scenario_group_tp6_sl3.py'
+      - '.github/workflows/scenario-group-user-signal-tp6-sl3-20261111.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            label: full_continuous_2020_2026
+          - first: 2025
+            last: 2026
+            label: independent_2025_2026
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned Numba Pandas NumPy and HTTP
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Validate exact user scenarios 1 to 4 before real tick replay
+        run: |
+          python -m py_compile group_recovery/scenario_group_tp6_sl3.py
+          python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('group','group_recovery/scenario_group_tp6_sl3.py')
+          mod=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+          mod.selftest()
+          PY
+      - name: Download original H1 MSS signal reference artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p h1
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D h1 --repo davidamerson/suresh
+          test -s h1/complete_monday_friday_h1_candles.csv
+      - name: Exact Exness BID ASK tick replay with unlimited group recoveries
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p output/${{ matrix.label }}
+          python -u group_recovery/scenario_group_tp6_sl3.py \
+            --h1 h1/complete_monday_friday_h1_candles.csv \
+            --first ${{ matrix.first }} --last ${{ matrix.last }} \
+            --out output/${{ matrix.label }} \
+            2>&1 | tee output/${{ matrix.label }}/run.log
+      - name: Preserve all exact-ticket ledgers, groups and SHA256 source manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xauusd-user-signal-tp6-sl3-${{ matrix.label }}
+          path: output/${{ matrix.label }}/
+          retention-days: 30
+          if-no-files-found: warn
