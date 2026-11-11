@@ -402,19 +402,21 @@ def write_audit(s,folder,first,last,provenance,book):
         assert len(done)+len(fails)+len(other)==len(x)
         ticket=od[od.model==model]
         assert len(ticket)==int(s["no"][q])
-        for _,row in done.iterrows():
-            tp=int(((ticket.group_id==row.group_id)&(ticket.outcome=="TP")).sum())
-            if tp!=1:
-                raise AssertionError("Completed group did not end on exactly one TP")
-        # Independent per-group balance reconciles against own ticket ledger.
-        tickets_by_group=ticket.groupby("group_id",sort=False)
-        for groupid,tickets in tickets_by_group:
-            row=x[x.group_id==groupid].iloc[0]
-            closed=tickets[tickets.outcome!="OPEN"]
-            opened=tickets[tickets.outcome=="OPEN"]
-            expected=START+float(closed.realized_net_usd.sum())-float(opened.commission_usd.sum())
-            if abs(expected-row.terminal_balance_usd)>1e-4:
-                raise AssertionError("Group separate funding reconciliation failed "+str(groupid))
+        # Vectorized whole-ledger reconciliation; don't perform tens of
+        # thousands of O(number_of_tickets) repeated DataFrame scans.
+        tp_counts=ticket[ticket.outcome=="TP"].groupby("group_id").size()
+        if len(tp_counts)!=len(done) or not (tp_counts==1).all():
+            raise AssertionError("Not exactly one TP ticket per completed group")
+        if set(tp_counts.index)!=set(done.group_id):
+            raise AssertionError("TP tickets don't exactly match TP groups")
+        closed=ticket[ticket.outcome!="OPEN"].groupby("group_id").realized_net_usd.sum()
+        open_fees=ticket[ticket.outcome=="OPEN"].groupby("group_id").commission_usd.sum()
+        check=x.set_index("group_id")
+        exp=START+closed.reindex(check.index,fill_value=0.0)-open_fees.reindex(check.index,fill_value=0.0)
+        errors=(exp-check.terminal_balance_usd).abs()
+        if len(errors) and float(errors.max())>1e-4:
+            raise AssertionError("Funding mismatch in group "+str(errors.idxmax())+
+                                 " difference "+str(errors.max()))
         pnl=done.realized_pnl_usd.to_numpy(float)
         summaries.append(dict(
             model=model,first_year=first,last_year=last,
