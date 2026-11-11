@@ -117,8 +117,8 @@ def core(t,bids,asks,book,base,
                     gain=movement*(100.0*lot[q])
                     equity=balance[q]+gain
                     stopout=equity<=0.
-                    tp=(movement>=TP)
-                    sl=(movement<=-SL)
+                    tp=(movement>=TP-1e-9)
+                    sl=(movement<=-SL+1e-9)
                     if not (stopout or tp or sl):
                         break
                     k=ord_count[q]-1
