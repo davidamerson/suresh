@@ -1,0 +1,69 @@
+name: XAUUSD every H1 independently 100K BASE 0.01 TP10 SL5 2020-2026
+on:
+  push:
+    branches: [h1-every-hour-independent-100k-base001-tp10-sl5-20261111]
+    paths:
+      - 'h1_candle_recovery/independent_h1_groups_100k_base001_tp10_sl5.py'
+      - '.github/workflows/h1-every-independent-100k-base001-tp10-sl5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  tick_replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            label: full_all_eligible_hours_2020_to_2026Oct
+          - first: 2025
+            last: 2026
+            label: independent_OOS_2025_to_2026Oct
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install exact tick replay dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Preflight tests for four diagrams both directions and independent overlapping hourly paths
+        shell: bash
+        run: |
+          python -m py_compile h1_candle_recovery/independent_h1_groups_100k_base001_tp10_sl5.py
+          python - <<'PY'
+          import importlib.util
+          filename='h1_candle_recovery/independent_h1_groups_100k_base001_tp10_sl5.py'
+          sp=importlib.util.spec_from_file_location('hr',filename)
+          m=importlib.util.module_from_spec(sp)
+          sp.loader.exec_module(m)
+          m.selftest()
+          PY
+      - name: Get audited complete H1 prior-candle input artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p h1
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D h1 --repo davidamerson/suresh
+          test -s h1/complete_monday_friday_h1_candles.csv
+      - name: Replay public Exness Raw Spread actual bid ask quote ticks for EVERY independent hour
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.label }}
+          python -u h1_candle_recovery/independent_h1_groups_100k_base001_tp10_sl5.py \
+            --h1 h1/complete_monday_friday_h1_candles.csv \
+            --first ${{ matrix.first }} --last ${{ matrix.last }} \
+            --out results/${{ matrix.label }} \
+            2>&1 | tee results/${{ matrix.label }}/run.log
+      - name: Keep group-by-group outcomes, stages, source hashes and complete ticket ledger
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xauusd-every-H1-independent-100k-BASE001-${{ matrix.label }}
+          path: results/${{ matrix.label }}/
+          retention-days: 30
+          if-no-files-found: warn
