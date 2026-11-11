@@ -17,8 +17,7 @@ NO calendar/time/basket-based force exit. Per-group initial balance $100,000.
 
 True Ask BUY entry/Bid BUY exit, Bid SELL entry/Ask SELL exit, tick gaps
 included, $7 per lot roundtrip assumed Exness Raw Spread commission.
-Compare one analytical no-margin variant, 1:2000 margin and assumed
-day/night max-lot caps, and 1:200 all-hour stress. No swap, live latency,
+Compare one analytical no-margin variant, 1:2000 margin and XAUUSD-specific 200-lot cap both daytime and nighttime, and 1:200 all-hour stress. No swap, live latency,
 actual varying broker HMR calendar, broker negative balance protection.
 Use of same public H1 candle reference as previous confirmed backtests.
 """
@@ -91,7 +90,7 @@ def enter_order(q,g,newside,ns,bid,ask,gf,gi,tf,ti,no):
     lev=0.0 if q==0 else (2000.0 if q==1 else 200.0)
     margin=0.0 if lev==0.0 else ep*100.0*v/lev
     h=(ns//3600000000000)%24
-    maxlot=200.0 if 7<=h<=20 else 60.0
+    maxlot=200.0  # XAUUSD is a NIGHTTIME 200-lot exception in Exness instrument-specific FAQ
     fail=0
     if initial_equity<=0.0:
         fail=3
@@ -327,6 +326,22 @@ def selftest():
     for q in range(N):
         assert all(s["gf"][q,g,BAL]==START-.7 for g in range(3))
         assert all(s["gi"][q,g,NORD]==1 for g in range(3))
+    # Exness commodity-specific max XAUUSD is 200 lots both daytime and night.
+    # At night stage 12 requires 102.40 lots, which MUST be accepted if
+    # margin is sufficient. Stage 13 needs 204.80 lots and is rejected.
+    sn=state()
+    night=(1000+3)*3600000000000  # UTC 19h; use direct epoch hour below
+    night=21*3600000000000       # 21:00 UTC
+    sn["gf"][1,0,BAL]=START
+    sn["gi"][1,0,STAGE]=11  # .1 * 2^10 = 102.4
+    ok=enter_order(1,0,1,night,100.,100.,sn["gf"],sn["gi"],
+                   sn["tf"],sn["ti"],sn["no"])
+    assert ok and abs(sn["gf"][1,0,LOT]-102.4)<1e-8, "Night XAUUSD 102.4 rejected incorrectly"
+    sn["gf"][1,1,BAL]=START
+    sn["gi"][1,1,STAGE]=12
+    ok=enter_order(1,1,1,night,100.,100.,sn["gf"],sn["gi"],
+                   sn["tf"],sn["ti"],sn["no"])
+    assert not ok and int(sn["gi"][1,1,FAIL])==2, "XAUUSD over-200 cap ignored"
     print("SELFTEST_OK 4 linked group scenarios mirrored BUY/SELL, independently funded hourly overlapping paths",flush=True)
 
 def download(url,dst):
@@ -475,7 +490,7 @@ def write_audit(s,folder,first,last,provenance,book):
         no_forced_friday_time_or_data_end_exit=True,
         missing_real_swap=True,missing_real_HMR_schedule=True,
         missing_real_execution_latency=True,
-        lot_caps_day_night_assumption_USD_oz=[200,60],
+        XAUUSD_max_lots_day_and_night=200,
         independent_model_summaries=summaries,
         count_raw_valid_ticks=int(s["valid_ticks"][0]),
         source_zip_sha256=provenance)
