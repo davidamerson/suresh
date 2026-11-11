@@ -371,12 +371,12 @@ def selftest():
     sn=state()
     night=(1000+3)*3600000000000  # UTC 19h; use direct epoch hour below
     night=21*3600000000000       # 21:00 UTC
-    sn["gf"][1,0,BAL]=START
-    sn["gi"][1,0,STAGE]=15  # .01 * 2^14 = 163.84
+    sn["gf"][1,0,BAL]=START-163.84*NOMINAL_TP_NET_PER_LOT
+    sn["gi"][1,0,STAGE]=15  # stage number is NOT an input to dynamic lot
     ok=enter_order(1,0,1,night,100.,100.,sn["gf"],sn["gi"],
                    sn["tf"],sn["ti"],sn["no"])
     assert ok and abs(sn["gf"][1,0,LOT]-163.84)<1e-8, "Night XAUUSD 163.84 rejected incorrectly"
-    sn["gf"][1,1,BAL]=START
+    sn["gf"][1,1,BAL]=START-327.68*NOMINAL_TP_NET_PER_LOT
     sn["gi"][1,1,STAGE]=16
     ok=enter_order(1,1,1,night,100.,100.,sn["gf"],sn["gi"],
                    sn["tf"],sn["ti"],sn["no"])
