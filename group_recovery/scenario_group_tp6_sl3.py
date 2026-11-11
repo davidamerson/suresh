@@ -50,7 +50,7 @@ STATE_NAMES = (
 
 def make_state():
     a = {}
-    a["status"] = np.zeros(N,np.int8) # 0 idle,1 live,2 broker BLOCKED,3 bankrupt
+    a["status"] = np.zeros(N,np.int8) # 0 idle,1 live,2 broker BLOCKED,3 bankrupt,4 reversal PENDING
     a["side"] = np.zeros(N,np.int8)
     a["level"] = np.zeros(N,np.int32)
     a["entry"] = np.zeros(N)
@@ -145,8 +145,19 @@ def core(t,bids,asks,book,base,
                         # new signal on a later quote/hour, not this tick.
                         signal_available=False
                         break
-                    # SL: reverse at this SAME quote without arbitrary pause.
+                    # SL: a reversal is mandatory. If spread is already
+                    # wider than the 0.30 stop, wait for first VALID quote;
+                    # otherwise a broker could reject the SL level and a
+                    # naive simulation would loop dozens of orders at one ns.
                     level[q]+=1
+                    if ask-bid>=SL-1e-9:
+                        status[q]=4  # PENDING_NEXT_ORDER, NOT group completion
+                        break
+                    next_direction=-side[q]
+                    must_open=True
+                elif status[q]==4:
+                    if ask-bid>=SL-1e-9:
+                        break
                     next_direction=-side[q]
                     must_open=True
                 elif status[q]==0 and signal_available:
@@ -154,7 +165,7 @@ def core(t,bids,asks,book,base,
                     if late:
                         ignored_late[q]+=1
                         break
-                    if ask-bid>.55:
+                    if ask-bid>.55 or ask-bid>=SL-1e-9:
                         ignored_spread[q]+=1
                         break
                     g=grp_count[q]
@@ -353,6 +364,7 @@ def write_results(st,out,first,last,prov,book):
             ignored_high_spread_signals=int(st["ignored_spread"][q]),
             ignored_late_signals=int(st["ignored_late"][q]),
             open_at_end=bool(st["status"][q]==1),
+            reversal_pending_at_end=bool(st["status"][q]==4),
             ended_broker_blocked=bool(st["status"][q]==2),
             ended_bankrupt=bool(st["status"][q]==3),
             terminal_group_id=int(st["gid"][q]+1) if st["gid"][q]>=0 else None))
@@ -393,7 +405,7 @@ def write_results(st,out,first,last,prov,book):
       user_diagram_pip_price_usd=.10,
       starting_equity=START,contract_oz_per_lot=100,raw_spread_commission_per_lot_roundtrip=7.0,
       order_lots=".10,.10,.20,.40,.80,1.60,3.20,...",
-      exact_bid_ask=True,instant_reverse_same_tick_after_SL=True,
+      exact_bid_ask=True,instant_reverse_same_tick_after_SL_when_valid=True,\n      spread_stop_distance_validity_gate=True,\n      wide_spread_reversal_deferred_not_terminated=True,
       completed_groups_close_only_on_one_TP=True,
       no_forced_end_friday_time_or_daily_loss_exit=True,
       entry_signal="same H1 48h sweep/age2/strength0.6 next-hour tick from prior MSS study",
