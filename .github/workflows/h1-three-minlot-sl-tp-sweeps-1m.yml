@@ -1,0 +1,99 @@
+name: XAUUSD Independent H1 1M Min Breakeven Lots SL10 TP20 SL20 TP40 SL30 TP60
+on:
+  push:
+    branches: [h1-minimum-lot-tp20-40-60-sl10-20-30-20261111]
+    paths:
+      - 'h1_candle_recovery/independent_h1_1m_minlot_sl*_tp*.py'
+      - '.github/workflows/h1-three-minlot-sl-tp-sweeps-1m.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sl: 10
+            tp: 20
+            first: 2020
+            last: 2026
+            label: full_2020_to_Oct2026
+            script: h1_candle_recovery/independent_h1_1m_minlot_sl10_tp20.py
+          - sl: 20
+            tp: 40
+            first: 2020
+            last: 2026
+            label: full_2020_to_Oct2026
+            script: h1_candle_recovery/independent_h1_1m_minlot_sl20_tp40.py
+          - sl: 30
+            tp: 60
+            first: 2020
+            last: 2026
+            label: full_2020_to_Oct2026
+            script: h1_candle_recovery/independent_h1_1m_minlot_sl30_tp60.py
+          - sl: 10
+            tp: 20
+            first: 2025
+            last: 2026
+            label: independent_2025_to_Oct2026
+            script: h1_candle_recovery/independent_h1_1m_minlot_sl10_tp20.py
+          - sl: 20
+            tp: 40
+            first: 2025
+            last: 2026
+            label: independent_2025_to_Oct2026
+            script: h1_candle_recovery/independent_h1_1m_minlot_sl20_tp40.py
+          - sl: 30
+            tp: 60
+            first: 2025
+            last: 2026
+            label: independent_2025_to_Oct2026
+            script: h1_candle_recovery/independent_h1_1m_minlot_sl30_tp60.py
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned Exness tick replay dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Validate scenario directions minimum recovery lots group independence and spread
+        shell: bash
+        run: |
+          python -m py_compile ${{ matrix.script }}
+          SCRIPT=${{ matrix.script }} python - <<'PY'
+          import importlib.util,os
+          p=os.environ["SCRIPT"]
+          sp=importlib.util.spec_from_file_location("h1scenario",p)
+          m=importlib.util.module_from_spec(sp)
+          sp.loader.exec_module(m)
+          m.selftest()
+          PY
+      - name: Load audited complete historical closed H1 candle input
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p h1
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D h1 --repo davidamerson/suresh
+          test -s h1/complete_monday_friday_h1_candles.csv
+      - name: Replay exact Exness XAUUSD Raw Spread bid ask every eligible hour and independent group
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/SL${{ matrix.sl }}_TP${{ matrix.tp }}_${{ matrix.label }}
+          python -u ${{ matrix.script }} \
+            --h1 h1/complete_monday_friday_h1_candles.csv \
+            --first ${{ matrix.first }} --last ${{ matrix.last }} \
+            --out results/SL${{ matrix.sl }}_TP${{ matrix.tp }}_${{ matrix.label }} \
+            2>&1 | tee results/SL${{ matrix.sl }}_TP${{ matrix.tp }}_${{ matrix.label }}/run.log
+      - name: Archive EVERY ticket/group, yearly PnL, no-loss TP reconciliation and source hashes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: XAUUSD_1M_MINLOT_SL${{ matrix.sl }}_TP${{ matrix.tp }}_${{ matrix.label }}
+          path: results/SL${{ matrix.sl }}_TP${{ matrix.tp }}_${{ matrix.label }}/
+          retention-days: 30
+          if-no-files-found: warn
