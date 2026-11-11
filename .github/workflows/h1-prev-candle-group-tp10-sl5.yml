@@ -1,0 +1,68 @@
+name: XAUUSD H1 Previous Candle Group TP10 SL5 (04-19 UTC) 2020-2026
+on:
+  push:
+    branches: [xauusd-h1-prev-candle-tp10-sl5-recovery-20261111]
+    paths:
+      - 'h1_candle_recovery/h1_previous_candle_group_tp10_sl5.py'
+      - '.github/workflows/h1-prev-candle-group-tp10-sl5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            label: continuous_2020_to_Oct2026
+          - first: 2025
+            last: 2026
+            label: independent_2025_to_Oct2026
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned exact-tick replay dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Validate all four user's linked group scenarios and no overlapping H1 groups
+        run: |
+          python -m py_compile h1_candle_recovery/h1_previous_candle_group_tp10_sl5.py
+          python - <<'PY'
+          import importlib.util
+          p='h1_candle_recovery/h1_previous_candle_group_tp10_sl5.py'
+          spec=importlib.util.spec_from_file_location('h1recover',p)
+          m=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(m)
+          m.selftest()
+          PY
+      - name: Download previously audited full H1 completed bid candles
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p h1
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D h1 --repo davidamerson/suresh
+          test -s h1/complete_monday_friday_h1_candles.csv
+      - name: Stream continuous historical Exness BID/ASK ticks, linked orders
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p output/${{ matrix.label }}
+          python -u h1_candle_recovery/h1_previous_candle_group_tp10_sl5.py \
+            --h1 h1/complete_monday_friday_h1_candles.csv \
+            --first ${{ matrix.first }} --last ${{ matrix.last }} \
+            --out output/${{ matrix.label }} \
+            2>&1 | tee output/${{ matrix.label }}/run.log
+      - name: Upload complete source proof, trade ledger, groups, per-year audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: h1-prior-candle-tp10-sl5-${{ matrix.label }}
+          path: output/${{ matrix.label }}/
+          retention-days: 30
+          if-no-files-found: warn
