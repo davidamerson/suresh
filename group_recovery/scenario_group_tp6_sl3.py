@@ -4,8 +4,8 @@ Following stop: reverse side instantly, lots sequence .10,.10,.20,.40,.80,...
 One order at any time. The GROUP closes only at first TP, bankruptcy,
 or documented broker inability to place the mandatory next order.
 After TP, wait for next eligible locked completed-H1 48h MSS signal.
-Test last-replay reverse-MSS first direction AND the picture's always-BUY
-first direction separately; compare hypothetical no-limit, leverage 1:2000,
+Test MSS-SIGNAL-DIRECTION first entry (BUY->BUY, SELL->SELL) AND
+an explicitly inverted-direction comparator; compare hypothetical no-limit, leverage 1:2000,
 and all-hours 1:200 HMR stress. Exness Raw Spread Bid/Ask, 100 oz/lot,
 $7.00 per lot round-trip commission applied upon opening.
 No arbitrary loss cut, daily stop, time exit, or weekend forced exit.
@@ -28,12 +28,12 @@ N = 6
 MAXGROUPS = 5000
 MAXORDERS = 30000
 MODEL_NAMES = [
-    "REVERSE_MSS__NO_LIMIT_IDEAL",
-    "REVERSE_MSS__EXNESS_2000",
-    "REVERSE_MSS__HMR_200_STRESS",
-    "ALWAYS_BUY__NO_LIMIT_IDEAL",
-    "ALWAYS_BUY__EXNESS_2000",
-    "ALWAYS_BUY__HMR_200_STRESS",
+    "SIGNAL_MSS__NO_LIMIT_IDEAL",
+    "SIGNAL_MSS__EXNESS_2000",
+    "SIGNAL_MSS__HMR_200_STRESS",
+    "INVERTED_MSS__NO_LIMIT_IDEAL",
+    "INVERTED_MSS__EXNESS_2000",
+    "INVERTED_MSS__HMR_200_STRESS",
 ]
 STATE_NAMES = (
     "status","side","level","entry","lot","balance","gid",
@@ -175,7 +175,7 @@ def core(t,bids,asks,book,base,
                     level[q]=0
                     g_start[q,g]=ns
                     g_start_balance[q,g]=balance[q]
-                    next_direction=(-book[idx]) if q<3 else 1
+                    next_direction=book[idx] if q<3 else -book[idx]
                     must_open=True
                 else:
                     if sig and status[q]==1 and signal_available:
@@ -280,9 +280,11 @@ def locked_schedule(h1):
     return base,book
 
 def selftest():
-    # One hour initial signal, no spread, then scenarios from the images.
-    base=1000;h=3600000000000
-    book=np.zeros(4,np.int8);book[1]=-1 # reversed MSS => BUY
+    """Check all 4 user pictures with BOTH possible initial signal directions,
+    and test the inverted-direction comparator in isolation."""
+    base=1000
+    h=3600000000000
+    book=np.zeros(4,np.int8)
     paths=[
        ([100.0,100.6],5.3,1),
        ([100.0,99.7,99.1],1.6,2),
@@ -290,15 +292,25 @@ def selftest():
        ([100.0,99.7,100.0,99.7,99.1],6.4,4),
     ]
     for prices,expected,stage in paths:
-        s=make_state()
-        ts=np.array([h*(base+1)+j*60000000000 for j in range(len(prices))],np.int64)
-        bid=np.asarray(prices,np.float64)
-        run_chunk(ts,bid,bid,book,base,s)
-        for q in range(N):
-            assert s["completed"][q]==1,(stage,q,s["completed"][q],s["status"][q])
-            assert s["g_orders"][q,0]==stage,(stage,q,s["g_orders"][q,0])
-            assert abs(s["balance"][q]-(START+expected))<.0001,(stage,q,s["balance"][q],expected)
-    print("ALL_FOUR_USER_SCENARIOS_SELFTEST_PASSED 5.30 1.60 3.20 6.40",flush=True)
+        for mode in range(4):
+            # mode 0: signal BUY, upward-prices BUY
+            # mode 1: signal SELL, upward-prices inverted BUY
+            # mode 2: signal SELL, mirrored prices SELL
+            # mode 3: signal BUY, mirrored prices inverted SELL
+            book[1]=1 if mode in (0,3) else -1
+            series=prices if mode in (0,1) else [200.0-x for x in prices]
+            s=make_state()
+            ts=np.array([h*(base+1)+j*60000000000 for j in range(len(prices))],np.int64)
+            bid=np.asarray(series,np.float64)
+            run_chunk(ts,bid,bid,book,base,s)
+            selected=range(3) if mode in (0,2) else range(3,6)
+            for q in selected:
+                assert s["completed"][q]==1,(stage,mode,q,s["completed"][q],s["status"][q])
+                assert s["g_orders"][q,0]==stage,(stage,mode,q,s["g_orders"][q,0])
+                assert abs(s["balance"][q]-(START+expected))<.0001,(stage,mode,q,s["balance"][q],expected)
+                expected_first_dir=1 if mode in (0,1) else -1
+                assert s["o_side"][q,0]==expected_first_dir
+    print("ALL_FOUR_USER_SCENARIOS_SIGNAL_BUY_SELL_BOTH_DIRECTIONS_PASSED 5.30 1.60 3.20 6.40",flush=True)
 
 def download(url,p):
     sha=hashlib.sha256();size=0
@@ -410,7 +422,7 @@ def write_results(st,out,first,last,prov,book):
       wide_spread_reversal_deferred_not_terminated=True,
       completed_groups_close_only_on_one_TP=True,
       no_forced_end_friday_time_or_daily_loss_exit=True,
-      entry_signal="same H1 48h sweep/age2/strength0.6 next-hour tick from prior MSS study",
+      entry_signal="H1 48h sweep/age2/strength0.6 next-hour tick, original SIGNAL direction BUY->BUY SELL->SELL; inverted used only as separate comparator",
       leverage_normal=2000,leverage_stress=200,
       max_lot_day=200,max_lot_night=60,
       no_live_HMR_calendar=True,actual_swap_included=False,
