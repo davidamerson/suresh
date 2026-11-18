@@ -1,0 +1,60 @@
+name: XAUUSD Every H1 BUY SELL TP SL Hit Rates 10 to 100 Independent 1M
+on:
+  push:
+    branches: [xauusd-every-h1-buy-sell-tp-sl-hit-rate-10-to-100-20261118]
+    paths:
+      - 'xauusd_hit_rate/every_h1_buy_sell_10_to_100_equal_sl_tp.py'
+      - '.github/workflows/every-h1-buy-sell-10-100-hit-rates.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bid_ask_first_touch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            label: full_2020_to_Oct2026
+          - first: 2025
+            last: 2026
+            label: independent_2025_to_Oct2026
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned Exness tick replay dependencies
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Synthetic exact-first-touch bid ask TP SL correctness tests
+        shell: bash
+        run: |
+          python -m py_compile xauusd_hit_rate/every_h1_buy_sell_10_to_100_equal_sl_tp.py
+          python - <<'PY'
+          import importlib.util
+          p='xauusd_hit_rate/every_h1_buy_sell_10_to_100_equal_sl_tp.py'
+          spec=importlib.util.spec_from_file_location('gold_hit_rate',p)
+          mod=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+          mod.check_paths()
+          PY
+      - name: Run 20 independent virtual trades at each H1 first observed tick
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.label }}
+          python -u xauusd_hit_rate/every_h1_buy_sell_10_to_100_equal_sl_tp.py \
+            --first ${{ matrix.first }} --last ${{ matrix.last }} \
+            --out results/${{ matrix.label }} \
+            2>&1 | tee results/${{ matrix.label }}/run.log
+      - name: Save hit percentages all 24 and 04-19 UTC, all trade outcomes and source SHA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: XAUUSD_EVERY_H1_BUY_SELL_EQUAL_10_TO_100_${{ matrix.label }}
+          path: results/${{ matrix.label }}/
+          retention-days: 30
+          if-no-files-found: warn
