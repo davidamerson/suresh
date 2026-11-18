@@ -194,12 +194,12 @@ def check_paths():
     assert s["result"][10,0]==SL_CODE
     assert s["exitns"][0,0]==h+2*mi
     assert s["exitns"][10,0]==h+2*mi
-    # At $2 SL boundary, first-hour BUY hits SL at second-hour lower Bid,
-    # SELL TP is $4 lower (Ask<=96.0), reached at Ask=95.8.
+    # First-hour BUY with SL=$2 hits at second hour 97.8; first-hour
+    # SELL with SL=$2 already hits at first-hour Ask 102.3.
     assert s["result"][1,0]==SL_CODE
-    assert s["result"][11,0]==TP_CODE
-    assert s["exitns"][1,0]==2*h+2*mi
-    assert s["exitns"][11,0]==2*h+2*mi
+    assert s["result"][11,0]==SL_CODE
+    assert s["exitns"][1,0]==2*h+mi
+    assert s["exitns"][11,0]==h+2*mi
     assert int(s["nlive"].sum())>0  # wider TP/SL unresolved.
     # First hour 10 BUY group already closed, second hour has new BUY
     # that reaches SL at 98.8, proving no group blocks later entry.
