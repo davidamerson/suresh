@@ -315,7 +315,6 @@ def selftest():
     assert st["status"][NCFG,1]==0,"Control must not open BUY"
     assert abs(st["pnl"][0,0]-(2.4-.07))<1e-8
     assert abs(st["pnl"][NCFG,0]-(-2.6-.07))<1e-8
-    assert abs(st["sl"][NCFG-1,0]-(4.-.15*0+0.3))<1e-5 if False else True
     assert st["sl"][NCFG-1,0]>4.
     # Replaying the same sequence across chunks cannot change first hits.
     s=new_state(2)
@@ -403,7 +402,7 @@ def report(groups,st,prov,out,first,last):
                     SL_pct_closed=100*loss/closed if closed else np.nan,
                     average_realized_net_per_entered_trade_USD=float(p.sum()/(closed+opn)) if closed+opn else np.nan,
                     sum_net_realized_USD=float(p.sum()),
-                    median_net_closed_USD=float(np.median(p[v!=2])) if closed else np.nan,
+                    median_net_closed_USD=float(np.median(p[(v==1)|(v==-1)])) if closed else np.nan,
                     mean_duration_closed_H=float(
                         np.mean((st["exit_ns"][q,m][(v==1)|(v==-1)]-sn[m][(v==1)|(v==-1)])/HOUR_NS)
                     ) if closed else np.nan,
@@ -424,7 +423,6 @@ def report(groups,st,prov,out,first,last):
          sweep_high_above_R_atr=.02,
          signal_first_executable_quote_next_hour=True,
          independent_standalone_account_each_trade_USD=CAPITAL,
-         1_lot_contract_oz=100 if False else None,
          lot=LOT,commission_dollars_per_lot_roundtrip=COMMISSION,
          strategy_configs=list(NAMES),bid_ask_spread_included=True,
          swap_funding_included=False,slippage_to_observed_quote=True,
