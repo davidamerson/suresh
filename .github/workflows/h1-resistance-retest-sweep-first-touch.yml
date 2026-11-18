@@ -1,0 +1,68 @@
+name: XAUUSD Causal Resistance Double Top Retest and Sweep Backtest 2020-2026
+on:
+  push:
+    branches: [xauusd-resistance-doubletop-falsesweep-h1-firsttouch-20261118]
+    paths:
+      - 'xauusd_resistance/h1_confirmed_resistance_retest_sweep_tick_backtest.py'
+      - '.github/workflows/h1-resistance-retest-sweep-first-touch.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  resistance_tick_study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - first: 2020
+            last: 2026
+            label: FULL_2020_TO_2026_OCT
+          - first: 2025
+            last: 2026
+            label: OOS_2025_TO_2026_OCT
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Pin dependencies NumPy Pandas Numba and requests
+        run: pip install 'numpy==2.2.6' 'pandas==2.2.3' 'numba==0.61.2' 'requests==2.32.5'
+      - name: Compile and test Sell Buy mirror and historical tick boundary logic
+        run: |
+          python -m py_compile xauusd_resistance/h1_confirmed_resistance_retest_sweep_tick_backtest.py
+          python - <<'PY'
+          import importlib.util
+          name='xauusd_resistance/h1_confirmed_resistance_retest_sweep_tick_backtest.py'
+          sp=importlib.util.spec_from_file_location("resistance",name)
+          mod=importlib.util.module_from_spec(sp)
+          sp.loader.exec_module(mod)
+          mod.selftest()
+          PY
+      - name: Download previously audited complete historical H1 candles
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p h1
+          gh run download 42357164359 -n xauusd-2020-2026-h1-astro-source-bid-candles -D h1 --repo davidamerson/suresh
+          test -s h1/complete_monday_friday_h1_candles.csv
+      - name: Tick-by-tick historical resistance retest real bid ask first-touch audit
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p results/${{ matrix.label }}
+          python -u xauusd_resistance/h1_confirmed_resistance_retest_sweep_tick_backtest.py \
+            --h1 h1/complete_monday_friday_h1_candles.csv \
+            --first ${{ matrix.first }} --last ${{ matrix.last }} \
+            --out results/${{ matrix.label }} \
+            2>&1 | tee results/${{ matrix.label }}/run.log
+      - name: Archive every signal control ticket outcome and source hash
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: XAUUSD_Resist_Sweep_${{ matrix.label }}
+          path: results/${{ matrix.label }}/
+          if-no-files-found: warn
+          retention-days: 30
